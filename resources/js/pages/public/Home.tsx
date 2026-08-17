@@ -1,18 +1,24 @@
-import { Head } from '@inertiajs/react';
+import { Head, setLayoutProps } from '@inertiajs/react';
+
+import { HomeLanding } from '@/components/sections/home/HomeLanding';
+import { PublicLayout } from '@/layouts/PublicLayout';
 
 export default function Home() {
+    setLayoutProps({ transparentHeader: true });
+
     return (
         <>
-            <Head title="Home" />
+            <Head>
+                <title>Home</title>
+                <meta
+                    name="description"
+                    content="Discover Afghanistan through premium guided travel, local expertise and thoughtfully planned journeys."
+                />
+            </Head>
 
-            <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center px-6 py-16">
-                <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-100">
-                    Afghanistan Tourism
-                </h1>
-                <p className="mt-4 text-base text-slate-600 dark:text-slate-300">
-                    Laravel, Inertia and React are configured successfully.
-                </p>
-            </main>
+            <HomeLanding />
         </>
     );
 }
+
+Home.layout = PublicLayout;
