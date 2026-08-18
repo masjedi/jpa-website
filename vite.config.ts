@@ -3,7 +3,7 @@ import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import inertia from '@inertiajs/vite';
-import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
     plugins: [
@@ -17,8 +17,12 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, 'resources/js'),
+            '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
         },
+    },
+    build: {
+        sourcemap: false,
+        cssMinify: true,
     },
     server: {
         watch: {

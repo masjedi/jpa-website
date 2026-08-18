@@ -1,10 +1,10 @@
 @import 'tailwindcss';
-@import '@fontsource/manrope/400.css';
-@import '@fontsource/manrope/500.css';
-@import '@fontsource/manrope/600.css';
-@import '@fontsource/manrope/700.css';
-@import '@fontsource/inter/400.css';
-@import '@fontsource/inter/500.css';
+@import '@fontsource/manrope/latin-400.css';
+@import '@fontsource/manrope/latin-500.css';
+@import '@fontsource/manrope/latin-600.css';
+@import '@fontsource/manrope/latin-700.css';
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-500.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -20,6 +20,7 @@
 
     --brand-surface: #163b5c;
     --brand-on-surface: #ffffff;
+    --brand-deep: #071722;
 
     --background: #f7fafc;
     --foreground: #172b3a;
@@ -73,6 +74,7 @@
     --color-focus: var(--focus);
     --color-brand-surface: var(--brand-surface);
     --color-brand-on-surface: var(--brand-on-surface);
+    --color-brand-deep: var(--brand-deep);
 }
 
 html[dir='ltr'] {
@@ -81,6 +83,10 @@ html[dir='ltr'] {
 
 html[dir='rtl'] {
     direction: rtl;
+}
+
+html {
+    overflow-x: clip;
 }
 
 body {

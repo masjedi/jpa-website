@@ -1,8 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronDown, Globe, Menu, X } from 'lucide-react';
+import { Globe, Menu, X } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';
 
 import { planTripHref, primaryLinks } from '@/components/public/navigation';
+import { BrandLogo, brandLogoVariantForTheme } from '@/components/public/BrandLogo';
 import { ThemeToggle } from '@/components/public/ThemeToggle';
 import { useAppearance } from '@/hooks/use-appearance';
 import { cn } from '@/lib/utils';
@@ -40,7 +41,7 @@ function NavLink({
 
     if (isInternalPage) {
         return (
-            <Link href={link.href} className={className} onClick={onNavigate}>
+            <Link href={link.href} prefetch className={className} onClick={onNavigate}>
                 {link.label}
             </Link>
         );
@@ -105,7 +106,32 @@ export function Navbar({ transparent = false }: NavbarProps) {
         }
 
         if (href === '/tours') {
-            return url === '/tours' || url.startsWith('/tours?');
+            return (
+                url === '/tours' ||
+                url.startsWith('/tours?') ||
+                url.startsWith('/tours/') ||
+                url.startsWith('/packages/')
+            );
+        }
+
+        if (href === '/destinations') {
+            return url === '/destinations' || url.startsWith('/destinations/');
+        }
+
+        if (href === '/services') {
+            return url === '/services' || url.startsWith('/services/');
+        }
+
+        if (href === '/articles') {
+            return url === '/articles' || url.startsWith('/articles/');
+        }
+
+        if (href === '/about') {
+            return url === '/about' || url.startsWith('/about/');
+        }
+
+        if (href === '/contact') {
+            return url === '/contact' || url.startsWith('/contact/');
         }
 
         if (href.startsWith('/#')) {
@@ -119,10 +145,12 @@ export function Navbar({ transparent = false }: NavbarProps) {
         return url.startsWith(href);
     };
 
+    const usesDarkLogoSurface = isDark || overlayHeader;
+
     const shellClassName = overlayHeader
         ? isDark
-            ? 'border-white/10 bg-[#071722]/92 text-brand-on-surface shadow-[0_12px_40px_rgba(0,0,0,0.35)]'
-            : 'border-white/15 bg-[#163B5C]/92 text-brand-on-surface shadow-[0_12px_40px_rgba(7,23,34,0.28)]'
+            ? 'border-white/10 bg-brand-deep/92 text-brand-on-surface shadow-[0_12px_40px_rgba(0,0,0,0.35)]'
+            : 'border-white/15 bg-brand-surface/92 text-brand-on-surface shadow-[0_12px_40px_rgba(7,23,34,0.28)]'
         : isDark
           ? 'border-white/10 bg-surface/95 text-foreground shadow-[0_12px_40px_rgba(0,0,0,0.35)]'
           : 'border-border/70 bg-surface/95 text-foreground shadow-[0_12px_40px_rgba(22,59,92,0.08)]';
@@ -136,28 +164,11 @@ export function Navbar({ transparent = false }: NavbarProps) {
                         shellClassName,
                     )}
                 >
-                    <Link
-                        href="/"
-                        className={cn(
-                            'flex min-w-0 shrink-0 items-center gap-2.5 rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
-                            overlayHeader ? 'text-brand-on-surface' : 'text-foreground',
-                        )}
-                    >
-                        <span
-                            aria-hidden
-                            className={cn(
-                                'flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
-                                overlayHeader
-                                    ? 'bg-white/15 text-brand-on-surface'
-                                    : 'bg-primary text-primary-foreground',
-                            )}
-                        >
-                            AT
-                        </span>
-                        <span className="font-heading truncate text-sm font-semibold sm:text-base lg:text-lg">
-                            Journey To Peach Afghanistan
-                        </span>
-                    </Link>
+                    <BrandLogo
+                        variant={brandLogoVariantForTheme(usesDarkLogoSurface)}
+                        className="min-w-0"
+                        imageClassName="max-w-[10.5rem] sm:max-w-[12.5rem] lg:max-w-[14rem]"
+                    />
 
                     <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 xl:flex" aria-label="Primary">
                         {primaryLinks.map((link) => (
@@ -171,20 +182,18 @@ export function Navbar({ transparent = false }: NavbarProps) {
                     </nav>
 
                     <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-                        <button
-                            type="button"
+                        <span
                             className={cn(
-                                'hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus lg:inline-flex',
+                                'hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium lg:inline-flex',
                                 overlayHeader
-                                    ? 'text-brand-on-surface/90 hover:text-brand-on-surface'
-                                    : 'text-foreground/90 hover:text-foreground',
+                                    ? 'text-brand-on-surface/90'
+                                    : 'text-foreground/90',
                             )}
-                            aria-label="Language: English"
+                            aria-label="Language: English. Additional languages coming soon."
                         >
                             <Globe className="size-4" aria-hidden />
                             <span>English</span>
-                            <ChevronDown className="size-4 opacity-70" aria-hidden />
-                        </button>
+                        </span>
 
                         <div
                             className={cn(
@@ -196,12 +205,13 @@ export function Navbar({ transparent = false }: NavbarProps) {
 
                         <ThemeToggle glass={overlayHeader} />
 
-                        <a
+                        <Link
                             href={planTripHref}
+                            prefetch
                             className="hidden rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:inline-flex"
                         >
                             Plan My Trip
-                        </a>
+                        </Link>
 
                         <button
                             type="button"
@@ -211,11 +221,11 @@ export function Navbar({ transparent = false }: NavbarProps) {
                                     ? 'text-brand-on-surface hover:bg-white/10'
                                     : 'text-foreground hover:bg-foreground/5',
                             )}
+                            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
                             aria-expanded={mobileOpen}
                             aria-controls={menuId}
                             onClick={() => setMobileOpen((open) => !open)}
                         >
-                            <span className="sr-only">{mobileOpen ? 'Close menu' : 'Open menu'}</span>
                             {mobileOpen ? <X className="size-5" aria-hidden /> : <Menu className="size-5" aria-hidden />}
                         </button>
                     </div>
@@ -228,14 +238,22 @@ export function Navbar({ transparent = false }: NavbarProps) {
                             'mt-3 rounded-3xl border p-3 shadow-xl backdrop-blur-xl xl:hidden',
                             overlayHeader
                                 ? isDark
-                                    ? 'border-white/10 bg-[#071722]/95'
-                                    : 'border-white/15 bg-[#163B5C]/95'
+                                    ? 'border-white/10 bg-brand-deep/95'
+                                    : 'border-white/15 bg-brand-surface/95'
                                 : isDark
                                   ? 'border-white/10 bg-surface/95'
                                   : 'border-border/70 bg-surface/95',
                         )}
                         aria-label="Mobile primary"
                     >
+                        <div className="mb-3 flex justify-center border-b border-border/60 pb-4 dark:border-white/10">
+                            <BrandLogo
+                                variant="stacked"
+                                href="/"
+                                imageClassName="h-20 w-auto"
+                                onClick={() => setMobileOpen(false)}
+                            />
+                        </div>
                         <ul className="space-y-1">
                             {primaryLinks.map((link) => (
                                 <li key={link.label}>
@@ -258,13 +276,14 @@ export function Navbar({ transparent = false }: NavbarProps) {
                                 <ThemeToggle glass={overlayHeader} />
                             </li>
                             <li className="pt-1">
-                                <a
+                                <Link
                                     href={planTripHref}
+                                    prefetch
                                     className="inline-flex w-full justify-center rounded-full bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                     onClick={() => setMobileOpen(false)}
                                 >
                                     Plan My Trip
-                                </a>
+                                </Link>
                             </li>
                         </ul>
                     </nav>

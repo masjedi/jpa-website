@@ -11,14 +11,14 @@ export function ToursLanding() {
     const [inquiryInitialData, setInquiryInitialData] = useState<InquiryFormData>({
         tourTitle: '',
         preferredDate: '',
-        travelerCount: '2 travelers',
+        travelerCount: '2',
     });
 
     const handleOpenCustomInquiry = () => {
         setInquiryInitialData({
             tourTitle: 'Custom Tailored Itinerary',
             preferredDate: '',
-            travelerCount: '2 travelers',
+            travelerCount: '2',
         });
         setInquiryModalOpen(true);
     };
@@ -27,7 +27,7 @@ export function ToursLanding() {
         setInquiryInitialData({
             tourTitle: tour.title,
             preferredDate: tour.nextDeparture.date,
-            travelerCount: '2 travelers',
+            travelerCount: '2',
         });
         setInquiryModalOpen(true);
     };
@@ -36,7 +36,7 @@ export function ToursLanding() {
         setInquiryInitialData({
             tourTitle: pkg.title,
             preferredDate: '',
-            travelerCount: '2 travelers',
+            travelerCount: '2',
         });
         setInquiryModalOpen(true);
     };

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { Footer } from '@/components/public/Footer';
 import { InquiryCtaBand } from '@/components/public/InquiryCtaBand';
 import { Navbar } from '@/components/public/Navbar';
+import { WhatsAppFloat } from '@/components/public/WhatsAppFloat';
 import { cn } from '@/lib/utils';
 import '@/types/inertia';
 
@@ -19,13 +20,25 @@ export function PublicLayout({ children, transparentHeader = false }: PublicLayo
         <div
             lang={locale}
             dir={direction}
-            className="flex min-h-screen flex-col bg-background text-start text-foreground"
+            className="flex min-h-screen flex-col overflow-x-clip bg-background text-start text-foreground"
         >
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-accent-foreground focus:outline-2 focus:outline-offset-2 focus:outline-focus"
+            >
+                Skip to content
+            </a>
             <Navbar transparent={transparentHeader} />
-            <main className={cn('w-full flex-1', !transparentHeader && 'pt-24')}>{children}</main>
+            <main
+                id="main-content"
+                tabIndex={-1}
+                className={cn('w-full flex-1 outline-none', !transparentHeader && 'pt-24')}
+            >
+                {children}
+            </main>
             <InquiryCtaBand />
-            <div className="h-3 bg-background" aria-hidden />
             <Footer />
+            <WhatsAppFloat />
         </div>
     );
 }

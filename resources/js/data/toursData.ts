@@ -351,6 +351,7 @@ export const allTours: readonly Tour[] = [
 export const tourPackages: readonly TourPackage[] = [
     {
         id: 'signature-all-inclusive',
+        slug: 'signature-all-inclusive',
         title: 'Grand Afghanistan Package',
         tagline: '12 days across four provinces with domestic flights included.',
         duration: '12 Days / 11 Nights',
@@ -377,10 +378,33 @@ export const tourPackages: readonly TourPackage[] = [
             'Full-time English-speaking Afghan tour guide',
             'All provincial permits, monument fees & security briefings',
         ],
+        journeyOutline: [
+            {
+                phase: 'Days 1–3',
+                title: 'Kabul orientation & Bamiyan',
+                summary: 'Arrival briefing, domestic flight to the highlands, Buddha niches and valley walks.',
+            },
+            {
+                phase: 'Days 4–5',
+                title: 'Band-e Amir & central lakes',
+                summary: 'National park viewpoints, gentle hikes, and heritage guest house evenings.',
+            },
+            {
+                phase: 'Days 6–9',
+                title: 'Herat & Timurid heritage',
+                summary: 'Friday Mosque tilework, citadel views, and artisan workshop visits.',
+            },
+            {
+                phase: 'Days 10–12',
+                title: 'Mazar-i-Sharif & Balkh',
+                summary: 'Blue Mosque, ancient Balkh ruins, and return to Kabul for departure support.',
+            },
+        ],
         isPopular: true,
     },
     {
         id: 'highlands-and-lakes',
+        slug: 'highlands-and-lakes',
         title: 'Highlands & Band-e Amir',
         tagline: '7 days in Bamiyan mountains and alpine lakes.',
         duration: '7 Days / 6 Nights',
@@ -406,10 +430,28 @@ export const tourPackages: readonly TourPackage[] = [
             'All meals, national park fees and museum entries',
             'Bottled mineral water & 24/7 journey logistics support',
         ],
+        journeyOutline: [
+            {
+                phase: 'Days 1–2',
+                title: 'Kabul to Bamiyan',
+                summary: 'Scenic transfer, cultural introduction, and Buddha cliff exploration.',
+            },
+            {
+                phase: 'Days 3–5',
+                title: 'Band-e Amir & village life',
+                summary: 'Lake circuits, craft cooperatives, and mountain viewpoints.',
+            },
+            {
+                phase: 'Days 6–7',
+                title: 'Return via highland routes',
+                summary: 'Final heritage sites and departure assistance in Kabul.',
+            },
+        ],
         isPopular: true,
     },
     {
         id: 'silk-road-heritage-express',
+        slug: 'silk-road-heritage-express',
         title: 'Silk Road Heritage',
         tagline: '8 days of Timurid art in Herat, Kabul, and Balkh.',
         duration: '8 Days / 7 Nights',
@@ -435,9 +477,27 @@ export const tourPackages: readonly TourPackage[] = [
             'Specialist English-speaking architectural guide',
             'All meals including traditional regional feasts',
         ],
+        journeyOutline: [
+            {
+                phase: 'Days 1–2',
+                title: 'Kabul museums & old city',
+                summary: 'National Museum highlights and Mughal garden viewpoints.',
+            },
+            {
+                phase: 'Days 3–5',
+                title: 'Herat architecture',
+                summary: 'Friday Mosque, citadel, and master artisan ateliers.',
+            },
+            {
+                phase: 'Days 6–8',
+                title: 'Mazar & ancient Balkh',
+                summary: 'Blue Mosque, archaeological Balkh, and curated shrine visits.',
+            },
+        ],
     },
     {
         id: 'custom-private-bespoke',
+        slug: 'custom-private-bespoke',
         title: 'Custom Private Expeditions',
         tagline: 'Tailored routes, dates, and pace for your group.',
         duration: 'Custom (3 to 21+ Days)',
@@ -464,3 +524,14 @@ export const tourPackages: readonly TourPackage[] = [
         ],
     },
 ];
+
+export function getTourPackageBySlug(slug: string): TourPackage | undefined {
+    return tourPackages.find((pkg) => pkg.slug === slug);
+}
+
+export function getRelatedTourPackages(
+    slug: string,
+    limit = 2,
+): readonly TourPackage[] {
+    return tourPackages.filter((pkg) => pkg.slug !== slug).slice(0, limit);
+}

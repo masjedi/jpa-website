@@ -8,9 +8,7 @@ import {
     Compass,
     FileText,
     HandHeart,
-    Handshake,
     Heart,
-    Mail,
     MapPin,
     MapPinned,
     MessageCircle,
@@ -28,6 +26,9 @@ import {
 
 import { BorderGlow } from "@/components/react-bits/BorderGlow/BorderGlow";
 import { SpotlightCard } from "@/components/react-bits/SpotlightCard/SpotlightCard";
+import { FadeIn, FadeInOnMount, RevealItem, RevealStagger } from "@/components/motion/FadeIn";
+import { destinationShowHref, articleShowHref } from "@/components/public/navigation";
+import { DonateButton } from "@/components/public/DonateButton";
 import { HeroScannerBackground } from "@/components/sections/home/HeroScannerBackground";
 
 /* -------------------------------------------------------------------------- */
@@ -59,6 +60,7 @@ interface Tour {
 interface Destination {
     image: string;
     name: string;
+    slug: string;
     description: string;
     relatedTours: number;
 }
@@ -89,6 +91,7 @@ interface Testimonial {
 }
 
 interface Article {
+    slug: string;
     image: string;
     category: string;
     title: string;
@@ -217,6 +220,7 @@ const featuredDestinations: readonly Destination[] = [
     {
         image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80",
         name: "Bamiyan Valley",
+        slug: "bamiyan-valley",
         description:
             "High-altitude lakes, cliff monasteries and star-filled nights in the central highlands.",
         relatedTours: 3,
@@ -224,6 +228,7 @@ const featuredDestinations: readonly Destination[] = [
     {
         image: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=900&q=80",
         name: "Panjshir Valley",
+        slug: "panjshir-valley",
         description:
             "Dramatic gorges, riverside picnics and day hikes within reach of Kabul.",
         relatedTours: 2,
@@ -231,6 +236,7 @@ const featuredDestinations: readonly Destination[] = [
     {
         image: "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=900&q=80",
         name: "Herat",
+        slug: "herat",
         description:
             "Persian-influenced art, architecture and one of the oldest living bazaars in the region.",
         relatedTours: 2,
@@ -238,6 +244,7 @@ const featuredDestinations: readonly Destination[] = [
     {
         image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=900&q=80",
         name: "Kabul",
+        slug: "kabul",
         description:
             "Museums, gardens, hillside views and the everyday rhythm of the capital.",
         relatedTours: 4,
@@ -440,6 +447,7 @@ const testimonials: readonly Testimonial[] = [
 
 const latestArticles: readonly Article[] = [
     {
+        slug: "what-to-pack-for-spring-in-afghanistan",
         image: "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80",
         category: "Travel tips",
         title: "What to pack for spring in Afghanistan",
@@ -448,6 +456,7 @@ const latestArticles: readonly Article[] = [
         date: "12 Mar 2026",
     },
     {
+        slug: "respectful-travellers-guide-to-herat",
         image: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80",
         category: "Culture",
         title: "A respectful traveller’s guide to Herat",
@@ -456,6 +465,7 @@ const latestArticles: readonly Article[] = [
         date: "28 Feb 2026",
     },
     {
+        slug: "one-week-in-bamiyan-practical-route",
         image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80",
         category: "Itineraries",
         title: "One week in Bamiyan: a practical route",
@@ -597,13 +607,13 @@ export function HomeLanding() {
             {/* Hero ---------------------------------------------------------- */}
             <section
                 id="hero"
-                className="relative isolate grid min-h-screen w-full place-items-center overflow-hidden bg-brand-surface"
+                className="relative isolate grid min-h-screen w-full place-items-center overflow-hidden bg-brand-deep"
             >
-                <div aria-hidden className="pointer-events-none absolute inset-0">
+                <div aria-hidden className="absolute inset-0">
                     <HeroScannerBackground />
                 </div>
 
-                <div className="relative z-10 max-w-3xl px-4 py-28 text-center sm:px-6 lg:py-32">
+                <FadeInOnMount className="relative z-10 max-w-3xl px-4 py-28 text-center sm:px-6 lg:py-32">
                     <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-on-surface/65">
                         Premium guided travel in Afghanistan
                     </p>
@@ -615,29 +625,34 @@ export function HomeLanding() {
                         people who know the country deeply.
                     </p>
 
-                    <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                        <a
-                            href="#tours"
-                            className="inline-flex min-w-[9.5rem] items-center justify-center rounded-full border border-brand-on-surface/25 px-6 py-2.5 text-sm font-medium text-brand-on-surface transition-colors hover:border-brand-on-surface/45 hover:bg-brand-on-surface/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                        >
-                            Explore Tours
-                        </a>
-                        <a
-                            id="plan-trip"
-                            href="#contact"
-                            className="inline-flex min-w-[9.5rem] items-center justify-center rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                        >
-                            Plan My Trip
-                        </a>
+                    <div className="mt-9 flex flex-col items-center justify-center gap-4">
+                        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+                            <a
+                                href="#tours"
+                                className="inline-flex min-w-[9.5rem] items-center justify-center rounded-full border border-brand-on-surface/25 px-6 py-2.5 text-sm font-medium text-brand-on-surface transition-colors hover:border-brand-on-surface/45 hover:bg-brand-on-surface/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                            >
+                                Explore Tours
+                            </a>
+                            <Link
+                                id="plan-trip"
+                                href="/contact"
+                                prefetch
+                                className="inline-flex min-w-[9.5rem] items-center justify-center rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                            >
+                                Plan My Trip
+                            </Link>
+                        </div>
+                        <DonateButton variant="hero" />
                     </div>
-                </div>
+                </FadeInOnMount>
             </section>
 
             {/* Quick Tour Finder --------------------------------------------- */}
             <section
-                id="finder"
+                id="booking"
                 className="border-b border-border bg-background py-12 sm:py-16"
             >
+                <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -724,14 +739,16 @@ export function HomeLanding() {
                         </div>
                     </div>
                 </div>
+                </FadeIn>
             </section>
 
             {/* Trust Indicators ------------------------------------------------ */}
             <section id="trust" className="bg-background py-16 sm:py-20">
+                <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
-                    <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <RevealStagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                         {trustIndicators.map((point) => (
-                            <li key={point.title}>
+                            <RevealItem key={point.title} className="h-full">
                                 <SpotlightCard
                                     className="h-full rounded-2xl border border-border bg-surface p-6 text-start shadow-sm"
                                     spotlightColor="rgba(14, 115, 115, 0.22)"
@@ -747,14 +764,16 @@ export function HomeLanding() {
                                         {point.description}
                                     </p>
                                 </SpotlightCard>
-                            </li>
+                            </RevealItem>
                         ))}
-                    </ul>
+                    </RevealStagger>
                 </div>
+                </FadeIn>
             </section>
 
             {/* Featured Tours -------------------------------------------------- */}
             <section id="tours" className="bg-surface-muted py-16 sm:py-20">
+                <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
                         eyebrow="Featured tours"
@@ -762,16 +781,19 @@ export function HomeLanding() {
                         description="A few of our most requested routes, each built around local insight and flexible pacing."
                         action={{ label: "View all tours", href: "/tours" }}
                     />
-                    <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <RevealStagger className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {featuredTours.map((tour) => (
-                            <div key={tour.title}>
+                            <RevealItem key={tour.title}>
                                 <Card>
                                     <div className="relative aspect-[4/3] overflow-hidden">
                                         <img
                                             src={tour.image}
                                             alt={tour.title}
+                                            width={900}
+                                            height={675}
                                             className="size-full object-cover transition-transform duration-300 hover:scale-105"
                                             loading="lazy"
+                                            decoding="async"
                                         />
                                     </div>
                                     <div className="p-6 text-start">
@@ -809,14 +831,16 @@ export function HomeLanding() {
                                         </div>
                                     </div>
                                 </Card>
-                            </div>
+                            </RevealItem>
                         ))}
-                    </div>
+                    </RevealStagger>
                 </div>
+                </FadeIn>
             </section>
 
             {/* Featured Destinations -------------------------------------------- */}
             <section id="destinations" className="bg-background py-16 sm:py-20">
+                <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
                         eyebrow="Destinations"
@@ -824,19 +848,22 @@ export function HomeLanding() {
                         description="From high-altitude lakes to ancient cities, each destination offers a different side of Afghanistan."
                         action={{
                             label: "Explore all destinations",
-                            href: "#destinations",
+                            href: "/destinations",
                         }}
                     />
-                    <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <RevealStagger className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                         {featuredDestinations.map((destination) => (
-                            <div key={destination.name}>
+                            <RevealItem key={destination.name}>
                                 <Card>
                                     <div className="relative aspect-[4/3] overflow-hidden">
                                         <img
                                             src={destination.image}
                                             alt={destination.name}
+                                            width={900}
+                                            height={675}
                                             className="size-full object-cover transition-transform duration-300 hover:scale-105"
                                             loading="lazy"
+                                            decoding="async"
                                         />
                                     </div>
                                     <div className="p-5 text-start">
@@ -854,33 +881,35 @@ export function HomeLanding() {
                                                     ? ""
                                                     : "s"}
                                             </p>
-                                            <a
-                                                href="#destinations"
+                                            <Link
+                                                href={destinationShowHref(destination.slug)}
                                                 className="text-sm font-medium text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                             >
                                                 Explore
-                                            </a>
+                                            </Link>
                                         </div>
                                     </div>
                                 </Card>
-                            </div>
+                            </RevealItem>
                         ))}
-                    </div>
+                    </RevealStagger>
                 </div>
+                </FadeIn>
             </section>
 
             {/* Why Travel With Us ------------------------------------------------ */}
             <section id="about" className="bg-surface-muted py-16 sm:py-20">
+                <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
                         eyebrow="Why travel with us"
                         title="Travel with clarity, care and cultural depth"
                         description="We help international visitors experience Afghanistan through thoughtfully guided tours, transparent planning and inquiry-based bookings reviewed by our team."
                     />
-                    <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    <RevealStagger className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                         {whyTravelWithUs.map((point) => (
+                            <RevealItem key={point.title} className="h-full">
                             <BorderGlow
-                                key={point.title}
                                 className="h-full"
                                 backgroundColor="var(--surface)"
                                 borderRadius={16}
@@ -905,22 +934,25 @@ export function HomeLanding() {
                                     </p>
                                 </div>
                             </BorderGlow>
+                            </RevealItem>
                         ))}
-                    </div>
+                    </RevealStagger>
                 </div>
+                </FadeIn>
             </section>
 
             {/* Upcoming Departures ----------------------------------------------- */}
             <section id="departures" className="bg-background py-16 sm:py-20">
+                <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
                         eyebrow="Upcoming departures"
                         title="Scheduled small-group journeys"
                         description="Dates below are indicative. Our team reviews availability manually and confirms every booking by email."
                     />
-                    <div className="mt-10 grid gap-6 md:grid-cols-3">
+                    <RevealStagger className="mt-10 grid gap-6 md:grid-cols-3">
                         {upcomingDepartures.map((departure) => (
-                            <div key={`${departure.title}-${departure.date}`}>
+                            <RevealItem key={`${departure.title}-${departure.date}`}>
                                 <Card>
                                     <div className="p-6 text-start">
                                         <div className="flex items-start justify-between gap-3">
@@ -972,18 +1004,20 @@ export function HomeLanding() {
                                         </a>
                                     </div>
                                 </Card>
-                            </div>
+                            </RevealItem>
                         ))}
-                    </div>
+                    </RevealStagger>
                     <p className="mt-6 text-sm text-muted-foreground">
                         Availability is manually reviewed. Submitting a request
                         does not reserve a seat or confirm a trip.
                     </p>
                 </div>
+                </FadeIn>
             </section>
 
             {/* Services Overview --------------------------------------------------- */}
             <section id="services" className="bg-surface-muted py-16 sm:py-20">
+                <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
                         eyebrow="Services"
@@ -991,12 +1025,12 @@ export function HomeLanding() {
                         description="From a single day with a local guide to a fully custom itinerary, we coordinate the practical details so you can focus on the experience."
                         action={{
                             label: "See all services",
-                            href: "#services",
+                            href: "/services",
                         }}
                     />
-                    <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <RevealStagger className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {servicesOverview.map((service) => (
-                            <div key={service.title}>
+                            <RevealItem key={service.title}>
                                 <Card className="p-6 text-start">
                                     <service.icon
                                         className="size-6 text-secondary"
@@ -1009,14 +1043,16 @@ export function HomeLanding() {
                                         {service.description}
                                     </p>
                                 </Card>
-                            </div>
+                            </RevealItem>
                         ))}
-                    </div>
+                    </RevealStagger>
                 </div>
+                </FadeIn>
             </section>
 
             {/* Cultural and Community Impact --------------------------------------- */}
             <section id="impact" className="bg-background py-16 sm:py-20">
+                <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
                         eyebrow="Cultural & community impact"
@@ -1024,11 +1060,11 @@ export function HomeLanding() {
                         description="We design journeys that respect local culture and keep tourism income within Afghan communities."
                         center
                     />
-                    <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <RevealStagger className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                         {impactPoints.map((point) => (
+                            <RevealItem key={point.title}>
                             <div
-                                key={point.title}
-                                className="rounded-2xl border border-border bg-surface p-6 text-start shadow-sm"
+                                className="h-full rounded-2xl border border-border bg-surface p-6 text-start shadow-sm"
                             >
                                 <point.icon
                                     className="size-6 text-secondary"
@@ -1041,45 +1077,49 @@ export function HomeLanding() {
                                     {point.description}
                                 </p>
                             </div>
+                            </RevealItem>
                         ))}
-                    </div>
+                    </RevealStagger>
                 </div>
+                </FadeIn>
             </section>
 
             {/* Gallery Preview ------------------------------------------------------ */}
             <section id="gallery" className="bg-surface-muted py-16 sm:py-20">
+                <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
                         eyebrow="Gallery"
                         title="Moments from the road"
                         description="A glimpse of the landscapes, cities and everyday life our travellers experience."
-                        action={{
-                            label: "View full gallery",
-                            href: "#gallery",
-                        }}
                     />
-                    <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                    <RevealStagger className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6" stagger={0.05}>
                         {galleryItems.map((item) => (
-                            <div key={item.caption}>
+                            <RevealItem key={item.caption}>
                                 <figure className="group relative overflow-hidden rounded-xl">
                                     <img
                                         src={item.image}
                                         alt={item.alt}
+                                        width={400}
+                                        height={400}
                                         className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105"
                                         loading="lazy"
+                                        decoding="async"
                                     />
                                     <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-xs font-medium text-white">
                                         {item.caption}
                                     </figcaption>
                                 </figure>
-                            </div>
+                            </RevealItem>
                         ))}
-                    </div>
+                    </RevealStagger>
                 </div>
+                </FadeIn>
             </section>
 
             {/* Traveler Testimonials ------------------------------------------------- */}
             <section id="testimonials" className="bg-background py-16 sm:py-20">
+                <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
                         eyebrow="Testimonials"
@@ -1087,9 +1127,9 @@ export function HomeLanding() {
                         description="Real feedback from guests who explored Afghanistan with our team."
                         center
                     />
-                    <div className="mt-10 grid gap-6 md:grid-cols-3">
+                    <RevealStagger className="mt-10 grid gap-6 md:grid-cols-3">
                         {testimonials.map((testimonial) => (
-                            <div key={testimonial.name}>
+                            <RevealItem key={testimonial.name}>
                                 <Card className="p-6 text-start">
                                     <Quote
                                         className="size-6 text-secondary"
@@ -1129,14 +1169,16 @@ export function HomeLanding() {
                                         </div>
                                     </div>
                                 </Card>
-                            </div>
+                            </RevealItem>
                         ))}
-                    </div>
+                    </RevealStagger>
                 </div>
+                </FadeIn>
             </section>
 
             {/* Latest Articles -------------------------------------------------------- */}
             <section id="articles" className="bg-surface-muted py-16 sm:py-20">
+                <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
                         eyebrow="Travel blog"
@@ -1144,19 +1186,22 @@ export function HomeLanding() {
                         description="Practical advice, cultural insight and itinerary ideas from our team."
                         action={{
                             label: "Read all articles",
-                            href: "#articles",
+                            href: "/articles",
                         }}
                     />
-                    <div className="mt-10 grid gap-6 md:grid-cols-3">
+                    <RevealStagger className="mt-10 grid gap-6 md:grid-cols-3">
                         {latestArticles.map((article) => (
-                            <div key={article.title}>
+                            <RevealItem key={article.title}>
                                 <Card>
                                     <div className="relative aspect-[16/10] overflow-hidden">
                                         <img
                                             src={article.image}
                                             alt={article.title}
+                                            width={800}
+                                            height={500}
                                             className="size-full object-cover transition-transform duration-300 hover:scale-105"
                                             loading="lazy"
+                                            decoding="async"
                                         />
                                     </div>
                                     <div className="p-6 text-start">
@@ -1174,8 +1219,8 @@ export function HomeLanding() {
                                         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                                             {article.summary}
                                         </p>
-                                        <a
-                                            href="#articles"
+                                        <Link
+                                            href={articleShowHref(article.slug)}
                                             className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                         >
                                             Read Article
@@ -1183,17 +1228,19 @@ export function HomeLanding() {
                                                 className="size-4"
                                                 aria-hidden
                                             />
-                                        </a>
+                                        </Link>
                                     </div>
                                 </Card>
-                            </div>
+                            </RevealItem>
                         ))}
-                    </div>
+                    </RevealStagger>
                 </div>
+                </FadeIn>
             </section>
 
             {/* FAQ Preview ------------------------------------------------------------ */}
             <section id="faq" className="bg-background py-16 sm:py-20">
+                <FadeIn>
                 <div className="mx-auto max-w-3xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
                         eyebrow="Travel information"
@@ -1201,9 +1248,9 @@ export function HomeLanding() {
                         description="Quick answers to common questions about planning a trip to Afghanistan."
                         center
                     />
-                    <div className="mt-10 space-y-3">
+                    <RevealStagger className="mt-10 space-y-3" stagger={0.06}>
                         {faqItems.map((faq) => (
-                            <div key={faq.question}>
+                            <RevealItem key={faq.question}>
                                 <details className="group rounded-2xl border border-border bg-surface shadow-sm open:bg-surface-muted">
                                     <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4 text-start font-heading text-base font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
                                         {faq.question}
@@ -1216,77 +1263,11 @@ export function HomeLanding() {
                                         {faq.answer}
                                     </div>
                                 </details>
-                            </div>
+                            </RevealItem>
                         ))}
-                    </div>
+                    </RevealStagger>
                 </div>
-            </section>
-
-            {/* Donation / Community Support CTA ----------------------------------------- */}
-            <section id="donation" className="bg-surface-muted py-16 sm:py-20">
-                <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-                    <div className="rounded-2xl border border-border bg-surface p-8 shadow-sm sm:p-10">
-                        <Handshake
-                            className="mx-auto size-8 text-secondary"
-                            aria-hidden
-                        />
-                        <h2 className="mt-4 font-heading text-3xl font-semibold text-foreground sm:text-4xl">
-                            Support Afghan communities
-                        </h2>
-                        <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
-                            We connect travellers with verified local
-                            initiatives that support education, cultural
-                            preservation and small businesses. Donation details
-                            are shared through secure, verified channels — we
-                            never ask for bank or card details here.
-                        </p>
-                        <a
-                            href="#donation"
-                            className="mt-8 inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                        >
-                            Learn how to support
-                        </a>
-                    </div>
-                </div>
-            </section>
-
-            {/* Newsletter Subscription ---------------------------------------------------- */}
-            <section id="newsletter" className="bg-background py-16 sm:py-20">
-                <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
-                    <Mail
-                        className="mx-auto size-8 text-secondary"
-                        aria-hidden
-                    />
-                    <h2 className="mt-4 font-heading text-3xl font-semibold text-foreground sm:text-4xl">
-                        Travel notes & inspiration
-                    </h2>
-                    <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                        Occasional updates on new itineraries, seasonal
-                        highlights and practical travel advice.
-                    </p>
-                    <form
-                        className="mt-8 flex flex-col gap-3 sm:flex-row"
-                        onSubmit={(event) => event.preventDefault()}
-                    >
-                        <label htmlFor="newsletter-email" className="sr-only">
-                            Email address
-                        </label>
-                        <input
-                            id="newsletter-email"
-                            type="email"
-                            name="email"
-                            placeholder="you@example.com"
-                            required
-                            className="w-full flex-1 rounded-full border border-border bg-surface px-5 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
-                        />
-                        <button
-                            type="submit"
-                            className="inline-flex items-center justify-center rounded-full bg-secondary px-6 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                        >
-                            Subscribe
-                        </button>
-                    </form>
-                </div>
+                </FadeIn>
             </section>
         </>
     );

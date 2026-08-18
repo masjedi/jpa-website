@@ -1,6 +1,8 @@
 import { Link } from '@inertiajs/react';
 import { ChevronRight, Compass } from 'lucide-react';
 
+import { FadeInOnMount } from '@/components/motion/FadeIn';
+
 interface ToursHeroProps {
     onOpenCustomInquiry: () => void;
 }
@@ -14,6 +16,7 @@ export function ToursHero({ onOpenCustomInquiry }: ToursHeroProps) {
             />
 
             <div className="relative z-10 mx-auto max-w-3xl px-4 pb-14 pt-32 text-center sm:px-6 lg:pb-16 lg:pt-36">
+                <FadeInOnMount>
                 <nav
                     aria-label="Breadcrumb"
                     className="flex items-center justify-center gap-2 text-xs font-medium text-brand-on-surface/65"
@@ -65,6 +68,7 @@ export function ToursHero({ onOpenCustomInquiry }: ToursHeroProps) {
                         <span>Custom trip</span>
                     </button>
                 </div>
+                </FadeInOnMount>
             </div>
         </section>
     );

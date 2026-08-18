@@ -233,6 +233,13 @@ export function BorderGlow({
             return;
         }
 
+        if (
+            typeof window !== 'undefined' &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ) {
+            return;
+        }
+
         const card = cardRef.current;
         const angleStart = 110;
         const angleEnd = 465;

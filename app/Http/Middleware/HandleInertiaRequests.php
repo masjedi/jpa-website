@@ -42,6 +42,8 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'locale' => $locale,
             'direction' => Locale::direction($locale),
+            'appName' => config('app.name'),
+            'appUrl' => rtrim((string) config('app.url'), '/'),
         ];
     }
 }

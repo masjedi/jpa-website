@@ -50,6 +50,7 @@ export interface Tour {
 
 export interface TourPackage {
     id: string;
+    slug: string;
     title: string;
     tagline: string;
     duration: string;
@@ -62,7 +63,14 @@ export interface TourPackage {
     priceEstimate: string;
     idealFor: string;
     includedServices: readonly string[];
+    journeyOutline?: readonly PackageJourneyPhase[];
     isPopular?: boolean;
+}
+
+export interface PackageJourneyPhase {
+    phase: string;
+    title: string;
+    summary: string;
 }
 
 export interface InquiryFormData {

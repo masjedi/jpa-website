@@ -1,7 +1,11 @@
 import { CheckCircle2, Send, X } from 'lucide-react';
-import { useEffect, useId, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 
 import type { InquiryFormData } from '@/types/tours';
+
+const labelClass = 'block text-sm font-medium text-foreground';
+const fieldClass =
+    'mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus';
 
 interface TourInquiryModalProps {
     isOpen: boolean;
@@ -15,10 +19,19 @@ export function TourInquiryModal({
     initialData,
 }: TourInquiryModalProps) {
     const titleId = useId();
+    const tourFieldId = useId();
+    const dateFieldId = useId();
+    const groupFieldId = useId();
+    const nameFieldId = useId();
+    const emailFieldId = useId();
+    const nationalityFieldId = useId();
+    const phoneFieldId = useId();
+    const notesFieldId = useId();
+    const firstFieldRef = useRef<HTMLInputElement>(null);
     const [formData, setFormData] = useState<InquiryFormData>({
         tourTitle: '',
         preferredDate: '',
-        travelerCount: '2 travelers',
+        travelerCount: '2',
         durationPreference: '',
         fullName: '',
         email: '',
@@ -57,6 +70,7 @@ export function TourInquiryModal({
         const originalOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
         window.addEventListener('keydown', handleKeyDown);
+        window.setTimeout(() => firstFieldRef.current?.focus(), 0);
 
         return () => {
             document.body.style.overflow = originalOverflow;
@@ -70,10 +84,14 @@ export function TourInquiryModal({
 
     const handleSubmit = (event: FormEvent) => {
         event.preventDefault();
+
+        if (isSubmitting || submitted) {
+            return;
+        }
+
         setIsSubmitting(true);
 
-        // Simulate prompt inquiry submission for UX phase
-        setTimeout(() => {
+        window.setTimeout(() => {
             setIsSubmitting(false);
             setSubmitted(true);
         }, 600);
@@ -85,24 +103,20 @@ export function TourInquiryModal({
             aria-modal="true"
             aria-labelledby={titleId}
             className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm sm:p-6"
+            onClick={onClose}
         >
             <div
                 className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl transition-all"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-border bg-surface-muted/50 px-6 py-5 sm:px-8">
-                    <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-secondary">
-                            Tour Inquiry & Consultation
-                        </span>
-                        <h2
-                            id={titleId}
-                            className="font-heading mt-1 text-xl font-bold text-foreground sm:text-2xl"
-                        >
-                            {submitted ? 'Inquiry Received' : 'Plan Your Afghan Journey'}
-                        </h2>
-                    </div>
+                <div className="flex items-center justify-between gap-4 border-b border-border px-6 py-4 sm:px-8">
+                    <h2
+                        id={titleId}
+                        className="font-heading text-xl font-semibold text-foreground sm:text-2xl"
+                    >
+                        {submitted ? 'Inquiry received' : 'Request this tour'}
+                    </h2>
                     <button
                         type="button"
                         onClick={onClose}
@@ -115,28 +129,29 @@ export function TourInquiryModal({
 
                 <div className="max-h-[80vh] overflow-y-auto p-6 sm:p-8">
                     {submitted ? (
-                        <div className="py-8 text-center">
+                        <div className="py-8 text-center" role="status">
                             <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-secondary/10 text-secondary">
                                 <CheckCircle2 className="size-9" />
                             </div>
-                            <h3 className="font-heading mt-5 text-2xl font-bold text-foreground">
-                                Tashakor! Thank you, {formData.fullName || 'traveler'}.
+                            <h3 className="font-heading mt-5 text-2xl font-semibold text-foreground">
+                                Thank you{formData.fullName ? `, ${formData.fullName}` : ''}
                             </h3>
                             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-                                We have received your inquiry for{' '}
-                                <strong className="font-semibold text-foreground">
-                                    {formData.tourTitle || 'your custom journey'}
-                                </strong>
-                                . Our Kabul operations team will review ground logistics, visa requirements and availability, and email you a detailed tailored proposal within 24 hours.
+                                We received your inquiry
+                                {formData.tourTitle ? (
+                                    <>
+                                        {' '}
+                                        for{' '}
+                                        <strong className="font-semibold text-foreground">
+                                            {formData.tourTitle}
+                                        </strong>
+                                    </>
+                                ) : null}
+                                . Our team will reply with a tailored proposal.
                             </p>
-                            <div className="mt-6 rounded-2xl border border-border bg-surface-muted p-4 text-start text-xs text-muted-foreground">
-                                <p className="font-medium text-foreground">What happens next?</p>
-                                <ul className="mt-2 list-disc space-y-1 pl-4">
-                                    <li>Direct consultation via email or WhatsApp</li>
-                                    <li>Customization of itinerary, dates and accommodation preferences</li>
-                                    <li>Official Letter of Invitation (LOI) preparation for your visa</li>
-                                </ul>
-                            </div>
+                            <p className="mt-4 text-xs text-muted-foreground">
+                                No seat is reserved until details are agreed in writing.
+                            </p>
                             <div className="mt-8 flex justify-center">
                                 <button
                                     type="button"
@@ -148,143 +163,148 @@ export function TourInquiryModal({
                             </div>
                         </div>
                     ) : (
-                        <form onSubmit={handleSubmit} className="space-y-5 text-start">
-                            <div className="rounded-2xl border border-secondary/20 bg-secondary/5 p-4 text-xs leading-relaxed text-foreground">
-                                <span className="font-semibold text-secondary">Inquiry Notice:</span> Submitting this form initiates a custom consultation with our local Afghan team. No instant charges or automatic reservations are made.
-                            </div>
-
-                            {/* Tour selection */}
+                        <form onSubmit={handleSubmit} className="space-y-4 text-start">
                             <div>
-                                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                    Selected Tour / Package
+                                <label htmlFor={tourFieldId} className={labelClass}>
+                                    Tour
                                 </label>
                                 <input
+                                    id={tourFieldId}
+                                    ref={firstFieldRef}
                                     type="text"
                                     value={formData.tourTitle}
                                     onChange={(e) =>
                                         setFormData({ ...formData, tourTitle: e.target.value })
                                     }
-                                    placeholder="e.g. Bamiyan Valley & Band-e Amir Circuit or Custom Trip"
                                     required
-                                    className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
+                                    className={fieldClass}
                                 />
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                        Estimated Travel Date
+                                    <label htmlFor={dateFieldId} className={labelClass}>
+                                        Travel dates
                                     </label>
                                     <input
+                                        id={dateFieldId}
                                         type="text"
                                         value={formData.preferredDate}
                                         onChange={(e) =>
                                             setFormData({ ...formData, preferredDate: e.target.value })
                                         }
-                                        placeholder="e.g. May 2026 or Spring 2026"
-                                        className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
+                                        className={fieldClass}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                        Group Size
+                                    <label htmlFor={groupFieldId} className={labelClass}>
+                                        Group size
                                     </label>
                                     <select
+                                        id={groupFieldId}
                                         value={formData.travelerCount}
                                         onChange={(e) =>
                                             setFormData({ ...formData, travelerCount: e.target.value })
                                         }
-                                        className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
+                                        className={fieldClass}
                                     >
-                                        <option value="1 traveler (Solo)">1 traveler (Solo)</option>
-                                        <option value="2 travelers (Couple / Friends)">2 travelers (Couple / Friends)</option>
-                                        <option value="3-4 travelers (Small Group)">3-4 travelers (Small Group)</option>
-                                        <option value="5-8 travelers (Private Group)">5-8 travelers (Private Group)</option>
-                                        <option value="9+ travelers (Expedition / Delegation)">9+ travelers (Expedition / Delegation)</option>
+                                        <option value="1">1 traveler</option>
+                                        <option value="2">2 travelers</option>
+                                        <option value="3-4">3–4 travelers</option>
+                                        <option value="5-8">5–8 travelers</option>
+                                        <option value="9+">9+ travelers</option>
                                     </select>
                                 </div>
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                        Your Full Name
+                                    <label htmlFor={nameFieldId} className={labelClass}>
+                                        Full name
                                     </label>
                                     <input
+                                        id={nameFieldId}
                                         type="text"
+                                        autoComplete="name"
                                         value={formData.fullName}
                                         onChange={(e) =>
                                             setFormData({ ...formData, fullName: e.target.value })
                                         }
-                                        placeholder="e.g. Jane Doe"
                                         required
-                                        className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
+                                        className={fieldClass}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                        Email Address
+                                    <label htmlFor={emailFieldId} className={labelClass}>
+                                        Email
                                     </label>
                                     <input
+                                        id={emailFieldId}
                                         type="email"
+                                        autoComplete="email"
                                         value={formData.email}
                                         onChange={(e) =>
                                             setFormData({ ...formData, email: e.target.value })
                                         }
-                                        placeholder="e.g. jane@example.com"
                                         required
-                                        className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
+                                        className={fieldClass}
                                     />
                                 </div>
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                        Passport / Nationality
+                                    <label htmlFor={nationalityFieldId} className={labelClass}>
+                                        Nationality
                                     </label>
                                     <input
+                                        id={nationalityFieldId}
                                         type="text"
+                                        autoComplete="country-name"
                                         value={formData.nationality}
                                         onChange={(e) =>
                                             setFormData({ ...formData, nationality: e.target.value })
                                         }
-                                        placeholder="For visa advice (e.g. British, German, Australian)"
-                                        className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
+                                        className={fieldClass}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                        WhatsApp or Phone (Optional)
+                                    <label htmlFor={phoneFieldId} className={labelClass}>
+                                        WhatsApp or phone
                                     </label>
                                     <input
+                                        id={phoneFieldId}
                                         type="tel"
+                                        autoComplete="tel"
                                         value={formData.whatsappOrPhone}
                                         onChange={(e) =>
                                             setFormData({ ...formData, whatsappOrPhone: e.target.value })
                                         }
-                                        placeholder="+1 234 567 8900"
-                                        className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
+                                        className={fieldClass}
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                    Special Interests, Questions or Custom Requests
+                                <label htmlFor={notesFieldId} className={labelClass}>
+                                    Notes
                                 </label>
                                 <textarea
+                                    id={notesFieldId}
                                     rows={3}
                                     value={formData.notes}
                                     onChange={(e) =>
                                         setFormData({ ...formData, notes: e.target.value })
                                     }
-                                    placeholder="Tell us about your travel pace, specific places you want to see, dietary needs, or photography interests..."
-                                    className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
+                                    className={`${fieldClass} resize-y`}
                                 />
                             </div>
 
-                            <div className="flex flex-col-reverse gap-3 pt-3 sm:flex-row sm:items-center sm:justify-end">
+                            <p className="text-xs leading-relaxed text-muted-foreground">
+                                This sends an inquiry. It does not reserve a seat or confirm a trip.
+                            </p>
+
+                            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
                                 <button
                                     type="button"
                                     onClick={onClose}
@@ -297,8 +317,8 @@ export function TourInquiryModal({
                                     disabled={isSubmitting}
                                     className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
                                 >
-                                    <Send className="size-4" />
-                                    {isSubmitting ? 'Sending Request...' : 'Send Booking Request'}
+                                    <Send className="size-4" aria-hidden />
+                                    {isSubmitting ? 'Sending…' : 'Send inquiry'}
                                 </button>
                             </div>
                         </form>

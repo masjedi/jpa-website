@@ -7,6 +7,10 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+        <link rel="dns-prefetch" href="https://images.unsplash.com">
 
         <script>
             (function () {
@@ -20,7 +24,7 @@
             })();
         </script>
         <style>
-            html { background-color: #f7fafc; }
+            html { background-color: #f7fafc; overflow-x: clip; }
             html.dark { background-color: #071722; }
             body { margin: 0; min-height: 100vh; background-color: inherit; }
         </style>

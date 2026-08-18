@@ -232,13 +232,23 @@ export function Scanner({
             return;
         }
 
-        const renderer = new Renderer({
-            webgl: 2,
-            alpha: true,
-            premultipliedAlpha: true,
-            antialias: false,
-            dpr: Math.min(window.devicePixelRatio || 1, 2),
-        });
+        let renderer: Renderer;
+
+        try {
+            renderer = new Renderer({
+                webgl: 2,
+                alpha: true,
+                premultipliedAlpha: true,
+                antialias: false,
+                dpr: Math.min(window.devicePixelRatio || 1, 2),
+            });
+        } catch (error) {
+            if (import.meta.env.DEV) {
+                console.warn("Scanner: WebGL2 is unavailable.", error);
+            }
+
+            return;
+        }
 
         const gl = renderer.gl;
         gl.clearColor(0, 0, 0, 0);
