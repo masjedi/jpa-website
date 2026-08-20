@@ -1,5 +1,8 @@
 export const BRAND_NAME = 'Journey to Peace Afghanistan Tours';
 
+export const CONTACT_EMAIL = 'info@journey-to-afghanistan.com';
+export const CONTACT_EMAIL_HREF = `mailto:${CONTACT_EMAIL}`;
+
 export const WHATSAPP_DISPLAY = '+49 177 6687088';
 export const WHATSAPP_HREF = 'https://wa.me/491776687088';
 

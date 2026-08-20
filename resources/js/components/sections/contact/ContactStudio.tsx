@@ -13,7 +13,12 @@ import {
 import { type FormEvent, useState } from 'react';
 
 import { FadeInOnMount } from '@/components/motion/FadeIn';
-import { WHATSAPP_DISPLAY, WHATSAPP_HREF } from '@/components/public/brand';
+import {
+    CONTACT_EMAIL,
+    CONTACT_EMAIL_HREF,
+    WHATSAPP_DISPLAY,
+    WHATSAPP_HREF,
+} from '@/components/public/brand';
 import { BorderGlow } from '@/components/react-bits/BorderGlow/BorderGlow';
 import { SpotlightCard } from '@/components/react-bits/SpotlightCard/SpotlightCard';
 import { cn } from '@/lib/utils';
@@ -31,8 +36,8 @@ const channels = [
     {
         icon: Mail,
         label: 'Email',
-        value: 'hello@journeytopeace.af',
-        href: 'mailto:hello@journeytopeace.af',
+        value: CONTACT_EMAIL,
+        href: CONTACT_EMAIL_HREF,
     },
     {
         icon: Phone,

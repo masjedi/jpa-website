@@ -1,4 +1,6 @@
 import { Link } from "@inertiajs/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useEffect, useState } from "react";
 import {
     ArrowRight,
     BedDouble,
@@ -113,6 +115,29 @@ interface Departure {
     travelType: string;
     status: DepartureStatus;
 }
+
+interface HeroMessage {
+    title: string;
+    subtitle: string;
+}
+
+const heroMessages: readonly HeroMessage[] = [
+    {
+        title: "Discover Afghanistan with trusted local guidance",
+        subtitle:
+            "Landscapes, heritage and hospitality — planned with people who know the country deeply.",
+    },
+    {
+        title: "Experience a country rich in stories and tradition",
+        subtitle:
+            "Travel thoughtfully through ancient cities, dramatic valleys and welcoming communities.",
+    },
+    {
+        title: "Plan an Afghanistan journey shaped around you",
+        subtitle:
+            "Explore at your pace with local insight, careful planning and personal support throughout.",
+    },
+];
 
 /* Finder options ----------------------------------------------------------- */
 
@@ -597,6 +622,75 @@ function Badge({
     );
 }
 
+/* Hero carousel ------------------------------------------------------------- */
+
+function HeroMessageCarousel() {
+    const reducedMotion = useReducedMotion();
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [isPaused, setIsPaused] = useState(false);
+
+    useEffect(() => {
+        if (reducedMotion || isPaused) {
+            return;
+        }
+
+        const interval = window.setInterval(() => {
+            setActiveIndex((current) => (current + 1) % heroMessages.length);
+        }, 6000);
+
+        return () => window.clearInterval(interval);
+    }, [isPaused, reducedMotion]);
+
+    const activeMessage = heroMessages[activeIndex];
+
+    return (
+        <div
+            aria-label="Featured travel messages"
+            aria-roledescription="carousel"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            onFocusCapture={() => setIsPaused(true)}
+            onBlurCapture={() => setIsPaused(false)}
+        >
+            <div className="grid min-h-[13.5rem] place-items-center sm:min-h-[14rem]">
+                <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                        key={activeIndex}
+                        initial={reducedMotion ? false : { opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={reducedMotion ? undefined : { opacity: 0, y: -12 }}
+                        transition={{ duration: 0.45, ease: "easeOut" }}
+                    >
+                        <h1 className="mt-5 font-heading text-4xl font-semibold leading-[1.15] text-brand-on-surface sm:text-5xl lg:text-[3.25rem]">
+                            {activeMessage.title}
+                        </h1>
+                        <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-brand-on-surface/75 sm:text-lg">
+                            {activeMessage.subtitle}
+                        </p>
+                    </motion.div>
+                </AnimatePresence>
+            </div>
+
+            <div className="mt-3 flex items-center justify-center gap-2" aria-label="Choose a message">
+                {heroMessages.map((message, index) => (
+                    <button
+                        key={message.title}
+                        type="button"
+                        onClick={() => setActiveIndex(index)}
+                        aria-label={`Show message ${index + 1} of ${heroMessages.length}`}
+                        aria-current={index === activeIndex ? "true" : undefined}
+                        className={`h-1.5 rounded-full transition-[width,background-color] duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-focus ${
+                            index === activeIndex
+                                ? "w-8 bg-accent"
+                                : "w-3 bg-brand-on-surface/35 hover:bg-brand-on-surface/60"
+                        }`}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+}
+
 /* -------------------------------------------------------------------------- */
 /*  Home landing                                                               */
 /* -------------------------------------------------------------------------- */
@@ -617,15 +711,9 @@ export function HomeLanding() {
                     <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-on-surface/65">
                         Premium guided travel in Afghanistan
                     </p>
-                    <h1 className="mt-5 font-heading text-4xl font-semibold leading-[1.15] text-brand-on-surface sm:text-5xl lg:text-[3.25rem]">
-                        Discover Afghanistan with trusted local guidance
-                    </h1>
-                    <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-brand-on-surface/75 sm:text-lg">
-                        Landscapes, heritage and hospitality — planned with
-                        people who know the country deeply.
-                    </p>
+                    <HeroMessageCarousel />
 
-                    <div className="mt-9 flex flex-col items-center justify-center gap-4">
+                    <div className="mt-7 flex flex-col items-center justify-center gap-4">
                         <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                             <a
                                 href="#tours"

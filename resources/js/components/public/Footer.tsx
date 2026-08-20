@@ -2,7 +2,12 @@ import { Link } from '@inertiajs/react';
 import { Mail, MapPin, Phone } from 'lucide-react';
 
 import { BrandLogo } from '@/components/public/BrandLogo';
-import { WHATSAPP_DISPLAY, WHATSAPP_HREF } from '@/components/public/brand';
+import {
+    CONTACT_EMAIL,
+    CONTACT_EMAIL_HREF,
+    WHATSAPP_DISPLAY,
+    WHATSAPP_HREF,
+} from '@/components/public/brand';
 import {
     companyLinks,
     exploreLinks,
@@ -75,11 +80,11 @@ export function Footer() {
                             </li>
                             <li>
                                 <a
-                                    href="mailto:hello@journeytopeace.af"
+                                    href={CONTACT_EMAIL_HREF}
                                     className="inline-flex items-center gap-2 transition-colors hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                 >
                                     <Mail className="size-4 shrink-0 text-secondary" aria-hidden />
-                                    hello@journeytopeace.af
+                                    {CONTACT_EMAIL}
                                 </a>
                             </li>
                             <li>
