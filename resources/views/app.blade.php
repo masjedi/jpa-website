@@ -7,6 +7,13 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        @if (request()->is('admin*'))
+            {{-- Keep admin and login pages excluded after public launch. --}}
+            <meta name="robots" content="noindex, nofollow">
+        @else
+            {{-- CLIENT REVIEW MODE: remove this else branch after final launch approval. --}}
+            <meta name="robots" content="noindex, nofollow">
+        @endif
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
         <link rel="preconnect" href="https://images.unsplash.com" crossorigin>

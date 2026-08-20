@@ -12,7 +12,7 @@ export function PageMeta({ title, description, image, noIndex = false }: PageMet
     const appUrl = props.appUrl.replace(/\/$/, '');
     const appName = props.appName;
     const canonical = `${appUrl}${url.split('?')[0] || '/'}`;
-    const ogImage = image ?? `${appUrl}/brand/logo-color.png`;
+    const ogImage = image ?? `${appUrl}/brand/logo-color-h.png`;
 
     return (
         <Head>

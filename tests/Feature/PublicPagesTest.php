@@ -36,4 +36,19 @@ class PublicPagesTest extends TestCase
     {
         $this->get('/tours/does-not-exist')->assertOk();
     }
+
+    public function test_client_review_pages_are_not_indexable(): void
+    {
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('<meta name="robots" content="noindex, nofollow">', false);
+    }
+
+    public function test_client_review_robots_file_blocks_crawlers(): void
+    {
+        $robots = file_get_contents(public_path('robots.txt'));
+
+        $this->assertIsString($robots);
+        $this->assertStringContainsString("User-agent: *\nDisallow: /", str_replace("\r\n", "\n", $robots));
+    }
 }

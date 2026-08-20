@@ -94,3 +94,5 @@ XML;
 
     return response($xml, 200)->header('Content-Type', 'application/xml');
 })->name('sitemap');
+
+require __DIR__.'/admin.php';

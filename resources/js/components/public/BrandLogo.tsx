@@ -3,7 +3,7 @@ import { Link } from '@inertiajs/react';
 import { BRAND_LOGO, BRAND_NAME } from '@/components/public/brand';
 import { cn } from '@/lib/utils';
 
-export type BrandLogoVariant = 'horizontal-white' | 'horizontal-color' | 'stacked';
+export type BrandLogoVariant = 'horizontal-white' | 'horizontal-color';
 
 interface BrandLogoProps {
     variant?: BrandLogoVariant;
@@ -15,22 +15,21 @@ interface BrandLogoProps {
 
 const variantConfig: Record<
     BrandLogoVariant,
-    { src: string; alt: string; defaultImageClass: string }
+    { src: string; alt: string; defaultImageClass: string; width: number; height: number }
 > = {
     'horizontal-white': {
         src: BRAND_LOGO.white,
         alt: BRAND_NAME,
         defaultImageClass: 'h-8 w-auto sm:h-9',
+        width: 300,
+        height: 70,
     },
     'horizontal-color': {
         src: BRAND_LOGO.color,
         alt: BRAND_NAME,
         defaultImageClass: 'h-8 w-auto sm:h-9',
-    },
-    stacked: {
-        src: BRAND_LOGO.main,
-        alt: BRAND_NAME,
-        defaultImageClass: 'h-16 w-auto sm:h-20',
+        width: 300,
+        height: 70,
     },
 };
 
@@ -55,8 +54,8 @@ export function BrandLogo({
             <img
                 src={config.src}
                 alt={config.alt}
-                width={variant === 'stacked' ? 240 : 320}
-                height={variant === 'stacked' ? 166 : 59}
+                width={config.width}
+                height={config.height}
                 className={cn(
                     config.defaultImageClass,
                     'object-contain object-left',

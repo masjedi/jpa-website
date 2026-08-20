@@ -3,34 +3,29 @@ import sharp from 'sharp';
 
 const brandDir = join(process.cwd(), 'public', 'brand');
 
-await sharp(join(brandDir, 'logo-white.png'))
+await sharp(join(brandDir, 'logo-white-h.png'))
     .resize({ width: 640, withoutEnlargement: true })
     .png({ compressionLevel: 9 })
-    .toFile(join(brandDir, 'logo-white.tmp.png'));
+    .toFile(join(brandDir, 'logo-white-h.tmp.png'));
 
-await sharp(join(brandDir, 'logo-color.png'))
+await sharp(join(brandDir, 'logo-color-h.png'))
     .resize({ width: 640, withoutEnlargement: true })
     .png({ compressionLevel: 9 })
-    .toFile(join(brandDir, 'logo-color.tmp.png'));
+    .toFile(join(brandDir, 'logo-color-h.tmp.png'));
 
-await sharp(join(brandDir, 'logo-main.png'))
-    .resize({ height: 320, withoutEnlargement: true })
-    .png({ compressionLevel: 9 })
-    .toFile(join(brandDir, 'logo-main.tmp.png'));
-
-await sharp(join(brandDir, 'logo-main.png'))
+await sharp(join(brandDir, 'logo-color-h.png'))
     .resize(32, 32, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png({ compressionLevel: 9 })
     .toFile(join(process.cwd(), 'public', 'favicon-32.png'));
 
-await sharp(join(brandDir, 'logo-main.png'))
+await sharp(join(brandDir, 'logo-color-h.png'))
     .resize(180, 180, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png({ compressionLevel: 9 })
     .toFile(join(process.cwd(), 'public', 'apple-touch-icon.png'));
 
 const { renameSync, unlinkSync } = await import('node:fs');
 
-for (const name of ['logo-white', 'logo-color', 'logo-main']) {
+for (const name of ['logo-white-h', 'logo-color-h']) {
     const tmp = join(brandDir, `${name}.tmp.png`);
     const dest = join(brandDir, `${name}.png`);
     try {

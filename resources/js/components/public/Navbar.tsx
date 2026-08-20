@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Globe, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';
 
 import { planTripHref, primaryLinks } from '@/components/public/navigation';
@@ -182,6 +182,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
                     </nav>
 
                     <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+                        {/* Language selector hidden until multilingual navigation is ready.
                         <span
                             className={cn(
                                 'hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium lg:inline-flex',
@@ -202,6 +203,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
                             )}
                             aria-hidden
                         />
+                        */}
 
                         <ThemeToggle glass={overlayHeader} />
 
@@ -248,9 +250,9 @@ export function Navbar({ transparent = false }: NavbarProps) {
                     >
                         <div className="mb-3 flex justify-center border-b border-border/60 pb-4 dark:border-white/10">
                             <BrandLogo
-                                variant="stacked"
+                                variant="horizontal-white"
                                 href="/"
-                                imageClassName="h-20 w-auto"
+                                imageClassName="h-12 w-auto max-w-[16rem]"
                                 onClick={() => setMobileOpen(false)}
                             />
                         </div>

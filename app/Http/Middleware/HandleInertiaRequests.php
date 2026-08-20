@@ -38,12 +38,21 @@ class HandleInertiaRequests extends Middleware
     {
         $locale = app()->getLocale();
 
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'locale' => $locale,
             'direction' => Locale::direction($locale),
             'appName' => config('app.name'),
             'appUrl' => rtrim((string) config('app.url'), '/'),
+            'auth' => [
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ] : null,
+            ],
         ];
     }
 }
