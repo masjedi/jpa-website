@@ -42,7 +42,7 @@ export default function Dashboard() {
         <>
             <Head title="Dashboard" />
 
-            <div className="space-y-6">
+            <div className="space-y-4">
                 <AdminSectionHeader
                     eyebrow="Overview"
                     title={`Welcome back, ${firstName}`}

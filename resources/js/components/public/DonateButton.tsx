@@ -19,7 +19,7 @@ export function DonateButton({
     return (
         <Link
             href={donateHref}
-            prefetch
+            prefetch="hover"
             className={cn(
                 'group inline-flex items-center gap-2 rounded-full text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
                 variant === 'hero'

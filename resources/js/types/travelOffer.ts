@@ -25,6 +25,7 @@ export interface TravelOfferDetail {
     badge?: string;
     priceLabel: string;
     description: string;
+    content?: string;
     highlights: readonly string[];
     journeyOutline?: readonly PackageJourneyPhase[];
     destinations: readonly string[];

@@ -61,16 +61,22 @@ export function DestinationDetailHero({
                                 {destination.tagline}
                             </p>
 
-                            <div className="mt-5 flex flex-wrap gap-4 text-sm text-muted-foreground">
-                                <span className="inline-flex items-center gap-1.5">
-                                    <Calendar className="size-4 text-secondary" aria-hidden />
-                                    Best: {destination.bestSeason}
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                    <Compass className="size-4 text-secondary" aria-hidden />
-                                    {destination.travelStyle}
-                                </span>
-                            </div>
+                            {destination.bestSeason || destination.travelStyle ? (
+                                <div className="mt-5 flex flex-wrap gap-4 text-sm text-muted-foreground">
+                                    {destination.bestSeason ? (
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <Calendar className="size-4 text-secondary" aria-hidden />
+                                            Best: {destination.bestSeason}
+                                        </span>
+                                    ) : null}
+                                    {destination.travelStyle ? (
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <Compass className="size-4 text-secondary" aria-hidden />
+                                            {destination.travelStyle}
+                                        </span>
+                                    ) : null}
+                                </div>
+                            ) : null}
 
                             <div className="mt-6 flex flex-wrap gap-3">
                                 <button

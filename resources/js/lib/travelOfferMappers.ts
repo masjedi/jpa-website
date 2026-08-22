@@ -75,6 +75,7 @@ export function tourToTravelOffer(tour: Tour): TravelOfferDetail {
         badge: tour.badge,
         priceLabel: tour.estimatedStartingPrice,
         description: tour.description,
+        content: tour.content,
         highlights: tour.highlights,
         journeyOutline: tour.itineraryOverview.map((day) => ({
             phase: day.day,

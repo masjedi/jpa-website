@@ -51,6 +51,10 @@ Route::get('/about', function () {
     return Inertia::render('public/About');
 })->name('about');
 
+Route::get('/gallery', function () {
+    return Inertia::render('public/Gallery');
+})->name('gallery');
+
 Route::get('/contact', function () {
     return Inertia::render('public/Contact');
 })->name('contact');
@@ -72,6 +76,7 @@ Route::get('/sitemap.xml', function () {
         '/services',
         '/articles',
         '/about',
+        '/gallery',
         '/contact',
         '/privacy',
         '/terms',

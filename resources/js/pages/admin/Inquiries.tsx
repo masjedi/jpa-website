@@ -117,9 +117,9 @@ export default function Inquiries() {
         <>
             <Head title="Inquiries" />
 
-            <div className="space-y-6">
+            <div className="space-y-4">
                 <AdminSectionHeader
-                    eyebrow="Operations"
+                    eyebrow="Public website"
                     title="Inquiries"
                     description="Review traveler booking requests, contact messages, and follow-up status. Inquiries are requests only — not confirmed reservations."
                     icon={MessageSquareText}

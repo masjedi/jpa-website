@@ -1,43 +1,60 @@
 import { setLayoutProps } from '@inertiajs/react';
+import { useCallback } from 'react';
 
+import { AsyncContent } from '@/components/loading/AsyncContent';
 import { PageMeta } from '@/components/public/PageMeta';
 import { OfferDetailLanding } from '@/components/sections/offers/OfferDetailLanding';
 import { OfferNotFound } from '@/components/sections/offers/OfferNotFound';
-import { getTravelOfferByPackageSlug } from '@/lib/travelOfferMappers';
+import { SkeletonHero, SkeletonImage } from '@/components/ui/skeleton';
+import { loadPackageOfferBySlug } from '@/lib/contentLoaders';
 import { PublicLayout } from '@/layouts/PublicLayout';
 
 interface PackageShowProps {
     packageSlug: string;
 }
 
+function PackageShowSkeleton() {
+    return (
+        <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+            <SkeletonHero />
+            <SkeletonImage aspectRatio="aspect-[21/9]" className="mt-8 rounded-2xl" />
+        </div>
+    );
+}
+
 export default function PackageShow({ packageSlug }: PackageShowProps) {
     setLayoutProps({ transparentHeader: false });
 
-    const offer = getTravelOfferByPackageSlug(packageSlug);
-
-    if (!offer) {
-        return (
-            <>
-                <PageMeta
-                    title="Package not found"
-                    description="This package may have moved or is no longer listed."
-                    noIndex
-                />
-                <OfferNotFound
-                    title="Package not found"
-                    description="This package may have moved or is no longer available."
-                    backHref="/tours#packages"
-                    backLabel="Back to packages"
-                />
-            </>
-        );
-    }
+    const load = useCallback(() => loadPackageOfferBySlug(packageSlug), [packageSlug]);
 
     return (
-        <>
-            <PageMeta title={offer.title} description={offer.tagline} image={offer.image} />
-            <OfferDetailLanding offer={offer} />
-        </>
+        <AsyncContent
+            reloadKey={packageSlug}
+            load={load}
+            loadingFallback={<PackageShowSkeleton />}
+            notFound={
+                <>
+                    <PageMeta
+                        title="Package not found"
+                        description="This package may have moved or is no longer listed."
+                        noIndex
+                    />
+                    <OfferNotFound
+                        title="Package not found"
+                        description="This package may have moved or is no longer available."
+                        backHref="/tours#packages"
+                        backLabel="Back to packages"
+                    />
+                </>
+            }
+        >
+            {(offer) => (
+                <>
+                    <PageMeta title={offer.title} description={offer.tagline} image={offer.image} />
+                    <OfferDetailLanding offer={offer} />
+                </>
+            )}
+        </AsyncContent>
     );
 }
 

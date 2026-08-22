@@ -2,7 +2,6 @@ import { usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
 import { Footer } from '@/components/public/Footer';
-import { InquiryCtaBand } from '@/components/public/InquiryCtaBand';
 import { Navbar } from '@/components/public/Navbar';
 import { WhatsAppFloat } from '@/components/public/WhatsAppFloat';
 import { cn } from '@/lib/utils';
@@ -36,7 +35,6 @@ export function PublicLayout({ children, transparentHeader = false }: PublicLayo
             >
                 {children}
             </main>
-            <InquiryCtaBand />
             <Footer />
             <WhatsAppFloat />
         </div>

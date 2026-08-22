@@ -33,5 +33,6 @@ export interface ArticleListItem {
 
 export interface ArticleDetail extends ArticleListItem {
     sections: readonly ArticleSection[];
+    content?: string;
     relatedTourSlugs?: readonly string[];
 }

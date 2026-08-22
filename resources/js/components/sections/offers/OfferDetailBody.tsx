@@ -3,6 +3,7 @@ import { ArrowRight, Check, MapPin, Users } from 'lucide-react';
 
 import { TourOfferBadges } from '@/components/sections/tours/TourOfferBadges';
 import { FadeIn, RevealItem, RevealStagger } from '@/components/motion/FadeIn';
+import { isRichTextHtml } from '@/lib/richText';
 import type { TravelOfferDetail } from '@/types/travelOffer';
 
 interface OfferDetailBodyProps {
@@ -11,68 +12,79 @@ interface OfferDetailBodyProps {
 }
 
 export function OfferDetailBody({ offer, onRequest }: OfferDetailBodyProps) {
+    const usesRichContent = Boolean(offer.content && isRichTextHtml(offer.content));
+
     return (
         <>
             <section className="bg-background py-10 sm:py-14">
                 <FadeIn>
                 <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
                     <div className="space-y-10 text-start lg:col-span-2">
-                        <div>
-                            <h2 className="font-heading text-xl font-semibold text-foreground">
-                                {offer.labels.about}
-                            </h2>
-                            <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                                {offer.description}
-                            </p>
-                        </div>
-
-                        <div>
-                            <h2 className="font-heading text-xl font-semibold text-foreground">
-                                {offer.labels.highlights}
-                            </h2>
-                            <ul className="mt-4 space-y-3">
-                                {offer.highlights.map((highlight) => (
-                                    <li
-                                        key={highlight}
-                                        className="flex items-start gap-3 text-sm text-muted-foreground"
-                                    >
-                                        <Check
-                                            className="mt-0.5 size-4 shrink-0 text-secondary"
-                                            aria-hidden
-                                        />
-                                        <span>{highlight}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {offer.journeyOutline && offer.journeyOutline.length > 0 ? (
-                            <div>
-                                <h2 className="font-heading text-xl font-semibold text-foreground">
-                                    {offer.kind === 'tour'
-                                        ? 'Itinerary overview'
-                                        : 'Journey outline'}
-                                </h2>
-                                <div className="mt-4 space-y-4">
-                                    {offer.journeyOutline.map((phase) => (
-                                        <div
-                                            key={`${phase.phase}-${phase.title}`}
-                                            className="rounded-xl border border-border bg-surface p-4"
-                                        >
-                                            <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-                                                {phase.phase}
-                                            </p>
-                                            <h3 className="font-heading mt-1 text-sm font-semibold text-foreground">
-                                                {phase.title}
-                                            </h3>
-                                            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                                                {phase.summary}
-                                            </p>
-                                        </div>
-                                    ))}
+                        {usesRichContent ? (
+                            <div
+                                className="rich-text-content text-sm leading-relaxed text-muted-foreground sm:text-base [&_h2]:font-heading [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_li]:mb-2 [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:ps-5 [&_p]:mb-3 [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:ps-5"
+                                dangerouslySetInnerHTML={{ __html: offer.content ?? '' }}
+                            />
+                        ) : (
+                            <>
+                                <div>
+                                    <h2 className="font-heading text-xl font-semibold text-foreground">
+                                        {offer.labels.about}
+                                    </h2>
+                                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                                        {offer.description}
+                                    </p>
                                 </div>
-                            </div>
-                        ) : null}
+
+                                <div>
+                                    <h2 className="font-heading text-xl font-semibold text-foreground">
+                                        {offer.labels.highlights}
+                                    </h2>
+                                    <ul className="mt-4 space-y-3">
+                                        {offer.highlights.map((highlight) => (
+                                            <li
+                                                key={highlight}
+                                                className="flex items-start gap-3 text-sm text-muted-foreground"
+                                            >
+                                                <Check
+                                                    className="mt-0.5 size-4 shrink-0 text-secondary"
+                                                    aria-hidden
+                                                />
+                                                <span>{highlight}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                {offer.journeyOutline && offer.journeyOutline.length > 0 ? (
+                                    <div>
+                                        <h2 className="font-heading text-xl font-semibold text-foreground">
+                                            {offer.kind === 'tour'
+                                                ? 'Itinerary overview'
+                                                : 'Journey outline'}
+                                        </h2>
+                                        <div className="mt-4 space-y-4">
+                                            {offer.journeyOutline.map((phase) => (
+                                                <div
+                                                    key={`${phase.phase}-${phase.title}`}
+                                                    className="rounded-xl border border-border bg-surface p-4"
+                                                >
+                                                    <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
+                                                        {phase.phase}
+                                                    </p>
+                                                    <h3 className="font-heading mt-1 text-sm font-semibold text-foreground">
+                                                        {phase.title}
+                                                    </h3>
+                                                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                                                        {phase.summary}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : null}
+                            </>
+                        )}
 
                         <div>
                             <h2 className="font-heading text-xl font-semibold text-foreground">
@@ -124,23 +136,31 @@ export function OfferDetailBody({ offer, onRequest }: OfferDetailBodyProps) {
                                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                     Included
                                 </p>
-                                <ul className="mt-3 space-y-2">
-                                    {offer.inclusions.slice(0, 5).map((item) => (
-                                        <li
-                                            key={item}
-                                            className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"
-                                        >
-                                            <span className="mt-1.5 size-1 shrink-0 rounded-full bg-secondary" />
-                                            <span>{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                                {offer.inclusions.length > 5 ? (
-                                    <p className="mt-2 text-xs text-muted-foreground">
-                                        +{offer.inclusions.length - 5} more in your
-                                        proposal
+                                {offer.inclusions.length > 0 ? (
+                                    <>
+                                        <ul className="mt-3 space-y-2">
+                                            {offer.inclusions.slice(0, 5).map((item) => (
+                                                <li
+                                                    key={item}
+                                                    className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"
+                                                >
+                                                    <span className="mt-1.5 size-1 shrink-0 rounded-full bg-secondary" />
+                                                    <span>{item}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        {offer.inclusions.length > 5 ? (
+                                            <p className="mt-2 text-xs text-muted-foreground">
+                                                +{offer.inclusions.length - 5} more in your
+                                                proposal
+                                            </p>
+                                        ) : null}
+                                    </>
+                                ) : (
+                                    <p className="mt-3 text-xs text-muted-foreground">
+                                        Details provided in your custom proposal.
                                     </p>
-                                ) : null}
+                                )}
                             </div>
 
                             <button

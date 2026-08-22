@@ -119,7 +119,7 @@ export default function Invoices() {
         <>
             <Head title="Invoices" />
 
-            <div className="space-y-6">
+            <div className="space-y-4">
                 <AdminSectionHeader
                     eyebrow="Finance"
                     title="Invoices"

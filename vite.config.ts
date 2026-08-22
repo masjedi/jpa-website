@@ -23,6 +23,41 @@ export default defineConfig({
     build: {
         sourcemap: false,
         cssMinify: true,
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (!id.includes('node_modules')) {
+                        return undefined;
+                    }
+
+                    if (id.includes('motion')) {
+                        return 'vendor-motion';
+                    }
+
+                    if (id.includes('@inertiajs')) {
+                        return 'vendor-inertia';
+                    }
+
+                    if (id.includes('react-dom') || id.includes('react/')) {
+                        return 'vendor-react';
+                    }
+
+                    if (id.includes('ogl')) {
+                        return 'vendor-ogl';
+                    }
+
+                    if (id.includes('@use-gesture')) {
+                        return 'vendor-gesture';
+                    }
+
+                    if (id.includes('lucide-react')) {
+                        return 'vendor-icons';
+                    }
+
+                    return undefined;
+                },
+            },
+        },
     },
     server: {
         watch: {

@@ -8,6 +8,7 @@ import {
     tourShowHref,
 } from '@/components/public/navigation';
 import { getRelatedArticles } from '@/data/articlesData';
+import { isRichTextHtml } from '@/lib/richText';
 import { getTourBySlug } from '@/lib/travelOfferMappers';
 import type { ArticleDetail } from '@/types/articles';
 
@@ -21,6 +22,7 @@ export function ArticleDetailBody({ article }: ArticleDetailBodyProps) {
     const relatedTours = (article.relatedTourSlugs ?? [])
         .map((slug) => getTourBySlug(slug))
         .filter((tour): tour is NonNullable<typeof tour> => Boolean(tour));
+    const usesRichContent = Boolean(article.content && isRichTextHtml(article.content));
 
     const handleCopyLink = async () => {
         try {
@@ -37,49 +39,60 @@ export function ArticleDetailBody({ article }: ArticleDetailBodyProps) {
             <section className="bg-background py-10 sm:py-14">
                 <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
                     <article className="space-y-10 text-start lg:col-span-2">
-                        {article.sections.map((section, index) => (
-                            <FadeIn key={section.id} delay={index * 0.04}>
-                                <div id={section.id}>
-                                    <h2 className="font-heading text-xl font-semibold text-foreground">
-                                        {section.heading}
-                                    </h2>
-                                    <div className="mt-4 space-y-4">
-                                        {section.paragraphs.map((paragraph) => (
-                                            <p
-                                                key={paragraph}
-                                                className="text-sm leading-relaxed text-muted-foreground sm:text-base"
-                                            >
-                                                {paragraph}
-                                            </p>
-                                        ))}
-                                    </div>
-                                </div>
+                        {usesRichContent ? (
+                            <FadeIn>
+                                <div
+                                    className="rich-text-content text-sm leading-relaxed text-muted-foreground sm:text-base [&_h2]:font-heading [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_li]:mb-2 [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:ps-5 [&_p]:mb-3 [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:ps-5"
+                                    dangerouslySetInnerHTML={{ __html: article.content ?? '' }}
+                                />
                             </FadeIn>
-                        ))}
+                        ) : (
+                            article.sections.map((section, index) => (
+                                <FadeIn key={section.id} delay={index * 0.04}>
+                                    <div id={section.id}>
+                                        <h2 className="font-heading text-xl font-semibold text-foreground">
+                                            {section.heading}
+                                        </h2>
+                                        <div className="mt-4 space-y-4">
+                                            {section.paragraphs.map((paragraph) => (
+                                                <p
+                                                    key={paragraph}
+                                                    className="text-sm leading-relaxed text-muted-foreground sm:text-base"
+                                                >
+                                                    {paragraph}
+                                                </p>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </FadeIn>
+                            ))
+                        )}
                     </article>
 
                     <aside className="lg:col-span-1">
                         <FadeIn delay={0.06}>
                             <div className="sticky top-28 space-y-5">
-                                <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-                                    <h2 className="font-heading text-sm font-semibold text-foreground">
-                                        In this article
-                                    </h2>
-                                    <nav aria-label="Table of contents" className="mt-3">
-                                        <ul className="space-y-2">
-                                            {article.sections.map((section) => (
-                                                <li key={section.id}>
-                                                    <a
-                                                        href={`#${section.id}`}
-                                                        className="text-sm text-muted-foreground transition-colors hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                                                    >
-                                                        {section.heading}
-                                                    </a>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </nav>
-                                </div>
+                                {!usesRichContent ? (
+                                    <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+                                        <h2 className="font-heading text-sm font-semibold text-foreground">
+                                            In this article
+                                        </h2>
+                                        <nav aria-label="Table of contents" className="mt-3">
+                                            <ul className="space-y-2">
+                                                {article.sections.map((section) => (
+                                                    <li key={section.id}>
+                                                        <a
+                                                            href={`#${section.id}`}
+                                                            className="text-sm text-muted-foreground transition-colors hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                                                        >
+                                                            {section.heading}
+                                                        </a>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                ) : null}
 
                                 <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
                                     <h2 className="font-heading text-sm font-semibold text-foreground">

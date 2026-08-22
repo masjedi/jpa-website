@@ -24,7 +24,7 @@ export function AdminLayout({ children, title = 'Dashboard' }: AdminLayoutProps)
 
             <div className="flex min-w-0 flex-1 flex-col">
                 <AdminNavbar title={title} onMenuToggle={() => setMobileNavOpen(true)} />
-                <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+                <main className="flex-1 px-4 py-4 sm:px-6 sm:py-5">{children}</main>
             </div>
         </div>
     );

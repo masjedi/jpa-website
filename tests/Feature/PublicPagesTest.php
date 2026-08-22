@@ -19,6 +19,7 @@ class PublicPagesTest extends TestCase
             'services' => ['/services'],
             'articles' => ['/articles'],
             'about' => ['/about'],
+            'gallery' => ['/gallery'],
             'contact' => ['/contact'],
             'privacy' => ['/privacy'],
             'terms' => ['/terms'],

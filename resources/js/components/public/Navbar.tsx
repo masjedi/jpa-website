@@ -41,7 +41,7 @@ function NavLink({
 
     if (isInternalPage) {
         return (
-            <Link href={link.href} prefetch className={className} onClick={onNavigate}>
+            <Link href={link.href} prefetch="hover" className={className} onClick={onNavigate}>
                 {link.label}
             </Link>
         );
@@ -209,7 +209,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
 
                         <Link
                             href={planTripHref}
-                            prefetch
+                            prefetch="hover"
                             className="hidden rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:inline-flex"
                         >
                             Plan My Trip
@@ -280,7 +280,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
                             <li className="pt-1">
                                 <Link
                                     href={planTripHref}
-                                    prefetch
+                                    prefetch="hover"
                                     className="inline-flex w-full justify-center rounded-full bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                     onClick={() => setMobileOpen(false)}
                                 >

@@ -2,6 +2,7 @@ import '../css/app.css';
 
 import { createInertiaApp, router } from '@inertiajs/react';
 
+import { NavigationProgress } from '@/components/loading/NavigationProgress';
 import { AppearanceProvider } from '@/hooks/use-appearance';
 
 const appName = import.meta.env.VITE_APP_NAME ?? 'Journey to Peace Afghanistan Tours';
@@ -14,5 +15,10 @@ createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     pages: './pages',
     strictMode: true,
-    withApp: (app) => <AppearanceProvider>{app}</AppearanceProvider>,
+    withApp: (app) => (
+        <AppearanceProvider>
+            <NavigationProgress />
+            {app}
+        </AppearanceProvider>
+    ),
 });

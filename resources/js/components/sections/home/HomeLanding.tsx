@@ -5,21 +5,15 @@ import {
     ArrowRight,
     BedDouble,
     Bus,
-    CalendarDays,
     Camera,
     Compass,
     FileText,
-    HandHeart,
-    Heart,
     MapPin,
     MapPinned,
     MessageCircle,
     Mountain,
-    Quote,
     Route,
     ShieldCheck,
-    Star,
-    Tent,
     UserCheck,
     Users,
     Wallet,
@@ -27,11 +21,19 @@ import {
 } from "lucide-react";
 
 import { BorderGlow } from "@/components/react-bits/BorderGlow/BorderGlow";
+import { publishedFaqItems } from "@/data/faqData";
 import { SpotlightCard } from "@/components/react-bits/SpotlightCard/SpotlightCard";
 import { FadeIn, FadeInOnMount, RevealItem, RevealStagger } from "@/components/motion/FadeIn";
 import { destinationShowHref, articleShowHref } from "@/components/public/navigation";
 import { DonateButton } from "@/components/public/DonateButton";
+import { DeferredCommunityImpactSection, DeferredTestimonialsCarousel } from "@/components/sections/home/HomeDeferredSections";
 import { HeroScannerBackground } from "@/components/sections/home/HeroScannerBackground";
+import { galleryImages } from "@/data/galleryData";
+import {
+    heroSectionEyebrow,
+    publishedHeroSlides,
+    type HeroSlide,
+} from "@/data/heroSectionData";
 
 /* -------------------------------------------------------------------------- */
 /*  Mock data                                                                  */
@@ -73,18 +75,6 @@ interface Service {
     description: string;
 }
 
-interface ImpactPoint {
-    icon: LucideIcon;
-    title: string;
-    description: string;
-}
-
-interface GalleryItem {
-    image: string;
-    alt: string;
-    caption: string;
-}
-
 interface Testimonial {
     name: string;
     journey: string;
@@ -100,44 +90,6 @@ interface Article {
     summary: string;
     date: string;
 }
-
-interface Faq {
-    question: string;
-    answer: string;
-}
-
-type DepartureStatus = "Available" | "Limited Availability" | "On Request";
-
-interface Departure {
-    title: string;
-    date: string;
-    duration: string;
-    travelType: string;
-    status: DepartureStatus;
-}
-
-interface HeroMessage {
-    title: string;
-    subtitle: string;
-}
-
-const heroMessages: readonly HeroMessage[] = [
-    {
-        title: "Discover Afghanistan with trusted local guidance",
-        subtitle:
-            "Landscapes, heritage and hospitality — planned with people who know the country deeply.",
-    },
-    {
-        title: "Experience a country rich in stories and tradition",
-        subtitle:
-            "Travel thoughtfully through ancient cities, dramatic valleys and welcoming communities.",
-    },
-    {
-        title: "Plan an Afghanistan journey shaped around you",
-        subtitle:
-            "Explore at your pace with local insight, careful planning and personal support throughout.",
-    },
-];
 
 /* Finder options ----------------------------------------------------------- */
 
@@ -305,41 +257,6 @@ const whyTravelWithUs = [
     },
 ] as const;
 
-/* Departures ---------------------------------------------------------------- */
-
-const upcomingDepartures: readonly Departure[] = [
-    {
-        title: "Bamiyan Heritage Circuit",
-        date: "14 Apr 2026",
-        duration: "7 days",
-        travelType: "Small group",
-        status: "Available",
-    },
-    {
-        title: "Kabul & Panjshir Discovery",
-        date: "28 Apr 2026",
-        duration: "5 days",
-        travelType: "Private tour",
-        status: "On Request",
-    },
-    {
-        title: "Herat Art & Architecture",
-        date: "12 May 2026",
-        duration: "4 days",
-        travelType: "Small group",
-        status: "Limited Availability",
-    },
-];
-
-const statusStyles: Record<DepartureStatus, string> = {
-    Available:
-        "bg-secondary/15 text-secondary dark:bg-secondary/25 dark:text-secondary",
-    "Limited Availability":
-        "bg-accent/15 text-accent-foreground dark:bg-accent/25 dark:text-accent",
-    "On Request":
-        "bg-surface-muted text-muted-foreground dark:bg-white/10 dark:text-muted-foreground",
-};
-
 /* Services ------------------------------------------------------------------ */
 
 const servicesOverview: readonly Service[] = [
@@ -378,70 +295,6 @@ const servicesOverview: readonly Service[] = [
         title: "Accommodation coordination",
         description:
             "Guesthouses and hotels selected for comfort, location and character.",
-    },
-];
-
-/* Impact -------------------------------------------------------------------- */
-
-const impactPoints: readonly ImpactPoint[] = [
-    {
-        icon: HandHeart,
-        title: "Locally owned services",
-        description:
-            "We work with Afghan-owned guesthouses, drivers and artisans so tourism income stays local.",
-    },
-    {
-        icon: ShieldCheck,
-        title: "Cultural respect",
-        description:
-            "Guides share context on customs, dress and etiquette so visits are welcomed by hosts.",
-    },
-    {
-        icon: Heart,
-        title: "Community-minded travel",
-        description:
-            "Small groups and fair pricing that respect the people and places we visit.",
-    },
-    {
-        icon: Tent,
-        title: "Responsible visitor behavior",
-        description:
-            "Leave-no-trace practices, photography consent and support for conservation efforts.",
-    },
-];
-
-/* Gallery ------------------------------------------------------------------- */
-
-const galleryItems: readonly GalleryItem[] = [
-    {
-        image: "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80",
-        alt: "Band-e Amir lakes at sunset, Bamiyan",
-        caption: "Band-e Amir, Bamiyan",
-    },
-    {
-        image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80",
-        alt: "Mountain pass in the Hindu Kush",
-        caption: "Hindu Kush",
-    },
-    {
-        image: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80",
-        alt: "Historic minarets of Herat",
-        caption: "Herat",
-    },
-    {
-        image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&q=80",
-        alt: "Kabul hillside homes at dusk",
-        caption: "Kabul",
-    },
-    {
-        image: "https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=800&q=80",
-        alt: "Panjshir River valley",
-        caption: "Panjshir Valley",
-    },
-    {
-        image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80",
-        alt: "Afghan bread baking in a clay oven",
-        caption: "Local bakery",
     },
 ];
 
@@ -497,35 +350,6 @@ const latestArticles: readonly Article[] = [
         summary:
             "How to structure days between the lakes, the cliffs and village homestays.",
         date: "15 Feb 2026",
-    },
-];
-
-/* FAQ ------------------------------------------------------------------------ */
-
-const faqItems: readonly Faq[] = [
-    {
-        question: "Do I need a visa to visit Afghanistan?",
-        answer: "Most nationalities require a visa in advance. We can outline the general process, but requirements change often — always confirm with the nearest Afghan embassy before booking.",
-    },
-    {
-        question: "What should I wear while travelling?",
-        answer: "Modest, loose-fitting clothing is appropriate for most places. Women should carry a headscarf for religious sites. We share detailed guidance with every confirmed itinerary.",
-    },
-    {
-        question: "Will I have mobile connectivity?",
-        answer: "Major cities have reliable mobile data; remote valleys can be limited. We help you choose a local SIM and plan offline maps where needed.",
-    },
-    {
-        question: "How should I behave around local customs?",
-        answer: "A respectful, observant approach goes a long way. Ask before photographing people, accept hospitality graciously, and follow your guide’s lead in religious or community settings.",
-    },
-    {
-        question: "Do I need travel insurance?",
-        answer: "Comprehensive travel insurance that covers your planned activities is strongly recommended. Check that your policy is valid for Afghanistan before departure.",
-    },
-    {
-        question: "How does the booking inquiry work?",
-        answer: "Send us your dates, interests and group size. We review availability manually and reply with a tailored quotation. Submitting an inquiry does not reserve a seat or confirm a trip.",
     },
 ];
 
@@ -624,24 +448,38 @@ function Badge({
 
 /* Hero carousel ------------------------------------------------------------- */
 
-function HeroMessageCarousel() {
+function HeroMessageCarousel({ slides }: { slides: readonly HeroSlide[] }) {
     const reducedMotion = useReducedMotion();
     const [activeIndex, setActiveIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
 
     useEffect(() => {
-        if (reducedMotion || isPaused) {
+        if (slides.length === 0) {
+            return;
+        }
+
+        if (activeIndex >= slides.length) {
+            setActiveIndex(0);
+        }
+    }, [activeIndex, slides.length]);
+
+    useEffect(() => {
+        if (reducedMotion || isPaused || slides.length <= 1) {
             return;
         }
 
         const interval = window.setInterval(() => {
-            setActiveIndex((current) => (current + 1) % heroMessages.length);
+            setActiveIndex((current) => (current + 1) % slides.length);
         }, 6000);
 
         return () => window.clearInterval(interval);
-    }, [isPaused, reducedMotion]);
+    }, [isPaused, reducedMotion, slides.length]);
 
-    const activeMessage = heroMessages[activeIndex];
+    if (slides.length === 0) {
+        return null;
+    }
+
+    const activeMessage = slides[activeIndex];
 
     return (
         <div
@@ -672,12 +510,12 @@ function HeroMessageCarousel() {
             </div>
 
             <div className="mt-3 flex items-center justify-center gap-2" aria-label="Choose a message">
-                {heroMessages.map((message, index) => (
+                {slides.map((message, index) => (
                     <button
-                        key={message.title}
+                        key={message.id}
                         type="button"
                         onClick={() => setActiveIndex(index)}
-                        aria-label={`Show message ${index + 1} of ${heroMessages.length}`}
+                        aria-label={`Show message ${index + 1} of ${slides.length}`}
                         aria-current={index === activeIndex ? "true" : undefined}
                         className={`h-1.5 rounded-full transition-[width,background-color] duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-focus ${
                             index === activeIndex
@@ -709,9 +547,9 @@ export function HomeLanding() {
 
                 <FadeInOnMount className="relative z-10 max-w-3xl px-4 py-28 text-center sm:px-6 lg:py-32">
                     <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-on-surface/65">
-                        Premium guided travel in Afghanistan
+                        {heroSectionEyebrow}
                     </p>
-                    <HeroMessageCarousel />
+                    <HeroMessageCarousel slides={publishedHeroSlides} />
 
                     <div className="mt-7 flex flex-col items-center justify-center gap-4">
                         <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -724,7 +562,7 @@ export function HomeLanding() {
                             <Link
                                 id="plan-trip"
                                 href="/contact"
-                                prefetch
+                                prefetch="hover"
                                 className="inline-flex min-w-[9.5rem] items-center justify-center rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                             >
                                 Plan My Trip
@@ -1029,80 +867,6 @@ export function HomeLanding() {
                 </FadeIn>
             </section>
 
-            {/* Upcoming Departures ----------------------------------------------- */}
-            <section id="departures" className="bg-background py-16 sm:py-20">
-                <FadeIn>
-                <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
-                    <SectionHeader
-                        eyebrow="Upcoming departures"
-                        title="Scheduled small-group journeys"
-                        description="Dates below are indicative. Our team reviews availability manually and confirms every booking by email."
-                    />
-                    <RevealStagger className="mt-10 grid gap-6 md:grid-cols-3">
-                        {upcomingDepartures.map((departure) => (
-                            <RevealItem key={`${departure.title}-${departure.date}`}>
-                                <Card>
-                                    <div className="p-6 text-start">
-                                        <div className="flex items-start justify-between gap-3">
-                                            <h3 className="font-heading text-lg font-semibold text-foreground">
-                                                {departure.title}
-                                            </h3>
-                                            <Badge
-                                                className={
-                                                    statusStyles[
-                                                        departure.status
-                                                    ]
-                                                }
-                                            >
-                                                {departure.status}
-                                            </Badge>
-                                        </div>
-                                        <div className="mt-4 space-y-2 text-sm text-muted-foreground">
-                                            <p className="flex items-center gap-2">
-                                                <CalendarDays
-                                                    className="size-4 text-secondary"
-                                                    aria-hidden
-                                                />
-                                                {departure.date}
-                                            </p>
-                                            <p className="flex items-center gap-2">
-                                                <Route
-                                                    className="size-4 text-secondary"
-                                                    aria-hidden
-                                                />
-                                                {departure.duration}
-                                            </p>
-                                            <p className="flex items-center gap-2">
-                                                <Users
-                                                    className="size-4 text-secondary"
-                                                    aria-hidden
-                                                />
-                                                {departure.travelType}
-                                            </p>
-                                        </div>
-                                        <a
-                                            href="#contact"
-                                            className="mt-6 inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                                        >
-                                            Request this date
-                                            <ArrowRight
-                                                className="size-4"
-                                                aria-hidden
-                                            />
-                                        </a>
-                                    </div>
-                                </Card>
-                            </RevealItem>
-                        ))}
-                    </RevealStagger>
-                    <p className="mt-6 text-sm text-muted-foreground">
-                        Availability is manually reviewed. Submitting a request
-                        does not reserve a seat or confirm a trip.
-                    </p>
-                </div>
-                </FadeIn>
-            </section>
-
             {/* Services Overview --------------------------------------------------- */}
             <section id="services" className="bg-surface-muted py-16 sm:py-20">
                 <FadeIn>
@@ -1138,39 +902,7 @@ export function HomeLanding() {
                 </FadeIn>
             </section>
 
-            {/* Cultural and Community Impact --------------------------------------- */}
-            <section id="impact" className="bg-background py-16 sm:py-20">
-                <FadeIn>
-                <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
-                    <SectionHeader
-                        eyebrow="Cultural & community impact"
-                        title="Travel that gives back"
-                        description="We design journeys that respect local culture and keep tourism income within Afghan communities."
-                        center
-                    />
-                    <RevealStagger className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                        {impactPoints.map((point) => (
-                            <RevealItem key={point.title}>
-                            <div
-                                className="h-full rounded-2xl border border-border bg-surface p-6 text-start shadow-sm"
-                            >
-                                <point.icon
-                                    className="size-6 text-secondary"
-                                    aria-hidden
-                                />
-                                <h3 className="mt-4 font-heading text-lg font-semibold text-foreground">
-                                    {point.title}
-                                </h3>
-                                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                                    {point.description}
-                                </p>
-                            </div>
-                            </RevealItem>
-                        ))}
-                    </RevealStagger>
-                </div>
-                </FadeIn>
-            </section>
+            <DeferredCommunityImpactSection />
 
             {/* Gallery Preview ------------------------------------------------------ */}
             <section id="gallery" className="bg-surface-muted py-16 sm:py-20">
@@ -1180,13 +912,14 @@ export function HomeLanding() {
                         eyebrow="Gallery"
                         title="Moments from the road"
                         description="A glimpse of the landscapes, cities and everyday life our travellers experience."
+                        action={{ label: "View full gallery", href: "/gallery" }}
                     />
                     <RevealStagger className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6" stagger={0.05}>
-                        {galleryItems.map((item) => (
+                        {galleryImages.slice(0, 6).map((item) => (
                             <RevealItem key={item.caption}>
                                 <figure className="group relative overflow-hidden rounded-xl">
                                     <img
-                                        src={item.image}
+                                        src={item.src}
                                         alt={item.alt}
                                         width={400}
                                         height={400}
@@ -1215,51 +948,7 @@ export function HomeLanding() {
                         description="Real feedback from guests who explored Afghanistan with our team."
                         center
                     />
-                    <RevealStagger className="mt-10 grid gap-6 md:grid-cols-3">
-                        {testimonials.map((testimonial) => (
-                            <RevealItem key={testimonial.name}>
-                                <Card className="p-6 text-start">
-                                    <Quote
-                                        className="size-6 text-secondary"
-                                        aria-hidden
-                                    />
-                                    <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                                        “{testimonial.text}”
-                                    </p>
-                                    <div className="mt-6 flex items-center justify-between">
-                                        <div>
-                                            <p className="font-heading text-sm font-semibold text-foreground">
-                                                {testimonial.name}
-                                            </p>
-                                            <p className="mt-0.5 text-xs text-muted-foreground">
-                                                {testimonial.journey}
-                                            </p>
-                                        </div>
-                                        <div
-                                            className="flex gap-0.5"
-                                            aria-label={`${testimonial.rating} out of 5 stars`}
-                                        >
-                                            {Array.from(
-                                                { length: 5 },
-                                                (_, i) => (
-                                                    <Star
-                                                        key={i}
-                                                        className={`size-4 ${
-                                                            i <
-                                                            testimonial.rating
-                                                                ? "fill-accent text-accent"
-                                                                : "text-border"
-                                                        }`}
-                                                        aria-hidden
-                                                    />
-                                                ),
-                                            )}
-                                        </div>
-                                    </div>
-                                </Card>
-                            </RevealItem>
-                        ))}
-                    </RevealStagger>
+                    <DeferredTestimonialsCarousel items={testimonials} />
                 </div>
                 </FadeIn>
             </section>
@@ -1337,8 +1026,8 @@ export function HomeLanding() {
                         center
                     />
                     <RevealStagger className="mt-10 space-y-3" stagger={0.06}>
-                        {faqItems.map((faq) => (
-                            <RevealItem key={faq.question}>
+                        {publishedFaqItems.map((faq) => (
+                            <RevealItem key={faq.id}>
                                 <details className="group rounded-2xl border border-border bg-surface shadow-sm open:bg-surface-muted">
                                     <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4 text-start font-heading text-base font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
                                         {faq.question}

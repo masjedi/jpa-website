@@ -52,6 +52,7 @@ interface PremiumDataTableProps<T extends object> {
     pageSizeOptions?: readonly number[];
     onRefresh?: () => void | Promise<void>;
     selectionLabel?: (row: T) => string;
+    onView?: (row: T) => void | Promise<void>;
     onEdit?: (row: T) => void | Promise<void>;
     onDelete?: (row: T) => void | Promise<void>;
 }
@@ -102,6 +103,7 @@ export function PremiumDataTable<T extends object>({
     pageSizeOptions = [5, 10, 25, 50],
     onRefresh,
     selectionLabel,
+    onView,
     onEdit,
     onDelete,
 }: PremiumDataTableProps<T>) {
@@ -311,16 +313,41 @@ export function PremiumDataTable<T extends object>({
     };
 
     const printTable = (asPdf: boolean) => {
-        const printWindow = window.open('', '_blank', 'width=1100,height=760');
-        if (!printWindow) {
+        setDialog(null);
+
+        const frame = document.createElement('iframe');
+        frame.setAttribute('aria-hidden', 'true');
+        frame.style.position = 'fixed';
+        frame.style.inset = '0';
+        frame.style.width = '0';
+        frame.style.height = '0';
+        frame.style.border = '0';
+        frame.style.opacity = '0';
+        frame.style.pointerEvents = 'none';
+        document.body.appendChild(frame);
+
+        const frameWindow = frame.contentWindow;
+        const frameDocument = frame.contentDocument ?? frameWindow?.document;
+
+        if (!frameWindow || !frameDocument) {
+            frame.remove();
             return;
         }
 
-        printWindow.document.write(buildPrintableTable(asPdf ? `${title} PDF` : title));
-        printWindow.document.close();
-        printWindow.focus();
-        window.setTimeout(() => printWindow.print(), 250);
-        setDialog(null);
+        const cleanup = () => {
+            frameWindow.removeEventListener('afterprint', cleanup);
+            frame.remove();
+        };
+
+        frameWindow.addEventListener('afterprint', cleanup);
+        frameDocument.open();
+        frameDocument.write(buildPrintableTable(asPdf ? `${title} PDF` : title));
+        frameDocument.close();
+
+        window.setTimeout(() => {
+            frameWindow.focus();
+            frameWindow.print();
+        }, 50);
     };
 
     const exportCsv = () => {
@@ -576,7 +603,14 @@ export function PremiumDataTable<T extends object>({
                             <div className="flex flex-wrap items-center gap-1.5">
                                 <ToolbarButton
                                     label="View selected record"
-                                    onClick={() => setDialog('view')}
+                                    onClick={() => {
+                                        if (onView && selectedRow) {
+                                            void onView(selectedRow);
+                                            return;
+                                        }
+
+                                        setDialog('view');
+                                    }}
                                     disabled={!selectedRow}
                                 >
                                     <Eye className="size-4" aria-hidden />
@@ -709,7 +743,7 @@ export function PremiumDataTable<T extends object>({
                 open={dialog === 'print'}
                 title="Print table"
                 description={`Print ${processedRows.length} filtered records using the currently visible columns.`}
-                actionLabel="Open print view"
+                actionLabel="Print"
                 onClose={() => setDialog(null)}
                 onConfirm={() => printTable(false)}
                 icon={<Printer className="size-5" aria-hidden />}
@@ -729,8 +763,8 @@ export function PremiumDataTable<T extends object>({
             <ActionDialog
                 open={dialog === 'pdf'}
                 title="Export as PDF"
-                description="A print-ready view will open. Select “Save as PDF” in your browser’s print destination."
-                actionLabel="Continue to PDF"
+                description="Use your browser print dialog and choose “Save as PDF” as the destination."
+                actionLabel="Open PDF preview"
                 onClose={() => setDialog(null)}
                 onConfirm={() => printTable(true)}
                 icon={<FileText className="size-5" aria-hidden />}

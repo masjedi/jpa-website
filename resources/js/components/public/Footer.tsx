@@ -1,29 +1,34 @@
 import { Link } from '@inertiajs/react';
-import { Mail, MapPin, Phone } from 'lucide-react';
 
-import { BrandLogo } from '@/components/public/BrandLogo';
-import {
-    CONTACT_EMAIL,
-    CONTACT_EMAIL_HREF,
-    WHATSAPP_DISPLAY,
-    WHATSAPP_HREF,
-} from '@/components/public/brand';
+import { AnimatedAxisDivider } from '@/components/motion/AnimatedAxisDivider';
+import { BrandLogo, brandLogoVariantForTheme } from '@/components/public/BrandLogo';
+import { FooterNewsletter } from '@/components/public/FooterNewsletter';
+import { SOCIAL_LINKS, type SocialLink } from '@/components/public/brand';
+import { socialIconComponents } from '@/components/public/SocialIcons';
+import { useAppearance } from '@/hooks/use-appearance';
 import {
     companyLinks,
     exploreLinks,
     helpLinks,
     isInertiaPageLink,
-    planTripHref,
     type PublicNavLink,
 } from '@/components/public/navigation';
+import { cn } from '@/lib/utils';
+
+const footerTagline =
+    'Guided journeys through Afghanistan with local expertise, cultural respect and carefully planned discovery.';
+
+const travelHelpLinks = helpLinks.filter(
+    (link) => link.href !== '/privacy' && link.href !== '/terms',
+);
 
 const linkClassName =
-    'text-sm text-brand-on-surface/80 transition-colors hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus';
+    'text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus';
 
 function FooterLink({ link }: { link: PublicNavLink }) {
     if (isInertiaPageLink(link.href)) {
         return (
-            <Link href={link.href} prefetch className={linkClassName}>
+            <Link href={link.href} prefetch="hover" className={linkClassName}>
                 {link.label}
             </Link>
         );
@@ -44,9 +49,9 @@ function FooterLinkGroup({
     links: readonly PublicNavLink[];
 }) {
     return (
-        <div>
-            <h2 className="font-heading text-sm font-semibold text-brand-on-surface">{title}</h2>
-            <ul className="mt-4 space-y-2">
+        <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+            <ul className="mt-4 space-y-3">
                 {links.map((link) => (
                     <li key={link.label}>
                         <FooterLink link={link} />
@@ -57,65 +62,89 @@ function FooterLinkGroup({
     );
 }
 
-export function Footer() {
-    const year = new Date().getFullYear();
+function SocialIconLink({ link }: { link: SocialLink }) {
+    const Icon =
+        socialIconComponents[link.label as keyof typeof socialIconComponents] ??
+        socialIconComponents.Instagram;
 
     return (
-        <footer className="border-t-2 border-secondary bg-brand-surface text-start text-brand-on-surface">
-            <div className="mx-auto max-w-7xl px-4 py-12 text-start sm:px-6 lg:px-8">
-                <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
-                    <div className="space-y-4">
-                        <BrandLogo
-                            variant="horizontal-white"
-                            imageClassName="h-10 w-auto max-w-[15rem] sm:h-11"
-                        />
-                        <p className="max-w-sm text-sm leading-relaxed text-brand-on-surface/80">
-                            Guided journeys through Afghanistan with local expertise, cultural
-                            respect and carefully planned discovery.
-                        </p>
-                        <ul className="space-y-2 text-sm text-brand-on-surface/80">
-                            <li className="flex items-start gap-2">
-                                <MapPin className="mt-0.5 size-4 shrink-0 text-secondary" aria-hidden />
-                                <span>Kabul, Afghanistan</span>
-                            </li>
-                            <li>
-                                <a
-                                    href={CONTACT_EMAIL_HREF}
-                                    className="inline-flex items-center gap-2 transition-colors hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                                >
-                                    <Mail className="size-4 shrink-0 text-secondary" aria-hidden />
-                                    {CONTACT_EMAIL}
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href={WHATSAPP_HREF}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 transition-colors hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                                >
-                                    <Phone className="size-4 shrink-0 text-secondary" aria-hidden />
-                                    {WHATSAPP_DISPLAY}
-                                </a>
-                            </li>
-                        </ul>
-                        <Link
-                            href={planTripHref}
-                            prefetch
-                            className="inline-flex rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                        >
-                            Plan My Trip
-                        </Link>
+        <a
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Follow us on ${link.label}`}
+            title={link.label}
+            className="text-foreground/70 transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        >
+            <Icon className="size-5" aria-hidden />
+        </a>
+    );
+}
+
+export function Footer() {
+    const year = new Date().getFullYear();
+    const { resolved } = useAppearance();
+    const logoVariant = brandLogoVariantForTheme(resolved === 'dark');
+
+    return (
+        <footer className="bg-background px-4 py-10 text-start sm:px-6 lg:px-8 lg:py-12">
+            <div className="mx-auto max-w-7xl">
+                <div className="rounded-[2rem] border border-border bg-surface px-6 py-6 shadow-sm sm:px-10 sm:py-8 lg:px-12">
+                    <div id="contact">
+                        <FooterNewsletter />
                     </div>
 
-                    <FooterLinkGroup title="Explore" links={exploreLinks} />
-                    <FooterLinkGroup title="Company" links={companyLinks} />
-                    <FooterLinkGroup title="Travel help" links={helpLinks} />
-                </div>
+                    <AnimatedAxisDivider axis="x" always className="my-6 sm:my-7" />
 
-                <div className="mt-10 flex flex-col gap-3 border-t border-brand-on-surface/15 pt-6 text-sm text-brand-on-surface/70 sm:flex-row sm:items-center sm:justify-between">
-                    <p>© {year} Journey to Peace Afghanistan Tours. All rights reserved.</p>
-                    <p>Inquiries and quotations — not instant reservations.</p>
+                    <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.15fr)_repeat(3,minmax(0,1fr))] lg:items-start lg:gap-x-12 lg:gap-y-8">
+                        <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+                            <BrandLogo
+                                variant={logoVariant}
+                                className="inline-flex items-start leading-none"
+                                imageClassName="h-9 w-auto max-w-full object-contain object-left sm:h-10"
+                            />
+                            <p className="mt-6 max-w-sm text-sm leading-relaxed text-muted-foreground">
+                                {footerTagline}
+                            </p>
+                            <div className="mt-6 flex items-center gap-5">
+                                {SOCIAL_LINKS.map((link) => (
+                                    <SocialIconLink key={link.label} link={link} />
+                                ))}
+                            </div>
+                        </div>
+
+                        <FooterLinkGroup title="Explore" links={exploreLinks} />
+                        <FooterLinkGroup title="Company" links={companyLinks} />
+                        <FooterLinkGroup title="Travel help" links={travelHelpLinks} />
+                    </div>
+
+                    <div className="mt-8 border-t border-border pt-5 sm:mt-10">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm text-muted-foreground">
+                                © {year} Journey to Peace Afghanistan Tours. All rights reserved.
+                            </p>
+                            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                                <Link
+                                    href="/privacy"
+                                    className={cn(
+                                        linkClassName,
+                                        'underline decoration-border underline-offset-4',
+                                    )}
+                                >
+                                    Privacy Policy
+                                </Link>
+                                <Link
+                                    href="/terms"
+                                    className={cn(
+                                        linkClassName,
+                                        'underline decoration-border underline-offset-4',
+                                    )}
+                                >
+                                    Terms & Conditions
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </footer>

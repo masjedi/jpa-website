@@ -6,6 +6,7 @@ import { BorderGlow } from '@/components/react-bits/BorderGlow/BorderGlow';
 import { FadeIn } from '@/components/motion/FadeIn';
 import { getRelatedDestinations } from '@/data/destinationsData';
 import { getToursForDestination } from '@/data/destinationTours';
+import { isRichTextHtml } from '@/lib/richText';
 import type { Destination } from '@/types/destinations';
 
 interface DestinationDetailBodyProps {
@@ -19,44 +20,58 @@ export function DestinationDetailBody({
 }: DestinationDetailBodyProps) {
     const relatedTours = getToursForDestination(destination);
     const relatedDestinations = getRelatedDestinations(destination.slug, 2);
+    const usesRichDescription = isRichTextHtml(destination.description);
 
     return (
         <>
             <section className="bg-background py-10 sm:py-14">
                 <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
                     <div className="space-y-10 text-start lg:col-span-2">
-                        <FadeIn>
-                            <div>
-                                <h2 className="font-heading text-xl font-semibold text-foreground">
-                                    About this destination
-                                </h2>
-                                <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                                    {destination.description}
-                                </p>
-                            </div>
-                        </FadeIn>
+                        {usesRichDescription ? (
+                            <FadeIn>
+                                <div
+                                    className="rich-text-content text-sm leading-relaxed text-muted-foreground sm:text-base [&_h2]:font-heading [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_li]:mb-2 [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:ps-5 [&_p]:mb-3 [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:ps-5"
+                                    dangerouslySetInnerHTML={{ __html: destination.description }}
+                                />
+                            </FadeIn>
+                        ) : (
+                            <>
+                                <FadeIn>
+                                    <div>
+                                        <h2 className="font-heading text-xl font-semibold text-foreground">
+                                            About this destination
+                                        </h2>
+                                        <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                                            {destination.description}
+                                        </p>
+                                    </div>
+                                </FadeIn>
 
-                        <FadeIn delay={0.05}>
-                            <div>
-                                <h2 className="font-heading text-xl font-semibold text-foreground">
-                                    Highlights
-                                </h2>
-                                <ul className="mt-4 space-y-3">
-                                    {destination.highlights.map((highlight) => (
-                                        <li
-                                            key={highlight}
-                                            className="flex items-start gap-3 text-sm text-muted-foreground"
-                                        >
-                                            <Check
-                                                className="mt-0.5 size-4 shrink-0 text-secondary"
-                                                aria-hidden
-                                            />
-                                            <span>{highlight}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </FadeIn>
+                                {destination.highlights.length > 0 ? (
+                                    <FadeIn delay={0.05}>
+                                        <div>
+                                            <h2 className="font-heading text-xl font-semibold text-foreground">
+                                                Highlights
+                                            </h2>
+                                            <ul className="mt-4 space-y-3">
+                                                {destination.highlights.map((highlight) => (
+                                                    <li
+                                                        key={highlight}
+                                                        className="flex items-start gap-3 text-sm text-muted-foreground"
+                                                    >
+                                                        <Check
+                                                            className="mt-0.5 size-4 shrink-0 text-secondary"
+                                                            aria-hidden
+                                                        />
+                                                        <span>{highlight}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </FadeIn>
+                                ) : null}
+                            </>
+                        )}
 
                         {relatedTours.length > 0 ? (
                             <FadeIn delay={0.1}>
@@ -96,32 +111,34 @@ export function DestinationDetailBody({
                     <aside className="lg:col-span-1">
                         <FadeIn delay={0.08}>
                             <div className="sticky top-28 space-y-4">
-                                <BorderGlow
-                                    className="rounded-2xl"
-                                    backgroundColor="var(--surface)"
-                                    borderRadius={16}
-                                    colors={['#0E7373', '#163B5C', '#D7A23A']}
-                                    glowColor="182 78 26"
-                                    edgeSensitivity={24}
-                                    animated={false}
-                                >
-                                    <div className="rounded-2xl border border-border bg-surface p-5 text-start">
-                                        <h2 className="font-heading text-lg font-semibold text-foreground">
-                                            Know before you go
-                                        </h2>
-                                        <ul className="mt-4 space-y-2.5">
-                                            {destination.practicalNotes.map((note) => (
-                                                <li
-                                                    key={note}
-                                                    className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"
-                                                >
-                                                    <span className="mt-1.5 size-1 shrink-0 rounded-full bg-secondary" />
-                                                    <span>{note}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </BorderGlow>
+                                {!usesRichDescription && destination.practicalNotes.length > 0 ? (
+                                    <BorderGlow
+                                        className="rounded-2xl"
+                                        backgroundColor="var(--surface)"
+                                        borderRadius={16}
+                                        colors={['#0E7373', '#163B5C', '#D7A23A']}
+                                        glowColor="182 78 26"
+                                        edgeSensitivity={24}
+                                        animated={false}
+                                    >
+                                        <div className="rounded-2xl border border-border bg-surface p-5 text-start">
+                                            <h2 className="font-heading text-lg font-semibold text-foreground">
+                                                Know before you go
+                                            </h2>
+                                            <ul className="mt-4 space-y-2.5">
+                                                {destination.practicalNotes.map((note) => (
+                                                    <li
+                                                        key={note}
+                                                        className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"
+                                                    >
+                                                        <span className="mt-1.5 size-1 shrink-0 rounded-full bg-secondary" />
+                                                        <span>{note}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </BorderGlow>
+                                ) : null}
 
                                 <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
                                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

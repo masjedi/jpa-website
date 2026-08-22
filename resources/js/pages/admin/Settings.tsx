@@ -28,7 +28,7 @@ export default function Settings() {
         <>
             <Head title="Settings" />
 
-            <div className="space-y-6">
+            <div className="space-y-4">
                 <AdminSectionHeader
                     eyebrow="Configuration"
                     title="Settings"

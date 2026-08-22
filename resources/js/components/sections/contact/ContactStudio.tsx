@@ -13,9 +13,12 @@ import {
 import { type FormEvent, useState } from 'react';
 
 import { FadeInOnMount } from '@/components/motion/FadeIn';
+import { ContactOfficeMap } from '@/components/sections/contact/ContactOfficeMap';
 import {
     CONTACT_EMAIL,
     CONTACT_EMAIL_HREF,
+    OFFICE_LOCATION,
+    OFFICE_MAPS_HREF,
     WHATSAPP_DISPLAY,
     WHATSAPP_HREF,
 } from '@/components/public/brand';
@@ -47,9 +50,10 @@ const channels = [
     },
     {
         icon: MapPin,
-        label: 'Office',
-        value: 'Shahr-e Naw, Kabul',
-        href: null,
+        label: 'Location',
+        value: OFFICE_LOCATION,
+        href: OFFICE_MAPS_HREF,
+        external: true,
     },
 ] as const;
 
@@ -80,7 +84,7 @@ export function ContactStudio() {
     return (
         <section
             id="contact-form"
-            className="relative flex min-h-[calc(100vh-4rem)] items-center overflow-hidden py-28 sm:py-32"
+            className="relative overflow-hidden py-28 sm:py-32"
         >
             <div
                 aria-hidden
@@ -155,7 +159,14 @@ export function ContactStudio() {
                                                     <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-on-surface/50">
                                                         {channel.label}
                                                     </p>
-                                                    <p className="mt-0.5 truncate text-sm font-medium text-brand-on-surface">
+                                                    <p
+                                                        className={cn(
+                                                            'mt-0.5 text-sm font-medium text-brand-on-surface',
+                                                            channel.label === 'Location'
+                                                                ? 'whitespace-normal leading-snug'
+                                                                : 'truncate',
+                                                        )}
+                                                    >
                                                         {channel.value}
                                                     </p>
                                                 </div>
@@ -173,12 +184,17 @@ export function ContactStudio() {
                                                 {channel.href ? (
                                                     <a
                                                         href={channel.href}
-                                                        {...(channel.href.startsWith('https://')
+                                                        {...('external' in channel && channel.external
                                                             ? {
                                                                   target: '_blank',
                                                                   rel: 'noopener noreferrer',
                                                               }
-                                                            : {})}
+                                                            : channel.href.startsWith('https://')
+                                                              ? {
+                                                                    target: '_blank',
+                                                                    rel: 'noopener noreferrer',
+                                                                }
+                                                              : {})}
                                                         className="group flex items-center gap-4 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                                     >
                                                         {content}
@@ -381,6 +397,8 @@ export function ContactStudio() {
                         </div>
                     </BorderGlow>
                 </FadeInOnMount>
+
+                <ContactOfficeMap />
             </div>
         </section>
     );

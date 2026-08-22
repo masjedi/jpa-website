@@ -3,11 +3,14 @@ import { motion, useReducedMotion } from 'motion/react';
 interface AnimatedAxisDividerProps {
     axis?: 'x' | 'y';
     className?: string;
+    /** When true, horizontal dividers stay visible on all breakpoints (not only mobile). */
+    always?: boolean;
 }
 
 export function AnimatedAxisDivider({
     axis = 'y',
     className = '',
+    always = false,
 }: AnimatedAxisDividerProps) {
     const reducedMotion = useReducedMotion();
     const isVertical = axis === 'y';
@@ -19,7 +22,7 @@ export function AnimatedAxisDivider({
                 className={
                     isVertical
                         ? `hidden w-px self-stretch bg-border lg:block ${className}`
-                        : `h-px w-full bg-border lg:hidden ${className}`
+                        : `${always ? '' : 'lg:hidden '}h-px w-full bg-border ${className}`
                 }
             />
         );
@@ -61,7 +64,7 @@ export function AnimatedAxisDivider({
     return (
         <div
             aria-hidden
-            className={`relative h-px w-full overflow-hidden bg-border/50 lg:hidden ${className}`}
+            className={`relative h-px w-full overflow-hidden bg-border/50 ${always ? '' : 'lg:hidden '}${className}`}
         >
             <motion.div
                 className="absolute top-0 h-full bg-gradient-to-r from-transparent via-secondary to-accent"

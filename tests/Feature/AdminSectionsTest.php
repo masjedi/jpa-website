@@ -18,9 +18,12 @@ class AdminSectionsTest extends TestCase
     {
         return [
             'dashboard' => ['/admin/dashboard', 'admin/Dashboard'],
+            'hero-section' => ['/admin/hero-section', 'admin/HeroSection'],
             'tours' => ['/admin/tours', 'admin/Tours'],
             'destinations' => ['/admin/destinations', 'admin/Destinations'],
             'articles' => ['/admin/articles', 'admin/Articles'],
+            'faq' => ['/admin/faq', 'admin/Faq'],
+            'subscriptions' => ['/admin/subscriptions', 'admin/Subscriptions'],
             'inquiries' => ['/admin/inquiries', 'admin/Inquiries'],
             'invoices' => ['/admin/invoices', 'admin/Invoices'],
             'settings' => ['/admin/settings', 'admin/Settings'],

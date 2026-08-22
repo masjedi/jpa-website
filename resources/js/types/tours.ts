@@ -38,6 +38,7 @@ export interface Tour {
     image: string;
     badge?: string;
     description: string;
+    content?: string;
     highlights: readonly string[];
     itineraryOverview: readonly TourItineraryDay[];
     inclusions: readonly string[];

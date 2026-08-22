@@ -8,14 +8,14 @@ interface AdminSectionPanelProps {
 
 export function AdminSectionPanel({ title, description, children }: AdminSectionPanelProps) {
     return (
-        <section className="rounded-2xl border border-border bg-surface shadow-sm">
-            <div className="border-b border-border px-6 py-4 sm:px-8">
-                <h3 className="font-heading text-base font-semibold text-foreground">{title}</h3>
+        <section className="rounded-xl border border-border bg-surface shadow-sm">
+            <div className="border-b border-border px-4 py-3 sm:px-5">
+                <h3 className="font-heading text-sm font-semibold text-foreground sm:text-base">{title}</h3>
                 {description ? (
-                    <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">{description}</p>
                 ) : null}
             </div>
-            <div className="px-6 py-8 sm:px-8">{children}</div>
+            <div className="px-4 py-5 sm:px-5 sm:py-6">{children}</div>
         </section>
     );
 }

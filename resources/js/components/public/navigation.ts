@@ -9,6 +9,7 @@ export const primaryLinks = [
     { label: 'Destinations', href: '/destinations' },
     { label: 'Services', href: '/services' },
     { label: 'Articles', href: '/articles' },
+    { label: 'Gallery', href: '/gallery' },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
 ] as const satisfies readonly PublicNavLink[];
@@ -17,7 +18,7 @@ export const exploreLinks = [
     { label: 'Home', href: '/' },
     { label: 'Tours & Packages', href: '/tours' },
     { label: 'Destinations', href: '/destinations' },
-    { label: 'Gallery', href: '/#gallery' },
+    { label: 'Gallery', href: '/gallery' },
 ] as const satisfies readonly PublicNavLink[];
 
 export const companyLinks = [

@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 interface AdminSectionHeaderProps {
     eyebrow: string;
     title: string;
-    description: string;
+    description?: string;
     icon: LucideIcon;
     actions?: ReactNode;
     className?: string;
@@ -23,31 +23,37 @@ export function AdminSectionHeader({
     return (
         <header
             className={cn(
-                'overflow-hidden rounded-2xl border border-border bg-surface shadow-sm',
+                'rounded-xl border border-border/80 bg-surface/90 px-4 py-3 shadow-sm sm:px-5',
                 className,
             )}
         >
-            <div className="border-b border-border bg-[linear-gradient(135deg,color-mix(in_srgb,var(--primary)_10%,transparent),color-mix(in_srgb,var(--secondary)_8%,transparent))] px-6 py-6 sm:px-8 sm:py-7">
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="flex min-w-0 items-start gap-4">
-                        <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                            <Icon className="size-5" aria-hidden />
-                        </span>
-                        <div className="min-w-0">
-                            <p className="text-xs font-medium uppercase tracking-[0.16em] text-secondary">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-start gap-3 sm:items-center">
+                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary ring-1 ring-primary/10">
+                        <Icon className="size-4" aria-hidden />
+                    </span>
+                    <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-secondary">
                                 {eyebrow}
-                            </p>
-                            <h2 className="mt-1 font-heading text-2xl font-semibold text-foreground sm:text-3xl">
+                            </span>
+                            <h2 className="font-heading text-base font-semibold text-foreground sm:text-lg">
                                 {title}
                             </h2>
-                            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                        </div>
+                        {description ? (
+                            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground sm:line-clamp-1 sm:text-sm">
                                 {description}
                             </p>
-                        </div>
+                        ) : null}
                     </div>
-
-                    {actions ? <div className="flex shrink-0 flex-wrap gap-2">{actions}</div> : null}
                 </div>
+
+                {actions ? (
+                    <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end [&_button]:rounded-lg [&_button]:px-3 [&_button]:py-1.5 [&_button]:text-xs [&_button]:font-semibold sm:[&_button]:px-3.5 sm:[&_button]:py-2 sm:[&_button]:text-sm">
+                        {actions}
+                    </div>
+                ) : null}
             </div>
         </header>
     );
