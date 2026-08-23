@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Image, Plus } from 'lucide-react';
 import { useState } from 'react';
 
@@ -8,24 +8,19 @@ import { ContentRecordViewDialog } from '@/components/admin/ContentRecordViewDia
 import { HeroEyebrowEditor } from '@/components/admin/HeroEyebrowEditor';
 import type { HeroEyebrowFormValues } from '@/components/admin/heroEyebrowForm';
 import { HeroSlideFormDialog } from '@/components/admin/HeroSlideFormDialog';
-import {
-    formatHeroUpdatedLabel,
-    heroSlideToFormValues,
-    nextHeroSlideId,
-    nextHeroSlideOrder,
-    type HeroSlideFormValues,
-} from '@/components/admin/heroSlideForm';
+import { heroSlideToFormValues, type HeroSlideFormValues } from '@/components/admin/heroSlideForm';
 import { buildHeroSlideViewModel } from '@/components/admin/heroSlideView';
 import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
-import {
-    heroSectionEyebrow as initialHeroEyebrow,
-    heroSlides as initialHeroSlides,
-    type HeroSlide,
-} from '@/data/heroSectionData';
+import type { HeroSlide } from '@/types/heroSection';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
+
+interface HeroSectionPageProps {
+    eyebrow: string;
+    slides: HeroSlide[];
+}
 
 const statusStyles: Record<HeroSlide['status'], string> = {
     Published: 'bg-secondary/10 text-secondary',
@@ -64,13 +59,7 @@ const columns: DataTableColumn<HeroSlide>[] = [
     { id: 'updated', header: 'Updated', accessor: (row) => row.updated },
 ];
 
-function buildInitialSlides(): HeroSlide[] {
-    return initialHeroSlides.map((slide) => ({ ...slide }));
-}
-
-export default function HeroSection() {
-    const [eyebrow, setEyebrow] = useState(initialHeroEyebrow);
-    const [slides, setSlides] = useState<HeroSlide[]>(buildInitialSlides);
+export default function HeroSection({ eyebrow, slides }: HeroSectionPageProps) {
     const [formOpen, setFormOpen] = useState(false);
     const [viewOpen, setViewOpen] = useState(false);
     const [editingSlideId, setEditingSlideId] = useState<number | null>(null);
@@ -121,39 +110,44 @@ export default function HeroSection() {
         setFormOpen(true);
     };
 
+    const invalidatePublicHome = () => {
+        router.flush('/');
+    };
+
     const handleSaveEyebrow = (values: HeroEyebrowFormValues) => {
-        setEyebrow(values.eyebrow);
+        router.patch('/admin/hero-section', values, {
+            preserveScroll: true,
+            onSuccess: invalidatePublicHome,
+        });
     };
 
     const handleSubmitSlide = (values: HeroSlideFormValues) => {
         if (editingSlideId !== null) {
-            setSlides((current) =>
-                current.map((slide) =>
-                    slide.id === editingSlideId
-                        ? {
-                              ...slide,
-                              title: values.title,
-                              subtitle: values.subtitle,
-                              status: values.status,
-                              updated: formatHeroUpdatedLabel(),
-                          }
-                        : slide,
-                ),
-            );
+            router.patch(`/admin/hero-section/slides/${editingSlideId}`, values, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    invalidatePublicHome();
+                    closeForm();
+                },
+            });
 
             return;
         }
 
-        const slide: HeroSlide = {
-            id: nextHeroSlideId(slides),
-            title: values.title,
-            subtitle: values.subtitle,
-            status: values.status,
-            order: nextHeroSlideOrder(slides),
-            updated: formatHeroUpdatedLabel(),
-        };
+        router.post('/admin/hero-section/slides', values, {
+            preserveScroll: true,
+            onSuccess: () => {
+                invalidatePublicHome();
+                closeForm();
+            },
+        });
+    };
 
-        setSlides((current) => [...current, slide]);
+    const handleDeleteSlide = (row: HeroSlide) => {
+        router.delete(`/admin/hero-section/slides/${row.id}`, {
+            preserveScroll: true,
+            onSuccess: invalidatePublicHome,
+        });
     };
 
     return (
@@ -195,6 +189,7 @@ export default function HeroSection() {
                     initialPageSize={5}
                     onView={openViewDialog}
                     onEdit={openEditForm}
+                    onDelete={handleDeleteSlide}
                 />
             </div>
 

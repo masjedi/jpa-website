@@ -11,7 +11,7 @@ export default function About() {
         <>
             <PageMeta
                 title="About"
-                description="Meet Journey to Peace Afghanistan Tours — a small Afghan team guiding travellers with local expertise, transparent planning and cultural respect."
+                description="Meet Journey to Peace Afghanistan Tours — our story, mission, values, leadership and the Afghan team guiding travellers with local expertise and cultural respect."
             />
             <AboutLanding />
         </>

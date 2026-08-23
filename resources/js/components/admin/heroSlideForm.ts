@@ -1,4 +1,4 @@
-import type { HeroSlide, HeroSlideStatus } from '@/data/heroSectionData';
+import type { HeroSlide, HeroSlideStatus } from '@/types/heroSection';
 
 export interface HeroSlideFormValues {
     title: string;
@@ -10,7 +10,7 @@ export function createEmptyHeroSlideFormValues(): HeroSlideFormValues {
     return {
         title: '',
         subtitle: '',
-        status: 'Draft',
+        status: 'Published',
     };
 }
 

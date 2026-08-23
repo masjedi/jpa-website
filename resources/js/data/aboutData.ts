@@ -1,9 +1,24 @@
-import { Compass, HandHeart, ShieldCheck, Users } from 'lucide-react';
+import {
+    Award,
+    Bus,
+    Compass,
+    FileCheck2,
+    HandHeart,
+    Handshake,
+    MapPinned,
+    Route,
+    ShieldCheck,
+    Users,
+} from 'lucide-react';
 
 import type {
+    AboutMissionVision,
     AboutMilestone,
+    AboutPartner,
     AboutStat,
     AboutValue,
+    AboutWhatWeDoItem,
+    AboutWhyChooseItem,
     TeamMember,
 } from '@/types/about';
 
@@ -11,11 +26,130 @@ export const aboutStory = {
     eyebrow: 'Our story',
     title: 'Guided by Afghans, built for travellers',
     paragraphs: [
-        'JPA began with a simple conviction: Afghanistan deserves to be experienced through Afghan eyes — with honesty, care and deep local knowledge. What started as informal guiding for visiting researchers grew into a small, dedicated team coordinating journeys across the country.',
-        'Today we design small-group tours and private itineraries that connect travellers with the places and people we know best — from the Buddha cliffs of Bamiyan to the Timurid minarets of Herat.',
-        'We keep things deliberately personal. Every itinerary is reviewed by a human, every inquiry answered by someone who has walked the route.',
+        'JPA began with a simple conviction: Afghanistan deserves to be experienced through Afghan eyes — with honesty, care and deep local knowledge.',
+        'Today we design small-group tours and private itineraries across Bamiyan, Herat, Kabul and beyond — always reviewed by someone who has walked the route.',
     ],
+    images: {
+        primary: {
+            src: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
+            alt: 'Hindu Kush mountain landscape in Afghanistan',
+        },
+        secondary: {
+            src: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=600&q=80',
+            alt: 'Shared tea with local hosts',
+        },
+    },
 } as const;
+
+export const aboutMissionVision: AboutMissionVision = {
+    mission: {
+        title: 'Our mission',
+        description:
+            'To open Afghanistan to thoughtful travellers through Afghan-led guiding — with transparent planning, cultural respect and safety at the centre of every journey.',
+    },
+    vision: {
+        title: 'Our vision',
+        description:
+            'A future where responsible tourism strengthens Afghan communities, preserves heritage and rebuilds connection between visitors and the country we call home.',
+    },
+};
+
+export const aboutWhatWeDo: readonly AboutWhatWeDoItem[] = [
+    {
+        title: 'Guided tours',
+        description: 'Curated small-group departures led by experienced Afghan guides.',
+        icon: Users,
+    },
+    {
+        title: 'Custom itineraries',
+        description: 'Bespoke routes shaped around your dates, pace and interests.',
+        icon: Route,
+    },
+    {
+        title: 'Private travel',
+        description: 'Dedicated guide and vehicle for couples, families and small groups.',
+        icon: MapPinned,
+    },
+    {
+        title: 'Ground logistics',
+        description: 'Transport, accommodation and regional permits coordinated end to end.',
+        icon: Bus,
+    },
+    {
+        title: 'Visa support',
+        description: 'Invitation letters and documentation guidance for your application.',
+        icon: FileCheck2,
+    },
+    {
+        title: 'Safety briefings',
+        description: 'Pre-departure calls covering routes, customs and on-ground expectations.',
+        icon: ShieldCheck,
+    },
+];
+
+export const aboutWhyChooseUs: readonly AboutWhyChooseItem[] = [
+    {
+        title: 'Afghan-owned expertise',
+        description:
+            'Every itinerary is designed and reviewed by our Kabul-based team — not outsourced to a distant operator.',
+        image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80',
+        imageAlt: 'Guide leading travellers through mountain terrain',
+    },
+    {
+        title: 'Human-reviewed planning',
+        description:
+            'Inquiry-based bookings with clear pricing and honest limitations — no instant-confirmation theatre.',
+        image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80',
+        imageAlt: 'Planning session with maps and notes',
+    },
+    {
+        title: 'Culture-first guiding',
+        description:
+            'We prepare travellers on customs, dress and photography consent so visits are welcomed, not tolerated.',
+        image: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=900&q=80',
+        imageAlt: 'Historic architecture and cultural heritage site',
+    },
+    {
+        title: 'Community partnerships',
+        description:
+            'Direct relationships with guesthouses, artisans and village hosts keep tourism income local.',
+        image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=900&q=80',
+        imageAlt: 'Local artisan craft workshop',
+    },
+];
+
+export const aboutPartners: readonly AboutPartner[] = [
+    {
+        name: 'Afghan Tourism Board',
+        category: 'Industry affiliation',
+        description: 'Registered tour operator partner for heritage and cultural routes.',
+    },
+    {
+        name: 'Herat Craft Cooperative',
+        category: 'Artisan network',
+        description: 'Direct visits to tile-work and miniature-painting workshops.',
+    },
+    {
+        name: 'Bamiyan Homestay Network',
+        category: 'Community tourism',
+        description: 'Village stays vetted for guest comfort and fair compensation.',
+    },
+    {
+        name: 'First Aid & Safety Training',
+        category: 'Guide certification',
+        description: 'Annual wilderness first-aid certification for all field guides.',
+    },
+    {
+        name: 'Leave No Trace Alliance',
+        category: 'Responsible travel',
+        description: 'Commitment to low-impact practices on mountain and heritage routes.',
+    },
+    {
+        name: 'Silk Road Heritage Forum',
+        category: 'Cultural partner',
+        description: 'Interpretation support for Timurid and pre-Islamic archaeological sites.',
+    },
+];
 
 export const aboutMilestones: readonly AboutMilestone[] = [
     {

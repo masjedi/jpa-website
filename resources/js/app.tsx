@@ -12,7 +12,13 @@ router.on('navigate', () => {
 });
 
 createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
+    title: (title) => {
+        if (!title || title === appName) {
+            return appName;
+        }
+
+        return `${title} - ${appName}`;
+    },
     pages: './pages',
     strictMode: true,
     withApp: (app) => (

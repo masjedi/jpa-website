@@ -167,7 +167,19 @@ export function PremiumDataTable<T extends object>({
         });
 
         if (!sort) {
-            return matchingRows;
+            return [...matchingRows].sort((left, right) => {
+                const leftKey = rowKey(left);
+                const rightKey = rowKey(right);
+
+                if (typeof leftKey === 'number' && typeof rightKey === 'number') {
+                    return rightKey - leftKey;
+                }
+
+                return valueToString(rightKey).localeCompare(valueToString(leftKey), undefined, {
+                    numeric: true,
+                    sensitivity: 'base',
+                });
+            });
         }
 
         const sortColumn = columns.find((column) => column.id === sort.columnId);
@@ -188,7 +200,7 @@ export function PremiumDataTable<T extends object>({
 
             return sort.direction === 'asc' ? comparison : -comparison;
         });
-    }, [columns, data, filterColumnId, filterValue, searchQuery, sort]);
+    }, [columns, data, filterColumnId, filterValue, rowKey, searchQuery, sort]);
 
     const totalPages = Math.max(1, Math.ceil(processedRows.length / pageSize));
     const safePage = Math.min(page, totalPages);

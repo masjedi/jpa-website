@@ -14,6 +14,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Production review accounts are created interactively during deployment.
+        $this->call([
+            AdminUserSeeder::class,
+            HeroSectionSeeder::class,
+        ]);
     }
 }

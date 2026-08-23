@@ -2,7 +2,6 @@ import { Link } from '@inertiajs/react';
 import { ChevronRight, Users } from 'lucide-react';
 
 import { FadeInOnMount } from '@/components/motion/FadeIn';
-import { planTripHref } from '@/components/public/navigation';
 
 export function AboutHero() {
     return (
@@ -49,19 +48,18 @@ export function AboutHero() {
 
                     <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                         <a
-                            href="#team"
+                            href="#story"
                             className="inline-flex items-center justify-center rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                         >
-                            Meet the team
+                            Our story
                         </a>
-                        <Link
-                            href={planTripHref}
-                            prefetch="hover"
+                        <a
+                            href="#leadership"
                             className="inline-flex items-center justify-center gap-1.5 rounded-full border border-brand-on-surface/25 px-6 py-2.5 text-sm font-medium text-brand-on-surface transition-colors hover:bg-brand-on-surface/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                         >
                             <Users className="size-4 text-accent" aria-hidden />
-                            Plan my trip
-                        </Link>
+                            Meet leadership
+                        </a>
                     </div>
                 </FadeInOnMount>
             </div>

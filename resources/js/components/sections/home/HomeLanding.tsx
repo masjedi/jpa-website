@@ -20,7 +20,6 @@ import {
     type LucideIcon,
 } from "lucide-react";
 
-import { BorderGlow } from "@/components/react-bits/BorderGlow/BorderGlow";
 import { publishedFaqItems } from "@/data/faqData";
 import { SpotlightCard } from "@/components/react-bits/SpotlightCard/SpotlightCard";
 import { FadeIn, FadeInOnMount, RevealItem, RevealStagger } from "@/components/motion/FadeIn";
@@ -29,11 +28,7 @@ import { DonateButton } from "@/components/public/DonateButton";
 import { DeferredCommunityImpactSection, DeferredTestimonialsCarousel } from "@/components/sections/home/HomeDeferredSections";
 import { HeroScannerBackground } from "@/components/sections/home/HeroScannerBackground";
 import { galleryImages } from "@/data/galleryData";
-import {
-    heroSectionEyebrow,
-    publishedHeroSlides,
-    type HeroSlide,
-} from "@/data/heroSectionData";
+import type { PublicHeroSlide, PublicHeroSection } from '@/types/heroSection';
 
 /* -------------------------------------------------------------------------- */
 /*  Mock data                                                                  */
@@ -228,35 +223,6 @@ const featuredDestinations: readonly Destination[] = [
     },
 ];
 
-/* Why travel with us -------------------------------------------------------- */
-
-const whyTravelWithUs = [
-    {
-        icon: MapPinned,
-        title: "Local knowledge",
-        description:
-            "Routes, cultural context and practical insight from guides who live and work in Afghanistan.",
-    },
-    {
-        icon: Compass,
-        title: "Personal planning",
-        description:
-            "Itineraries built around your interests, not copied from a fixed template.",
-    },
-    {
-        icon: MessageCircle,
-        title: "Clear communication",
-        description:
-            "Transparent answers about itineraries, logistics and what to expect before you travel.",
-    },
-    {
-        icon: ShieldCheck,
-        title: "Responsible travel",
-        description:
-            "Respectful engagement with communities and attention to local customs and environment.",
-    },
-] as const;
-
 /* Services ------------------------------------------------------------------ */
 
 const servicesOverview: readonly Service[] = [
@@ -448,7 +414,7 @@ function Badge({
 
 /* Hero carousel ------------------------------------------------------------- */
 
-function HeroMessageCarousel({ slides }: { slides: readonly HeroSlide[] }) {
+function HeroMessageCarousel({ slides }: { slides: readonly PublicHeroSlide[] }) {
     const reducedMotion = useReducedMotion();
     const [activeIndex, setActiveIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
@@ -533,7 +499,7 @@ function HeroMessageCarousel({ slides }: { slides: readonly HeroSlide[] }) {
 /*  Home landing                                                               */
 /* -------------------------------------------------------------------------- */
 
-export function HomeLanding() {
+export function HomeLanding({ hero }: { hero: PublicHeroSection }) {
     return (
         <>
             {/* Hero ---------------------------------------------------------- */}
@@ -547,9 +513,17 @@ export function HomeLanding() {
 
                 <FadeInOnMount className="relative z-10 max-w-3xl px-4 py-28 text-center sm:px-6 lg:py-32">
                     <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand-on-surface/65">
-                        {heroSectionEyebrow}
+                        {hero.eyebrow}
                     </p>
-                    <HeroMessageCarousel slides={publishedHeroSlides} />
+                    {hero.slides.length > 0 ? (
+                        <HeroMessageCarousel slides={hero.slides} />
+                    ) : (
+                        <div className="mt-5 grid min-h-[13.5rem] place-items-center sm:min-h-[14rem]">
+                            <p className="max-w-lg text-base leading-relaxed text-brand-on-surface/75 sm:text-lg">
+                                Publish a hero slide in the admin dashboard to show your headline here.
+                            </p>
+                        </div>
+                    )}
 
                     <div className="mt-7 flex flex-col items-center justify-center gap-4">
                         <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -816,50 +790,6 @@ export function HomeLanding() {
                                         </div>
                                     </div>
                                 </Card>
-                            </RevealItem>
-                        ))}
-                    </RevealStagger>
-                </div>
-                </FadeIn>
-            </section>
-
-            {/* Why Travel With Us ------------------------------------------------ */}
-            <section id="about" className="bg-surface-muted py-16 sm:py-20">
-                <FadeIn>
-                <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
-                    <SectionHeader
-                        eyebrow="Why travel with us"
-                        title="Travel with clarity, care and cultural depth"
-                        description="We help international visitors experience Afghanistan through thoughtfully guided tours, transparent planning and inquiry-based bookings reviewed by our team."
-                    />
-                    <RevealStagger className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                        {whyTravelWithUs.map((point) => (
-                            <RevealItem key={point.title} className="h-full">
-                            <BorderGlow
-                                className="h-full"
-                                backgroundColor="var(--surface)"
-                                borderRadius={16}
-                                colors={["#0E7373", "#163B5C", "#D7A23A"]}
-                                glowColor="182 78 26"
-                                edgeSensitivity={28}
-                                glowRadius={28}
-                                glowIntensity={0.9}
-                                coneSpread={22}
-                                fillOpacity={0.35}
-                            >
-                                <div className="p-6 text-start">
-                                    <point.icon
-                                        className="size-6 text-secondary"
-                                        aria-hidden
-                                    />
-                                    <h3 className="mt-4 font-heading text-lg font-semibold text-foreground">
-                                        {point.title}
-                                    </h3>
-                                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                                        {point.description}
-                                    </p>
-                                </div>
-                            </BorderGlow>
                             </RevealItem>
                         ))}
                     </RevealStagger>

@@ -28,6 +28,10 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::middleware('auth')->group(function (): void {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('hero-section', [HeroSectionController::class, 'index'])->name('hero-section.index');
+        Route::patch('hero-section', [HeroSectionController::class, 'update'])->name('hero-section.update');
+        Route::post('hero-section/slides', [HeroSectionController::class, 'storeSlide'])->name('hero-section.slides.store');
+        Route::patch('hero-section/slides/{heroSlide}', [HeroSectionController::class, 'updateSlide'])->name('hero-section.slides.update');
+        Route::delete('hero-section/slides/{heroSlide}', [HeroSectionController::class, 'destroySlide'])->name('hero-section.slides.destroy');
         Route::get('tours', [ToursController::class, 'index'])->name('tours.index');
         Route::get('destinations', [DestinationsController::class, 'index'])->name('destinations.index');
         Route::get('articles', [ArticlesController::class, 'index'])->name('articles.index');

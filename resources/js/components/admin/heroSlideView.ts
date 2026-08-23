@@ -1,5 +1,5 @@
 import type { ContentRecordViewModel } from '@/components/admin/contentRecordViewModel';
-import type { HeroSlide } from '@/data/heroSectionData';
+import type { HeroSlide } from '@/types/heroSection';
 
 interface BuildHeroSlideViewModelOptions {
     slide: HeroSlide;

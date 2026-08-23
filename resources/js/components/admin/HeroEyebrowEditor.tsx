@@ -64,7 +64,7 @@ export function HeroEyebrowEditor({ eyebrow, onSave }: HeroEyebrowEditorProps) {
                         setErrors({});
                         setSaved(false);
                     }}
-                    placeholder="Premium guided travel in Afghanistan"
+                    placeholder="Short label above the headline"
                     aria-invalid={Boolean(errors.eyebrow)}
                     aria-describedby={adminFieldDescribedBy(fieldId, errors.eyebrow)}
                     className={cn(adminFieldClass, errors.eyebrow && adminFieldErrorClass)}

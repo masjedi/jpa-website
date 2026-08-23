@@ -41,7 +41,12 @@ function NavLink({
 
     if (isInternalPage) {
         return (
-            <Link href={link.href} prefetch="hover" className={className} onClick={onNavigate}>
+            <Link
+                href={link.href}
+                prefetch={link.href === '/' ? false : 'hover'}
+                className={className}
+                onClick={onNavigate}
+            >
                 {link.label}
             </Link>
         );

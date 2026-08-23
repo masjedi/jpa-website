@@ -88,7 +88,7 @@ export function HeroSlideEntityForm({
                             setValues((current) => ({ ...current, title: event.target.value }));
                             setErrors((current) => ({ ...current, title: undefined }));
                         }}
-                        placeholder="Discover Afghanistan with trusted local guidance"
+                        placeholder="Headline shown in the homepage hero"
                         aria-invalid={Boolean(errors.title)}
                         aria-describedby={adminFieldDescribedBy(titleFieldId, errors.title)}
                         className={cn(adminFieldClass, errors.title && adminFieldErrorClass)}
@@ -110,7 +110,7 @@ export function HeroSlideEntityForm({
                             setValues((current) => ({ ...current, subtitle: event.target.value }));
                             setErrors((current) => ({ ...current, subtitle: undefined }));
                         }}
-                        placeholder="Landscapes, heritage and hospitality — planned with people who know the country deeply."
+                        placeholder="Supporting sentence under the headline"
                         aria-invalid={Boolean(errors.subtitle)}
                         aria-describedby={adminFieldDescribedBy(subtitleFieldId, errors.subtitle)}
                         className={cn(
@@ -119,6 +119,24 @@ export function HeroSlideEntityForm({
                             errors.subtitle && adminFieldErrorClass,
                         )}
                     />
+                </AdminFormField>
+
+                <AdminFormField id={`${formId}-status`} label="Status" required>
+                    <select
+                        id={`${formId}-status`}
+                        value={values.status}
+                        disabled={submitting}
+                        onChange={(event) => {
+                            setValues((current) => ({
+                                ...current,
+                                status: event.target.value as HeroSlideFormValues['status'],
+                            }));
+                        }}
+                        className={adminFieldClass}
+                    >
+                        <option value="Draft">Draft</option>
+                        <option value="Published">Published</option>
+                    </select>
                 </AdminFormField>
             </div>
 

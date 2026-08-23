@@ -76,15 +76,15 @@ export function AboutTeamSection() {
     const rest = teamMembers.filter((member) => !member.isFounder);
 
     return (
-        <section id="team" className="bg-background py-12 sm:py-16">
+        <section id="leadership" className="bg-background py-12 sm:py-16">
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                 <FadeIn>
                     <div className="max-w-2xl text-start">
                         <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-                            The people
+                            Leadership
                         </p>
                         <h2 className="font-heading mt-1.5 text-2xl font-semibold text-foreground sm:text-3xl">
-                            Meet the team behind the journeys
+                            The people behind every journey
                         </h2>
                         <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
                             Guides, planners and coordinators — every itinerary is
