@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class PublicPagesTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * @return array<string, array{0: string}>
      */
@@ -33,9 +36,14 @@ class PublicPagesTest extends TestCase
         $this->get($path)->assertOk();
     }
 
-    public function test_unknown_tour_still_renders(): void
+    public function test_unknown_tour_returns_not_found(): void
     {
-        $this->get('/tours/does-not-exist')->assertOk();
+        $this->get('/tours/does-not-exist')->assertNotFound();
+    }
+
+    public function test_unknown_destination_returns_not_found(): void
+    {
+        $this->get('/destinations/does-not-exist')->assertNotFound();
     }
 
     public function test_client_review_pages_are_not_indexable(): void

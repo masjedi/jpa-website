@@ -3,6 +3,7 @@ import { useId } from 'react';
 import { ArticleEntityForm } from '@/components/admin/ArticleEntityForm';
 import {
     createEmptyArticleFormValues,
+    type ArticleFormSubmitPayload,
     type ArticleFormValues,
 } from '@/components/admin/articleForm';
 import { DataTableDialog } from '@/components/admin/DataTableDialog';
@@ -13,7 +14,7 @@ interface ArticleFormDialogProps {
     resetKey: string;
     initialValues?: ArticleFormValues;
     onClose: () => void;
-    onSubmit: (values: ArticleFormValues) => void | Promise<void>;
+    onSubmit: (payload: ArticleFormSubmitPayload) => void | Promise<void>;
 }
 
 export function ArticleFormDialog({
@@ -31,8 +32,8 @@ export function ArticleFormDialog({
             ? 'Update the article details shown on the public website.'
             : 'Add a new article to the public editorial library.';
 
-    const handleSubmit = async (values: ArticleFormValues) => {
-        await onSubmit(values);
+    const handleSubmit = async (payload: ArticleFormSubmitPayload) => {
+        await onSubmit(payload);
         onClose();
     };
 

@@ -9,6 +9,7 @@ export interface ArticleFormValues {
     category: ArticleCategory;
     image: string;
     content: string;
+    isFeatured: boolean;
     status: ArticleFormStatus;
 }
 
@@ -34,6 +35,7 @@ export function createEmptyArticleFormValues(): ArticleFormValues {
         category: 'Travel tips',
         image: '',
         content: '',
+        isFeatured: false,
         status: 'Draft',
     };
 }
@@ -80,7 +82,7 @@ export function resolveArticleContent(article: ArticleDetail): string {
 }
 
 export function articleToFormValues(
-    article: ArticleDetail,
+    article: ArticleDetail & { isFeatured?: boolean },
     status: ArticleFormStatus,
 ): ArticleFormValues {
     return {
@@ -89,6 +91,7 @@ export function articleToFormValues(
         category: article.category,
         image: article.image,
         content: resolveArticleContent(article),
+        isFeatured: article.isFeatured ?? false,
         status,
     };
 }
@@ -110,6 +113,56 @@ export function formatArticleDate(date: Date = new Date()): string {
 export type ArticleFormField = 'title' | 'summary' | 'image' | 'content';
 
 export type ArticleFormErrors = Partial<Record<ArticleFormField, string>>;
+
+export interface ArticleFormSubmitPayload {
+    values: ArticleFormValues;
+    coverImage: File | null;
+}
+
+const serverFieldMap: Record<string, ArticleFormField> = {
+    title: 'title',
+    summary: 'summary',
+    cover_image: 'image',
+    content: 'content',
+};
+
+export function mapServerArticleFormErrors(
+    errors: Record<string, string | string[] | undefined>,
+): ArticleFormErrors {
+    const mapped: ArticleFormErrors = {};
+
+    for (const [key, message] of Object.entries(errors)) {
+        const field = serverFieldMap[key];
+
+        if (!field || message === undefined) {
+            continue;
+        }
+
+        mapped[field] = Array.isArray(message) ? message[0] : message;
+    }
+
+    return mapped;
+}
+
+export function buildArticleFormData({
+    values,
+    coverImage,
+}: ArticleFormSubmitPayload): FormData {
+    const formData = new FormData();
+
+    formData.append('title', values.title);
+    formData.append('summary', values.summary);
+    formData.append('category', values.category);
+    formData.append('content', values.content);
+    formData.append('is_featured', values.isFeatured ? '1' : '0');
+    formData.append('status', values.status);
+
+    if (coverImage) {
+        formData.append('cover_image', coverImage);
+    }
+
+    return formData;
+}
 
 export function isArticleContentEmpty(html: string): boolean {
     return stripHtml(html).length === 0;

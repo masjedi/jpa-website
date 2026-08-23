@@ -4,6 +4,7 @@ import { DataTableDialog } from '@/components/admin/DataTableDialog';
 import { DestinationEntityForm } from '@/components/admin/DestinationEntityForm';
 import {
     createEmptyDestinationFormValues,
+    type DestinationFormSubmitPayload,
     type DestinationFormValues,
 } from '@/components/admin/destinationForm';
 
@@ -13,7 +14,7 @@ interface DestinationFormDialogProps {
     resetKey: string;
     initialValues?: DestinationFormValues;
     onClose: () => void;
-    onSubmit: (values: DestinationFormValues) => void | Promise<void>;
+    onSubmit: (payload: DestinationFormSubmitPayload) => void | Promise<void>;
 }
 
 export function DestinationFormDialog({
@@ -31,10 +32,7 @@ export function DestinationFormDialog({
             ? 'Update the destination details shown on the public website.'
             : 'Add a new destination to the public website catalog.';
 
-    const handleSubmit = async (values: DestinationFormValues) => {
-        await onSubmit(values);
-        onClose();
-    };
+    const handleSubmit = (payload: DestinationFormSubmitPayload) => onSubmit(payload);
 
     return (
         <DataTableDialog

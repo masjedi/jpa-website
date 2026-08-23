@@ -2,6 +2,7 @@ import { useId } from 'react';
 
 import {
     createEmptyTourFormValues,
+    type TourFormSubmitPayload,
     type TourFormValues,
 } from '@/components/admin/tourForm';
 import { TourEntityForm } from '@/components/admin/TourEntityForm';
@@ -13,7 +14,7 @@ interface TourFormDialogProps {
     resetKey: string;
     initialValues?: TourFormValues;
     onClose: () => void;
-    onSubmit: (values: TourFormValues) => void | Promise<void>;
+    onSubmit: (payload: TourFormSubmitPayload) => void | Promise<void>;
 }
 
 export function TourFormDialog({
@@ -36,10 +37,7 @@ export function TourFormDialog({
             ? 'Update the listing details shown on the public tours and packages pages.'
             : 'Add a tour itinerary or travel package with the fields used by the public filters and cards.';
 
-    const handleSubmit = async (values: TourFormValues) => {
-        await onSubmit(values);
-        onClose();
-    };
+    const handleSubmit = (payload: TourFormSubmitPayload) => onSubmit(payload);
 
     return (
         <DataTableDialog

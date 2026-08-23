@@ -1,39 +1,49 @@
-import { Head } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Compass, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
-import { ContentRecordViewDialog } from '@/components/admin/ContentRecordViewDialog';
-import { DestinationFormDialog } from '@/components/admin/DestinationFormDialog';
-import { buildDestinationViewModel } from '@/components/admin/destinationView';
 import {
-    destinationToFormValues,
-    slugifyDestinationName,
-    type DestinationFormValues,
+    buildDestinationFormData,
+    type DestinationFormSubmitPayload,
 } from '@/components/admin/destinationForm';
+import {
+    buildDestinationViewModel,
+    managedDestinationToFormValues,
+    type ManagedDestination,
+} from '@/components/admin/destinationView';
 import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
-import { allDestinations } from '@/data/destinationsData';
-import { getToursForDestination } from '@/data/destinationTours';
-import type { Destination } from '@/types/destinations';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
+
+const DestinationFormDialog = lazy(() =>
+    import('@/components/admin/DestinationFormDialog').then((module) => ({
+        default: module.DestinationFormDialog,
+    })),
+);
+
+const ContentRecordViewDialog = lazy(() =>
+    import('@/components/admin/ContentRecordViewDialog').then((module) => ({
+        default: module.ContentRecordViewDialog,
+    })),
+);
 
 type DestinationStatus = 'Published' | 'Draft';
 
-interface ManagedDestination extends Destination {
-    status: DestinationStatus;
-}
-
 interface DestinationRow {
-    id: string;
+    id: number;
     name: string;
     slug: string;
     region: string;
     tagline: string;
     tours: number;
     status: DestinationStatus;
+}
+
+interface DestinationsPageProps {
+    destinations: ManagedDestination[];
 }
 
 function buildDestinationRow(destination: ManagedDestination): DestinationRow {
@@ -43,16 +53,9 @@ function buildDestinationRow(destination: ManagedDestination): DestinationRow {
         slug: destination.slug,
         region: destination.region,
         tagline: destination.tagline,
-        tours: getToursForDestination(destination).length,
+        tours: destination.linkedToursCount ?? destination.linkedTours?.length ?? 0,
         status: destination.status,
     };
-}
-
-function buildInitialDestinations(): ManagedDestination[] {
-    return allDestinations.map((destination) => ({
-        ...destination,
-        status: destination.slug === 'nuristan' ? 'Draft' : 'Published',
-    }));
 }
 
 const statusStyles: Record<DestinationStatus, string> = {
@@ -91,15 +94,45 @@ const columns: DataTableColumn<DestinationRow>[] = [
     },
 ];
 
-export default function Destinations() {
-    const [destinations, setDestinations] = useState<ManagedDestination[]>(buildInitialDestinations);
+function submitDestinationForm(
+    payload: DestinationFormSubmitPayload,
+    editingDestinationId: number | null,
+): Promise<void> {
+    const formData = buildDestinationFormData(payload);
+
+    return new Promise((resolve, reject) => {
+        const options = {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                router.flush('/destinations');
+                resolve();
+            },
+            onError: () => reject(),
+        };
+
+        if (editingDestinationId !== null) {
+            formData.append('_method', 'patch');
+            router.post(`/admin/destinations/${editingDestinationId}`, formData, options);
+
+            return;
+        }
+
+        router.post('/admin/destinations', formData, options);
+    });
+}
+
+export default function Destinations({ destinations }: DestinationsPageProps) {
+    const { flash } = usePage().props;
     const [formOpen, setFormOpen] = useState(false);
     const [viewOpen, setViewOpen] = useState(false);
-    const [editingDestinationId, setEditingDestinationId] = useState<string | null>(null);
-    const [viewingDestinationId, setViewingDestinationId] = useState<string | null>(null);
+    const [editingDestinationId, setEditingDestinationId] = useState<number | null>(null);
+    const [viewingDestinationId, setViewingDestinationId] = useState<number | null>(null);
 
     const rows = destinations.map(buildDestinationRow);
-    const publishedCount = destinations.filter((destination) => destination.status === 'Published').length;
+    const publishedCount = destinations.filter(
+        (destination) => destination.status === 'Published',
+    ).length;
     const editingDestination = editingDestinationId
         ? destinations.find((destination) => destination.id === editingDestinationId) ?? null
         : null;
@@ -142,53 +175,16 @@ export default function Destinations() {
         setFormOpen(true);
     };
 
-    const handleSubmitDestination = (values: DestinationFormValues) => {
-        if (editingDestinationId) {
-            setDestinations((current) =>
-                current.map((destination) =>
-                    destination.id === editingDestinationId
-                        ? {
-                              ...destination,
-                              name: values.name,
-                              tagline: values.tagline,
-                              region: values.region,
-                              image: values.image,
-                              description: values.description,
-                              status: values.status,
-                              tourMatchKeywords: [
-                                  ...new Set([
-                                      ...destination.tourMatchKeywords,
-                                      values.name,
-                                      values.region,
-                                  ]),
-                              ],
-                          }
-                        : destination,
-                ),
-            );
+    const handleSubmitDestination = async (payload: DestinationFormSubmitPayload) => {
+        await submitDestinationForm(payload, editingDestinationId);
+        closeForm();
+    };
 
-            return;
-        }
-
-        const slug = slugifyDestinationName(values.name);
-
-        const destination: ManagedDestination = {
-            id: slug,
-            slug,
-            name: values.name,
-            tagline: values.tagline,
-            region: values.region,
-            image: values.image,
-            description: values.description,
-            highlights: [],
-            bestSeason: '',
-            travelStyle: '',
-            practicalNotes: [],
-            tourMatchKeywords: [values.name, values.region],
-            status: values.status,
-        };
-
-        setDestinations((current) => [destination, ...current]);
+    const handleDeleteDestination = (row: DestinationRow) => {
+        router.delete(`/admin/destinations/${row.id}`, {
+            preserveScroll: true,
+            onSuccess: () => router.flush('/destinations'),
+        });
     };
 
     return (
@@ -196,8 +192,17 @@ export default function Destinations() {
             <Head title="Destinations" />
 
             <div className="space-y-4">
+                {flash.success ? (
+                    <div
+                        role="status"
+                        className="rounded-xl border border-secondary/20 bg-secondary/10 px-4 py-3 text-sm text-secondary"
+                    >
+                        {flash.success}
+                    </div>
+                ) : null}
+
                 <AdminSectionHeader
-                    eyebrow="Public website"
+                    eyebrow="Content"
                     title="Destinations"
                     description="Manage Afghan regions, travel highlights, and destination detail pages shown on the public website."
                     icon={Compass}
@@ -220,40 +225,51 @@ export default function Destinations() {
                     columns={columns}
                     rowKey={(row) => row.id}
                     selectionLabel={(row) => row.name}
-                    initialPageSize={5}
+                    initialPageSize={8}
                     onView={openViewDialog}
                     onEdit={openEditForm}
+                    onDelete={handleDeleteDestination}
                 />
             </div>
 
-            <ContentRecordViewDialog
-                open={viewOpen}
-                title="View destination"
-                description={viewingDestination?.name}
-                model={
-                    viewingDestination
-                        ? buildDestinationViewModel({
-                              destination: viewingDestination,
-                              status: viewingDestination.status,
-                          })
-                        : null
-                }
-                onClose={closeView}
-                onEdit={openEditFromView}
-            />
+            {viewOpen ? (
+                <Suspense fallback={null}>
+                    <ContentRecordViewDialog
+                        open={viewOpen}
+                        title="View destination"
+                        description={viewingDestination?.name}
+                        model={
+                            viewingDestination
+                                ? buildDestinationViewModel({
+                                      destination: viewingDestination,
+                                      status: viewingDestination.status,
+                                  })
+                                : null
+                        }
+                        onClose={closeView}
+                        onEdit={openEditFromView}
+                    />
+                </Suspense>
+            ) : null}
 
-            <DestinationFormDialog
-                open={formOpen}
-                mode={editingDestinationId ? 'edit' : 'create'}
-                resetKey={editingDestinationId ?? 'create'}
-                initialValues={
-                    editingDestination
-                        ? destinationToFormValues(editingDestination, editingDestination.status)
-                        : undefined
-                }
-                onClose={closeForm}
-                onSubmit={handleSubmitDestination}
-            />
+            {formOpen ? (
+                <Suspense fallback={null}>
+                    <DestinationFormDialog
+                        open={formOpen}
+                        mode={editingDestinationId ? 'edit' : 'create'}
+                        resetKey={
+                            editingDestinationId ? String(editingDestinationId) : 'create'
+                        }
+                        initialValues={
+                            editingDestination
+                                ? managedDestinationToFormValues(editingDestination)
+                                : undefined
+                        }
+                        onClose={closeForm}
+                        onSubmit={handleSubmitDestination}
+                    />
+                </Suspense>
+            ) : null}
         </>
     );
 }

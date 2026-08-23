@@ -1,4 +1,5 @@
-import { type FormEvent, type ReactNode, useId, useState } from 'react';
+import { usePage } from '@inertiajs/react';
+import { type FormEvent, type ReactNode, useEffect, useId, useState } from 'react';
 
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
@@ -9,11 +10,14 @@ import {
     tourListingTypeOptions,
     tourRegionOptions,
     tourTravelStyleOptions,
+    mapServerTourFormErrors,
     type TourFormErrors,
+    type TourFormSubmitPayload,
     type TourFormValues,
     validateTourFormValues,
 } from '@/components/admin/tourForm';
-import { ImageUploadField, readImageFileAsDataUrl } from '@/components/admin/ImageUploadField';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
+import { mediaProfiles } from '@/lib/mediaProfiles';
 import { LazyRichTextEditor } from '@/components/admin/LazyRichTextEditor';
 import { cn } from '@/lib/utils';
 
@@ -22,7 +26,7 @@ interface TourEntityFormProps {
     mode: 'create' | 'edit';
     initialValues?: TourFormValues;
     onCancel: () => void;
-    onSubmit: (values: TourFormValues) => void | Promise<void>;
+    onSubmit: (payload: TourFormSubmitPayload) => void | Promise<void>;
 }
 
 function FormDivider() {
@@ -140,9 +144,18 @@ export function TourEntityForm({
     );
     const [errors, setErrors] = useState<TourFormErrors>({});
     const [submitting, setSubmitting] = useState(false);
+    const { errors: serverErrors } = usePage().props;
+
+    useEffect(() => {
+        const mapped = mapServerTourFormErrors(serverErrors);
+
+        if (Object.keys(mapped).length > 0) {
+            setErrors((current) => ({ ...current, ...mapped }));
+        }
+    }, [serverErrors]);
 
     const isPackage = values.listingType === 'package';
-    const hasImage = Boolean(imageFile) || Boolean(values.image.trim());
+    const hasImage = Boolean(imageFile) || Boolean((values.image ?? '').trim());
     const submitLabel =
         mode === 'edit'
             ? submitting
@@ -167,24 +180,27 @@ export function TourEntityForm({
         setSubmitting(true);
 
         try {
-            const image = imageFile ? await readImageFileAsDataUrl(imageFile) : values.image.trim();
+            const text = (value: string | null | undefined): string => (value ?? '').trim();
 
             await onSubmit({
-                ...values,
-                title: values.title.trim(),
-                tagline: values.tagline.trim(),
-                summary: values.summary.trim(),
-                destination: values.destination.trim(),
-                badge: values.badge.trim(),
-                highlightsText: values.highlightsText.trim(),
-                keyDestinationsText: values.keyDestinationsText.trim(),
-                includedServicesText: values.includedServicesText.trim(),
-                nextDepartureDate: values.nextDepartureDate.trim(),
-                estimatedStartingPrice: values.estimatedStartingPrice.trim(),
-                priceEstimate: values.priceEstimate.trim(),
-                idealFor: values.idealFor.trim(),
-                image,
-                content: values.content.trim(),
+                values: {
+                    ...values,
+                    title: text(values.title),
+                    tagline: text(values.tagline),
+                    summary: text(values.summary),
+                    destination: text(values.destination),
+                    badge: text(values.badge),
+                    highlightsText: text(values.highlightsText),
+                    keyDestinationsText: text(values.keyDestinationsText),
+                    includedServicesText: text(values.includedServicesText),
+                    nextDepartureDate: text(values.nextDepartureDate),
+                    estimatedStartingPrice: text(values.estimatedStartingPrice),
+                    priceEstimate: text(values.priceEstimate),
+                    idealFor: text(values.idealFor),
+                    content: text(values.content),
+                    image: text(values.image),
+                },
+                coverImage: imageFile,
             });
         } finally {
             setSubmitting(false);
@@ -205,6 +221,7 @@ export function TourEntityForm({
                         required
                         disabled={submitting}
                         previewUrl={imagePreview}
+                        hint={mediaProfiles.tour_cover.hint}
                         onChange={(file, preview) => {
                             setImageFile(file);
                             setImagePreview(preview);
@@ -745,6 +762,7 @@ export function TourEntityForm({
                                     Detail page
                                 </h3>
                                 <LazyRichTextEditor
+                                    key={`${contentFieldId}-${initialValues?.content?.length ?? 0}`}
                                     id={contentFieldId}
                                     label="Content"
                                     required

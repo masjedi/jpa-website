@@ -1,14 +1,12 @@
-import { Head } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Map, Plus } from 'lucide-react';
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
 import {
-    formatTourDuration,
+    buildTourFormData,
     listingTypeLabel,
-    slugifyTourTitle,
-    splitMultilineText,
-    type TourFormValues,
+    type TourFormSubmitPayload,
 } from '@/components/admin/tourForm';
 import {
     buildOfferViewModel,
@@ -19,7 +17,6 @@ import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
-import { SkeletonTable } from '@/components/ui/skeleton';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 
 const TourFormDialog = lazy(() =>
@@ -37,7 +34,7 @@ const ContentRecordViewDialog = lazy(() =>
 type TourStatus = 'Published' | 'Draft';
 
 interface OfferRow {
-    id: string;
+    id: number;
     title: string;
     slug: string;
     listingType: ManagedOffer['listingType'];
@@ -45,6 +42,10 @@ interface OfferRow {
     style: string;
     duration: string;
     status: TourStatus;
+}
+
+interface ToursPageProps {
+    offers: ManagedOffer[];
 }
 
 function buildOfferRow(offer: ManagedOffer): OfferRow {
@@ -71,25 +72,6 @@ function buildOfferRow(offer: ManagedOffer): OfferRow {
         duration: offer.duration,
         status: offer.status,
     };
-}
-
-function buildInitialOffers(
-    allTours: Awaited<ReturnType<typeof import('@/data/toursData')>>['allTours'],
-    tourPackages: Awaited<ReturnType<typeof import('@/data/toursData')>>['tourPackages'],
-): ManagedOffer[] {
-    const tours: ManagedOffer[] = allTours.map((tour) => ({
-        ...tour,
-        listingType: 'tour',
-        status: 'Published',
-    }));
-
-    const packages: ManagedOffer[] = tourPackages.map((pkg) => ({
-        ...pkg,
-        listingType: 'package',
-        status: 'Published',
-    }));
-
-    return [...packages, ...tours];
 }
 
 const statusStyles: Record<TourStatus, string> = {
@@ -143,79 +125,40 @@ const columns: DataTableColumn<OfferRow>[] = [
     },
 ];
 
-function buildTourFromValues(
-    values: TourFormValues,
-    existing?: Extract<ManagedOffer, { listingType: 'tour' }>,
-): Extract<ManagedOffer, { listingType: 'tour' }> {
-    const slug = existing?.slug ?? slugifyTourTitle(values.title);
-    const highlights = splitMultilineText(values.highlightsText);
-    const inclusions = splitMultilineText(values.includedServicesText);
+function submitTourForm(
+    payload: TourFormSubmitPayload,
+    editingOfferId: number | null,
+): Promise<void> {
+    const formData = buildTourFormData(payload);
 
-    return {
-        listingType: 'tour',
-        id: existing?.id ?? slug,
-        slug,
-        title: values.title,
-        destination: values.destination,
-        region: values.region,
-        durationDays: values.durationDays,
-        duration: formatTourDuration(values.durationDays),
-        difficulty: values.difficulty,
-        travelStyle: values.travelStyle,
-        season: existing?.season ?? 'Year-round',
-        bestMonths: existing?.bestMonths ?? 'Year-round',
-        groupSize: existing?.groupSize ?? 'Max 8 travelers / Private',
-        image: values.image,
-        badge: values.badge || undefined,
-        description: values.summary,
-        content: values.content,
-        highlights,
-        itineraryOverview: existing?.itineraryOverview ?? [],
-        inclusions,
-        estimatedStartingPrice: values.estimatedStartingPrice,
-        nextDeparture: {
-            date: values.nextDepartureDate,
-            status: values.nextDepartureStatus,
-        },
-        status: values.status,
-    };
+    return new Promise((resolve, reject) => {
+        const options = {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                router.flush('/tours');
+                resolve();
+            },
+            onError: () => reject(),
+        };
+
+        if (editingOfferId !== null) {
+            formData.append('_method', 'patch');
+            router.post(`/admin/tours/${editingOfferId}`, formData, options);
+
+            return;
+        }
+
+        router.post('/admin/tours', formData, options);
+    });
 }
 
-function buildPackageFromValues(
-    values: TourFormValues,
-    existing?: Extract<ManagedOffer, { listingType: 'package' }>,
-): Extract<ManagedOffer, { listingType: 'package' }> {
-    const slug = existing?.slug ?? slugifyTourTitle(values.title);
-
-    return {
-        listingType: 'package',
-        id: existing?.id ?? slug,
-        slug,
-        title: values.title,
-        tagline: values.tagline,
-        duration: formatTourDuration(values.durationDays),
-        durationDays: values.durationDays,
-        badge: values.badge || 'Package',
-        image: values.image,
-        description: values.summary,
-        featuredPerks: splitMultilineText(values.highlightsText),
-        keyDestinations: splitMultilineText(values.keyDestinationsText),
-        priceEstimate: values.priceEstimate,
-        idealFor: values.idealFor,
-        includedServices: splitMultilineText(values.includedServicesText),
-        journeyOutline: existing?.journeyOutline,
-        isPopular: values.isPopular,
-        status: values.status,
-    };
-}
-
-export default function Tours() {
-    const [offers, setOffers] = useState<ManagedOffer[]>([]);
-    const [isLoadingOffers, setIsLoadingOffers] = useState(true);
+export default function Tours({ offers }: ToursPageProps) {
+    const { flash } = usePage().props;
     const [formOpen, setFormOpen] = useState(false);
     const [viewOpen, setViewOpen] = useState(false);
-    const [editingOfferId, setEditingOfferId] = useState<string | null>(null);
-    const [viewingOfferId, setViewingOfferId] = useState<string | null>(null);
+    const [editingOfferId, setEditingOfferId] = useState<number | null>(null);
+    const [viewingOfferId, setViewingOfferId] = useState<number | null>(null);
 
     const rows = offers.map(buildOfferRow);
     const publishedCount = offers.filter((offer) => offer.status === 'Published').length;
@@ -227,23 +170,6 @@ export default function Tours() {
     const viewingOffer = viewingOfferId
         ? offers.find((offer) => offer.id === viewingOfferId) ?? null
         : null;
-
-    useEffect(() => {
-        let cancelled = false;
-
-        void import('@/data/toursData').then((module) => {
-            if (cancelled) {
-                return;
-            }
-
-            setOffers(buildInitialOffers(module.allTours, module.tourPackages));
-            setIsLoadingOffers(false);
-        });
-
-        return () => {
-            cancelled = true;
-        };
-    }, []);
 
     const openCreateForm = () => {
         setEditingOfferId(null);
@@ -280,31 +206,16 @@ export default function Tours() {
         setFormOpen(true);
     };
 
-    const handleSubmitOffer = (values: TourFormValues) => {
-        if (editingOfferId) {
-            setOffers((current) =>
-                current.map((offer) => {
-                    if (offer.id !== editingOfferId) {
-                        return offer;
-                    }
+    const handleSubmitOffer = async (payload: TourFormSubmitPayload) => {
+        await submitTourForm(payload, editingOfferId);
+        closeForm();
+    };
 
-                    if (offer.listingType === 'package') {
-                        return buildPackageFromValues(values, offer);
-                    }
-
-                    return buildTourFromValues(values, offer);
-                }),
-            );
-
-            return;
-        }
-
-        const createdOffer =
-            values.listingType === 'package'
-                ? buildPackageFromValues(values)
-                : buildTourFromValues(values);
-
-        setOffers((current) => [createdOffer, ...current]);
+    const handleDeleteOffer = (row: OfferRow) => {
+        router.delete(`/admin/tours/${row.id}`, {
+            preserveScroll: true,
+            onSuccess: () => router.flush('/tours'),
+        });
     };
 
     return (
@@ -312,6 +223,15 @@ export default function Tours() {
             <Head title="Tours" />
 
             <div className="space-y-4">
+                {flash.success ? (
+                    <div
+                        role="status"
+                        className="rounded-xl border border-secondary/20 bg-secondary/10 px-4 py-3 text-sm text-secondary"
+                    >
+                        {flash.success}
+                    </div>
+                ) : null}
+
                 <AdminSectionHeader
                     eyebrow="Content"
                     title="Tours & packages"
@@ -331,11 +251,7 @@ export default function Tours() {
 
                 <PremiumDataTable
                     title="Tour & package library"
-                    description={
-                        isLoadingOffers
-                            ? 'Loading tour and package records…'
-                            : `${publishedCount} published listing${publishedCount === 1 ? '' : 's'} (${packageCount} package${packageCount === 1 ? '' : 's'}, ${tourCount} tour${tourCount === 1 ? '' : 's'}) visible on the public site.`
-                    }
+                    description={`${publishedCount} published listing${publishedCount === 1 ? '' : 's'} (${packageCount} package${packageCount === 1 ? '' : 's'}, ${tourCount} tour${tourCount === 1 ? '' : 's'}) in the library.`}
                     data={rows}
                     columns={columns}
                     rowKey={(row) => row.id}
@@ -343,13 +259,8 @@ export default function Tours() {
                     initialPageSize={8}
                     onView={openViewDialog}
                     onEdit={openEditForm}
+                    onDelete={handleDeleteOffer}
                 />
-
-                {isLoadingOffers ? (
-                    <div className="mt-4">
-                        <SkeletonTable rows={6} columns={6} />
-                    </div>
-                ) : null}
             </div>
 
             {viewOpen ? (
@@ -370,7 +281,7 @@ export default function Tours() {
                     <TourFormDialog
                         open={formOpen}
                         mode={editingOfferId ? 'edit' : 'create'}
-                        resetKey={editingOfferId ?? 'create'}
+                        resetKey={editingOfferId ? String(editingOfferId) : 'create'}
                         initialValues={editingOffer ? offerToFormValues(editingOffer) : undefined}
                         onClose={closeForm}
                         onSubmit={handleSubmitOffer}

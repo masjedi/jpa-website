@@ -1,11 +1,16 @@
 import { DestinationsGridSection } from '@/components/sections/destinations/DestinationsGridSection';
 import { DestinationsHero } from '@/components/sections/destinations/DestinationsHero';
+import type { Destination } from '@/types/destinations';
 
-export function DestinationsLanding() {
+interface DestinationsLandingProps {
+    destinations: readonly Destination[];
+}
+
+export function DestinationsLanding({ destinations }: DestinationsLandingProps) {
     return (
         <div className="w-full">
             <DestinationsHero />
-            <DestinationsGridSection />
+            <DestinationsGridSection destinations={destinations} />
         </div>
     );
 }

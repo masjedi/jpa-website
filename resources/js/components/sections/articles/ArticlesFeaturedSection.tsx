@@ -4,11 +4,13 @@ import { ArrowRight, Clock } from 'lucide-react';
 import { FadeIn } from '@/components/motion/FadeIn';
 import { articleShowHref } from '@/components/public/navigation';
 import { BorderGlow } from '@/components/react-bits/BorderGlow/BorderGlow';
-import { getFeaturedArticle } from '@/data/articlesData';
+import type { ArticleListItem } from '@/types/articles';
 
-export function ArticlesFeaturedSection() {
-    const featured = getFeaturedArticle();
+interface ArticlesFeaturedSectionProps {
+    featured: ArticleListItem | null;
+}
 
+export function ArticlesFeaturedSection({ featured }: ArticlesFeaturedSectionProps) {
     if (!featured) {
         return null;
     }

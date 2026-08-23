@@ -27,7 +27,7 @@ import { destinationShowHref, articleShowHref } from "@/components/public/naviga
 import { DonateButton } from "@/components/public/DonateButton";
 import { DeferredCommunityImpactSection, DeferredTestimonialsCarousel } from "@/components/sections/home/HomeDeferredSections";
 import { HeroScannerBackground } from "@/components/sections/home/HeroScannerBackground";
-import { galleryImages } from "@/data/galleryData";
+import type { GalleryPhoto } from '@/types/gallery';
 import type { PublicHeroSlide, PublicHeroSection } from '@/types/heroSection';
 
 /* -------------------------------------------------------------------------- */
@@ -499,7 +499,13 @@ function HeroMessageCarousel({ slides }: { slides: readonly PublicHeroSlide[] })
 /*  Home landing                                                               */
 /* -------------------------------------------------------------------------- */
 
-export function HomeLanding({ hero }: { hero: PublicHeroSection }) {
+export function HomeLanding({
+    hero,
+    galleryPreview = [],
+}: {
+    hero: PublicHeroSection;
+    galleryPreview?: readonly GalleryPhoto[];
+}) {
     return (
         <>
             {/* Hero ---------------------------------------------------------- */}
@@ -845,8 +851,8 @@ export function HomeLanding({ hero }: { hero: PublicHeroSection }) {
                         action={{ label: "View full gallery", href: "/gallery" }}
                     />
                     <RevealStagger className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6" stagger={0.05}>
-                        {galleryImages.slice(0, 6).map((item) => (
-                            <RevealItem key={item.caption}>
+                        {galleryPreview.map((item) => (
+                            <RevealItem key={item.id}>
                                 <figure className="group relative overflow-hidden rounded-xl">
                                     <img
                                         src={item.src}

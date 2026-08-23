@@ -41,6 +41,7 @@ export const adminNavEntries: AdminNavEntry[] = [
             { label: 'Tours', href: '/admin/tours', icon: Map },
             { label: 'Destinations', href: '/admin/destinations', icon: Compass },
             { label: 'Articles', href: '/admin/articles', icon: BookOpen },
+            { label: 'Gallery', href: '/admin/gallery', icon: Image },
             { label: 'FAQ', href: '/admin/faq', icon: CircleHelp },
             { label: 'Subscriptions', href: '/admin/subscriptions', icon: Mail },
             {

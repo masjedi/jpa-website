@@ -1,16 +1,20 @@
-import { type FormEvent, useId, useState } from 'react';
+import { usePage } from '@inertiajs/react';
+import { type FormEvent, useEffect, useId, useState } from 'react';
 
 import {
     articleCategoryOptions,
     createEmptyArticleFormValues,
+    mapServerArticleFormErrors,
     type ArticleFormErrors,
+    type ArticleFormSubmitPayload,
     type ArticleFormValues,
     validateArticleFormValues,
 } from '@/components/admin/articleForm';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
-import { ImageUploadField, readImageFileAsDataUrl } from '@/components/admin/ImageUploadField';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { LazyRichTextEditor } from '@/components/admin/LazyRichTextEditor';
+import { mediaProfiles } from '@/lib/mediaProfiles';
 import { cn } from '@/lib/utils';
 
 interface ArticleEntityFormProps {
@@ -18,7 +22,7 @@ interface ArticleEntityFormProps {
     mode: 'create' | 'edit';
     initialValues?: ArticleFormValues;
     onCancel: () => void;
-    onSubmit: (values: ArticleFormValues) => void | Promise<void>;
+    onSubmit: (payload: ArticleFormSubmitPayload) => void | Promise<void>;
 }
 
 export function ArticleEntityForm({
@@ -29,6 +33,8 @@ export function ArticleEntityForm({
     onSubmit,
 }: ArticleEntityFormProps) {
     const categoryFieldId = useId();
+    const statusFieldId = useId();
+    const featuredFieldId = useId();
     const titleFieldId = useId();
     const summaryFieldId = useId();
     const imageFieldId = useId();
@@ -43,6 +49,15 @@ export function ArticleEntityForm({
     );
     const [errors, setErrors] = useState<ArticleFormErrors>({});
     const [submitting, setSubmitting] = useState(false);
+    const { errors: serverErrors } = usePage().props;
+
+    useEffect(() => {
+        const mapped = mapServerArticleFormErrors(serverErrors);
+
+        if (Object.keys(mapped).length > 0) {
+            setErrors((current) => ({ ...current, ...mapped }));
+        }
+    }, [serverErrors]);
 
     const hasImage = Boolean(imageFile) || Boolean(values.image.trim());
     const submitLabel =
@@ -67,15 +82,15 @@ export function ArticleEntityForm({
         setSubmitting(true);
 
         try {
-            const image = imageFile ? await readImageFileAsDataUrl(imageFile) : values.image.trim();
-
             await onSubmit({
-                title: values.title.trim(),
-                summary: values.summary.trim(),
-                category: values.category,
-                image,
-                content: values.content.trim(),
-                status: values.status,
+                values: {
+                    ...values,
+                    title: values.title.trim(),
+                    summary: values.summary.trim(),
+                    image: values.image.trim(),
+                    content: values.content.trim(),
+                },
+                coverImage: imageFile,
             });
         } finally {
             setSubmitting(false);
@@ -89,89 +104,131 @@ export function ArticleEntityForm({
             aria-busy={submitting}
             className="flex min-h-0 flex-1 flex-col"
         >
-            <div className="grid gap-3 p-4 lg:grid-cols-3">
-                <AdminFormField id={categoryFieldId} label="Category" required>
-                    <select
-                        id={categoryFieldId}
-                        value={values.category}
+            <div className="grid gap-5 p-5 xl:grid-cols-[17rem_minmax(0,1fr)] xl:items-start">
+                <aside className="space-y-4 xl:sticky xl:top-0">
+                    <ImageUploadField
+                        id={imageFieldId}
+                        required
                         disabled={submitting}
-                        onChange={(event) =>
+                        hint={mediaProfiles.blog_cover.hint}
+                        previewUrl={imagePreview}
+                        onChange={(file, preview) => {
+                            setImageFile(file);
+                            setImagePreview(preview);
                             setValues((current) => ({
                                 ...current,
-                                category: event.target.value as ArticleFormValues['category'],
-                            }))
-                        }
-                        className={adminFieldClass}
-                    >
-                        {articleCategoryOptions.map((category) => (
-                            <option key={category} value={category}>
-                                {category}
-                            </option>
-                        ))}
-                    </select>
-                </AdminFormField>
-
-                <AdminFormField
-                    id={titleFieldId}
-                    label="Title"
-                    required
-                    error={errors.title}
-                >
-                    <input
-                        id={titleFieldId}
-                        value={values.title}
-                        disabled={submitting}
-                        onChange={(event) => {
-                            setValues((current) => ({ ...current, title: event.target.value }));
-                            setErrors((current) => ({ ...current, title: undefined }));
+                                image: preview ? current.image : '',
+                            }));
+                            setErrors((current) => ({ ...current, image: undefined }));
                         }}
-                        placeholder="What to pack for spring in Afghanistan"
-                        aria-invalid={Boolean(errors.title)}
-                        aria-describedby={adminFieldDescribedBy(titleFieldId, errors.title)}
-                        className={cn(adminFieldClass, errors.title && adminFieldErrorClass)}
+                        error={errors.image}
                     />
-                </AdminFormField>
 
-                <AdminFormField
-                    id={summaryFieldId}
-                    label="Summary"
-                    required
-                    error={errors.summary}
-                >
-                    <input
-                        id={summaryFieldId}
-                        value={values.summary}
-                        disabled={submitting}
-                        onChange={(event) => {
-                            setValues((current) => ({ ...current, summary: event.target.value }));
-                            setErrors((current) => ({ ...current, summary: undefined }));
-                        }}
-                        placeholder="Layering, footwear and small essentials for variable mountain weather."
-                        aria-invalid={Boolean(errors.summary)}
-                        aria-describedby={adminFieldDescribedBy(summaryFieldId, errors.summary)}
-                        className={cn(adminFieldClass, errors.summary && adminFieldErrorClass)}
-                    />
-                </AdminFormField>
+                    <div className="space-y-3 rounded-xl border border-border/80 bg-surface-muted/20 p-3">
+                        <AdminFormField id={statusFieldId} label="Publish status" required>
+                            <select
+                                id={statusFieldId}
+                                value={values.status}
+                                disabled={submitting}
+                                onChange={(event) =>
+                                    setValues((current) => ({
+                                        ...current,
+                                        status: event.target.value as ArticleFormValues['status'],
+                                    }))
+                                }
+                                className={adminFieldClass}
+                            >
+                                <option value="Draft">Draft</option>
+                                <option value="Published">Published</option>
+                            </select>
+                        </AdminFormField>
 
-                <ImageUploadField
-                    id={imageFieldId}
-                    className="lg:col-span-1"
-                    required
-                    disabled={submitting}
-                    previewUrl={imagePreview}
-                    onChange={(file, preview) => {
-                        setImageFile(file);
-                        setImagePreview(preview);
-                        setValues((current) => ({
-                            ...current,
-                            image: preview ? current.image : '',
-                        }));
-                        setErrors((current) => ({ ...current, image: undefined }));
-                    }}
-                    error={errors.image}
-                />
+                        <label className="flex items-center gap-2.5 rounded-lg border border-border/70 bg-surface px-3 py-2.5 text-sm font-medium text-foreground">
+                            <input
+                                id={featuredFieldId}
+                                type="checkbox"
+                                checked={values.isFeatured}
+                                disabled={submitting}
+                                onChange={(event) =>
+                                    setValues((current) => ({
+                                        ...current,
+                                        isFeatured: event.target.checked,
+                                    }))
+                                }
+                                className="size-4 rounded border-border text-secondary focus:ring-focus"
+                            />
+                            Featured article
+                        </label>
+                    </div>
+                </aside>
 
-                <div className="lg:col-span-2">
+                <div className="min-w-0 space-y-5">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <AdminFormField id={categoryFieldId} label="Category" required>
+                            <select
+                                id={categoryFieldId}
+                                value={values.category}
+                                disabled={submitting}
+                                onChange={(event) =>
+                                    setValues((current) => ({
+                                        ...current,
+                                        category: event.target.value as ArticleFormValues['category'],
+                                    }))
+                                }
+                                className={adminFieldClass}
+                            >
+                                {articleCategoryOptions.map((category) => (
+                                    <option key={category} value={category}>
+                                        {category}
+                                    </option>
+                                ))}
+                            </select>
+                        </AdminFormField>
+
+                        <AdminFormField
+                            id={titleFieldId}
+                            label="Title"
+                            required
+                            error={errors.title}
+                        >
+                            <input
+                                id={titleFieldId}
+                                value={values.title}
+                                disabled={submitting}
+                                onChange={(event) => {
+                                    setValues((current) => ({ ...current, title: event.target.value }));
+                                    setErrors((current) => ({ ...current, title: undefined }));
+                                }}
+                                placeholder="What to pack for spring in Afghanistan"
+                                aria-invalid={Boolean(errors.title)}
+                                aria-describedby={adminFieldDescribedBy(titleFieldId, errors.title)}
+                                className={cn(adminFieldClass, errors.title && adminFieldErrorClass)}
+                            />
+                        </AdminFormField>
+
+                        <AdminFormField
+                            id={summaryFieldId}
+                            label="Summary"
+                            required
+                            error={errors.summary}
+                            className="sm:col-span-2"
+                        >
+                            <input
+                                id={summaryFieldId}
+                                value={values.summary}
+                                disabled={submitting}
+                                onChange={(event) => {
+                                    setValues((current) => ({ ...current, summary: event.target.value }));
+                                    setErrors((current) => ({ ...current, summary: undefined }));
+                                }}
+                                placeholder="Layering, footwear and small essentials for variable mountain weather."
+                                aria-invalid={Boolean(errors.summary)}
+                                aria-describedby={adminFieldDescribedBy(summaryFieldId, errors.summary)}
+                                className={cn(adminFieldClass, errors.summary && adminFieldErrorClass)}
+                            />
+                        </AdminFormField>
+                    </div>
+
                     <LazyRichTextEditor
                         id={contentFieldId}
                         label="Content"

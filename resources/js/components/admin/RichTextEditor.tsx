@@ -84,7 +84,10 @@ export function RichTextEditor({
             return;
         }
 
-        if (value === lastEmittedValue.current) {
+        const isEmpty = editorRef.current.innerHTML === '';
+        const matchesLastEmitted = value === lastEmittedValue.current;
+
+        if (matchesLastEmitted && !isEmpty) {
             return;
         }
 

@@ -56,4 +56,15 @@ class HeroSlide extends Model
     {
         return $query->orderByDesc('id');
     }
+
+    /**
+     * Latest published slides for the public homepage carousel.
+     *
+     * @param  Builder<HeroSlide>  $query
+     * @return Builder<HeroSlide>
+     */
+    public function scopeForPublicHero(Builder $query, int $limit = 3): Builder
+    {
+        return $query->published()->latestFirst()->limit($limit);
+    }
 }

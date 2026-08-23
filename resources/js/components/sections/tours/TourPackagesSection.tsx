@@ -4,14 +4,15 @@ import { ArrowRight } from 'lucide-react';
 import { packageShowHref } from '@/components/public/navigation';
 import { FadeIn, RevealItem, RevealStagger } from '@/components/motion/FadeIn';
 import { TourOfferBadges } from '@/components/sections/tours/TourOfferBadges';
-import { tourPackages } from '@/data/toursData';
 import type { TourPackage } from '@/types/tours';
 
 interface TourPackagesSectionProps {
+    packages: TourPackage[];
     onSelectPackage: (pkg: TourPackage) => void;
 }
 
 export function TourPackagesSection({
+    packages,
     onSelectPackage,
 }: TourPackagesSectionProps) {
     return (
@@ -33,7 +34,7 @@ export function TourPackagesSection({
                 </div>
 
                 <RevealStagger className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-                    {tourPackages.map((pkg) => (
+                    {packages.map((pkg) => (
                         <RevealItem key={pkg.id}>
                         <article
                             className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface text-start shadow-sm transition-shadow hover:shadow-md"

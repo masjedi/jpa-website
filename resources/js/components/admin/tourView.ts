@@ -6,7 +6,7 @@ import {
     tourToFormValues,
 } from '@/components/admin/tourForm';
 import type { ContentRecordStatus, ContentRecordViewModel } from '@/components/admin/contentRecordViewModel';
-import { isRichTextHtml } from '@/lib/richText';
+import { isRichTextHtml, normalizeRichHtml } from '@/lib/richText';
 import type { Tour, TourPackage } from '@/types/tours';
 
 interface BuildTourViewModelOptions {
@@ -23,8 +23,10 @@ export function buildTourViewModel({
     tour,
     status,
 }: BuildTourViewModelOptions): ContentRecordViewModel {
-    const content = resolveTourContent(tour);
-    const usesRichContent = isRichTextHtml(content);
+    const storedContent = normalizeRichHtml(tour.content ?? '');
+    const legacyContent = normalizeRichHtml(resolveTourContent(tour));
+    const bodyHtml = storedContent || (isRichTextHtml(legacyContent) ? legacyContent : undefined);
+    const usesRichContent = Boolean(bodyHtml);
 
     return {
         title: tour.title,
@@ -51,7 +53,7 @@ export function buildTourViewModel({
             { id: 'price', label: 'Starting price', value: tour.estimatedStartingPrice },
             { id: 'status', label: 'Status', value: status },
         ],
-        bodyHtml: usesRichContent ? content : undefined,
+        bodyHtml,
         bodyPlain: usesRichContent ? undefined : tour.description,
         highlights: usesRichContent ? undefined : [...tour.highlights],
         relatedItems:
@@ -105,8 +107,14 @@ export function buildPackageViewModel({
 }
 
 export type ManagedOffer =
-    | ({ listingType: 'tour'; status: TourFormStatus } & Tour)
-    | ({ listingType: 'package'; status: TourFormStatus } & TourPackage);
+    | ({ listingType: 'tour'; status: TourFormStatus; id: number } & Omit<Tour, 'id'>)
+    | ({
+          listingType: 'package';
+          status: TourFormStatus;
+          id: number;
+          destination: string;
+          region: string;
+      } & Omit<TourPackage, 'id'>);
 
 export function offerToFormValues(offer: ManagedOffer): ReturnType<typeof tourToFormValues> {
     return offer.listingType === 'package'

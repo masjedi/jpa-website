@@ -153,4 +153,34 @@ class HeroSectionTest extends TestCase
                 ->where('hero.slides.0.subtitle', 'Visible on homepage.')
                 ->missing('hero.slides.0.status'));
     }
+
+    public function test_homepage_receives_only_the_latest_three_published_slides(): void
+    {
+        $section = HeroSection::current();
+
+        foreach ([1, 2, 3, 4] as $order) {
+            $section->slides()->create([
+                'title' => "Published slide {$order}",
+                'subtitle' => "Subtitle {$order}",
+                'status' => HeroSlideStatus::Published,
+                'sort_order' => $order,
+            ]);
+        }
+
+        $section->slides()->create([
+            'title' => 'Draft slide',
+            'subtitle' => 'Should stay hidden.',
+            'status' => HeroSlideStatus::Draft,
+            'sort_order' => 5,
+        ]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('public/Home')
+                ->has('hero.slides', 3)
+                ->where('hero.slides.0.title', 'Published slide 4')
+                ->where('hero.slides.1.title', 'Published slide 3')
+                ->where('hero.slides.2.title', 'Published slide 2'));
+    }
 }

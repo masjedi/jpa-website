@@ -4,14 +4,19 @@ import { useMemo, useState } from 'react';
 
 import { FadeIn } from '@/components/motion/FadeIn';
 import { articleShowHref } from '@/components/public/navigation';
-import {
-    allArticles,
-    getArticleCategories,
-    getFeaturedArticle,
-} from '@/data/articlesData';
+import { stripHtml } from '@/lib/richText';
 import type { ArticleCategory, ArticleListItem } from '@/types/articles';
 
 const PAGE_SIZE = 6;
+
+const articleCategories: readonly ArticleCategory[] = [
+    'Travel tips',
+    'Culture',
+    'Itineraries',
+    'Safety',
+    'Heritage',
+    'Photography',
+];
 
 function EditorialCard({
     article,
@@ -87,19 +92,22 @@ function EditorialCard({
     );
 }
 
-export function ArticlesGridSection() {
+interface ArticlesGridSectionProps {
+    articles: readonly ArticleListItem[];
+    featuredSlug?: string;
+}
+
+export function ArticlesGridSection({ articles, featuredSlug }: ArticlesGridSectionProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<'all' | ArticleCategory>(
         'all',
     );
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-    const featuredSlug = getFeaturedArticle()?.slug;
-
     const categories = useMemo(
         () => [
             { value: 'all' as const, label: 'All topics' },
-            ...getArticleCategories().map((category) => ({
+            ...articleCategories.map((category) => ({
                 value: category,
                 label: category,
             })),
@@ -108,8 +116,12 @@ export function ArticlesGridSection() {
     );
 
     const filteredArticles = useMemo(() => {
-        return allArticles.filter((article) => {
-            if (article.slug === featuredSlug && selectedCategory === 'all' && !searchQuery.trim()) {
+        return articles.filter((article) => {
+            if (
+                article.slug === featuredSlug &&
+                selectedCategory === 'all' &&
+                !searchQuery.trim()
+            ) {
                 return false;
             }
 
@@ -120,10 +132,7 @@ export function ArticlesGridSection() {
                     article.summary,
                     article.category,
                     article.author.name,
-                    ...article.sections.flatMap((section) => [
-                        section.heading,
-                        ...section.paragraphs,
-                    ]),
+                    stripHtml('content' in article ? String(article.content ?? '') : ''),
                 ]
                     .join(' ')
                     .toLowerCase();
@@ -142,7 +151,7 @@ export function ArticlesGridSection() {
 
             return true;
         });
-    }, [featuredSlug, searchQuery, selectedCategory]);
+    }, [articles, featuredSlug, searchQuery, selectedCategory]);
 
     const visibleArticles = filteredArticles.slice(0, visibleCount);
     const hasMore = visibleCount < filteredArticles.length;
@@ -263,10 +272,14 @@ export function ArticlesGridSection() {
                             aria-hidden
                         />
                         <h3 className="font-heading mt-3 text-lg font-semibold text-foreground">
-                            No articles found
+                            {articles.length === 0
+                                ? 'No published articles yet'
+                                : 'No articles found'}
                         </h3>
                         <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-                            Try a different search term or clear the filters.
+                            {articles.length === 0
+                                ? 'Publish articles from the admin dashboard to populate this library.'
+                                : 'Try a different search term or clear the filters.'}
                         </p>
                     </div>
                 )}

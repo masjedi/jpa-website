@@ -36,3 +36,11 @@ export interface ArticleDetail extends ArticleListItem {
     content?: string;
     relatedTourSlugs?: readonly string[];
 }
+
+export interface ArticleRelatedTour {
+    id: string;
+    slug: string;
+    title: string;
+    duration: string;
+    href: string;
+}

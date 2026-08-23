@@ -4,22 +4,26 @@ import { ArrowRight, Check, MapPin } from 'lucide-react';
 import { destinationShowHref } from '@/components/public/navigation';
 import { BorderGlow } from '@/components/react-bits/BorderGlow/BorderGlow';
 import { FadeIn } from '@/components/motion/FadeIn';
-import { getRelatedDestinations } from '@/data/destinationsData';
-import { getToursForDestination } from '@/data/destinationTours';
 import { isRichTextHtml } from '@/lib/richText';
-import type { Destination } from '@/types/destinations';
+import type {
+    Destination,
+    DestinationRelatedItem,
+    DestinationRelatedTour,
+} from '@/types/destinations';
 
 interface DestinationDetailBodyProps {
     destination: Destination;
+    relatedTours: readonly DestinationRelatedTour[];
+    relatedDestinations: readonly DestinationRelatedItem[];
     onPlanTrip: () => void;
 }
 
 export function DestinationDetailBody({
     destination,
+    relatedTours,
+    relatedDestinations,
     onPlanTrip,
 }: DestinationDetailBodyProps) {
-    const relatedTours = getToursForDestination(destination);
-    const relatedDestinations = getRelatedDestinations(destination.slug, 2);
     const usesRichDescription = isRichTextHtml(destination.description);
 
     return (
@@ -81,18 +85,27 @@ export function DestinationDetailBody({
                                     </h2>
                                     <ul className="mt-4 divide-y divide-border rounded-xl border border-border bg-surface">
                                         {relatedTours.slice(0, 4).map((tour) => (
-                                            <li
-                                                key={tour.id}
-                                                className="flex items-center justify-between gap-4 px-4 py-3"
-                                            >
-                                                <div className="min-w-0">
-                                                    <p className="font-heading text-sm font-semibold text-foreground">
-                                                        {tour.title}
-                                                    </p>
-                                                    <p className="mt-0.5 text-xs text-muted-foreground">
-                                                        {tour.duration} · {tour.travelStyle}
-                                                    </p>
-                                                </div>
+                                            <li key={tour.id}>
+                                                <Link
+                                                    href={tour.href}
+                                                    className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-surface-muted/50"
+                                                >
+                                                    <div className="min-w-0">
+                                                        <p className="font-heading text-sm font-semibold text-foreground">
+                                                            {tour.title}
+                                                        </p>
+                                                        <p className="mt-0.5 text-xs text-muted-foreground">
+                                                            {tour.duration}
+                                                            {tour.travelStyle
+                                                                ? ` · ${tour.travelStyle}`
+                                                                : ''}
+                                                        </p>
+                                                    </div>
+                                                    <ArrowRight
+                                                        className="size-4 shrink-0 text-secondary"
+                                                        aria-hidden
+                                                    />
+                                                </Link>
                                             </li>
                                         ))}
                                     </ul>

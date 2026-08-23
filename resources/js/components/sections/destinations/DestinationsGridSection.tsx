@@ -5,11 +5,6 @@ import { useMemo, useState } from 'react';
 import { destinationShowHref } from '@/components/public/navigation';
 import { FadeIn } from '@/components/motion/FadeIn';
 import { SpotlightCard } from '@/components/react-bits/SpotlightCard/SpotlightCard';
-import {
-    allDestinations,
-    getDestinationRegions,
-} from '@/data/destinationsData';
-import { getToursForDestination } from '@/data/destinationTours';
 import type { Destination } from '@/types/destinations';
 
 function DestinationCard({
@@ -21,7 +16,7 @@ function DestinationCard({
     featured?: boolean;
     delay?: number;
 }) {
-    const relatedTourCount = getToursForDestination(destination).length;
+    const relatedTourCount = destination.linkedToursCount ?? 0;
 
     if (featured) {
         return (
@@ -111,28 +106,35 @@ function DestinationCard({
     );
 }
 
-export function DestinationsGridSection() {
+interface DestinationsGridSectionProps {
+    destinations: readonly Destination[];
+}
+
+export function DestinationsGridSection({ destinations }: DestinationsGridSectionProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRegion, setSelectedRegion] = useState('all');
 
-    const regions = useMemo(
-        () => [
+    const regions = useMemo(() => {
+        const uniqueRegions = [
+            ...new Set(destinations.map((destination) => destination.region)),
+        ].sort((a, b) => a.localeCompare(b));
+
+        return [
             { value: 'all', label: 'All regions' },
-            ...getDestinationRegions().map((region) => ({
+            ...uniqueRegions.map((region) => ({
                 value: region,
                 label: region,
             })),
-        ],
-        [],
-    );
+        ];
+    }, [destinations]);
 
     const featuredDestinations = useMemo(
-        () => allDestinations.filter((destination) => destination.isFeatured),
-        [],
+        () => destinations.filter((destination) => destination.isFeatured),
+        [destinations],
     );
 
     const filteredDestinations = useMemo(() => {
-        return allDestinations.filter((destination) => {
+        return destinations.filter((destination) => {
             if (searchQuery.trim()) {
                 const query = searchQuery.toLowerCase();
                 const haystack = [
@@ -159,10 +161,13 @@ export function DestinationsGridSection() {
 
             return true;
         });
-    }, [searchQuery, selectedRegion]);
+    }, [destinations, searchQuery, selectedRegion]);
 
     const gridDestinations = filteredDestinations.filter(
-        (destination) => !destination.isFeatured || selectedRegion !== 'all' || searchQuery.trim() !== '',
+        (destination) =>
+            !destination.isFeatured ||
+            selectedRegion !== 'all' ||
+            searchQuery.trim() !== '',
     );
 
     const showFeatured =
@@ -187,8 +192,8 @@ export function DestinationsGridSection() {
                             </h2>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                            {filteredDestinations.length} of{' '}
-                            {allDestinations.length} destinations
+                            {filteredDestinations.length} of {destinations.length}{' '}
+                            destinations
                         </p>
                     </div>
                 </FadeIn>
@@ -270,7 +275,9 @@ export function DestinationsGridSection() {
                             No destinations found
                         </h3>
                         <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-                            Try a different search or clear the filters.
+                            {destinations.length === 0
+                                ? 'No published destinations yet. Set a destination to Published in Admin → Destinations to show it here.'
+                                : 'Try a different search or clear the filters.'}
                         </p>
                     </div>
                 )}

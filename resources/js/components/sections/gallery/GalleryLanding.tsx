@@ -3,12 +3,11 @@ import { ChevronRight } from 'lucide-react';
 
 import { FadeInOnMount } from '@/components/motion/FadeIn';
 import { LazyDomeGallery } from '@/components/sections/gallery/LazyDomeGallery';
-import { galleryImages } from '@/data/galleryData';
+import type { GalleryPhoto } from '@/types/gallery';
 
-const domeImages = galleryImages.map((image) => ({
-    src: image.src,
-    alt: image.alt,
-}));
+interface GalleryLandingProps {
+    photos: readonly GalleryPhoto[];
+}
 
 export function GalleryHero() {
     return (
@@ -54,7 +53,12 @@ export function GalleryHero() {
     );
 }
 
-export function GalleryDomeSection() {
+export function GalleryDomeSection({ photos }: { photos: readonly GalleryPhoto[] }) {
+    const domeImages = photos.map((photo) => ({
+        src: photo.src,
+        alt: photo.alt,
+    }));
+
     return (
         <section
             id="gallery-dome"
@@ -67,19 +71,28 @@ export function GalleryDomeSection() {
                 </p>
             </div>
 
-            <LazyDomeGallery
-                images={domeImages}
-                overlayBlurColor="#071722"
-                fit={0.52}
-                minRadius={420}
-                maxRadius={760}
-                padFactor={0.2}
-                grayscale={false}
-                openedImageWidth="min(90vw, 420px)"
-                openedImageHeight="min(70vh, 560px)"
-                imageBorderRadius="20px"
-                openedImageBorderRadius="24px"
-            />
+            {domeImages.length > 0 ? (
+                <LazyDomeGallery
+                    images={domeImages}
+                    overlayBlurColor="#071722"
+                    fit={0.52}
+                    minRadius={420}
+                    maxRadius={760}
+                    padFactor={0.2}
+                    grayscale={false}
+                    openedImageWidth="min(90vw, 420px)"
+                    openedImageHeight="min(70vh, 560px)"
+                    imageBorderRadius="20px"
+                    openedImageBorderRadius="24px"
+                />
+            ) : (
+                <div className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6">
+                    <p className="text-sm leading-relaxed text-brand-on-surface/70">
+                        No published gallery photos yet. Upload and publish images from the admin
+                        dashboard to populate this experience.
+                    </p>
+                </div>
+            )}
 
             <div className="mx-auto max-w-2xl px-4 pb-16 pt-6 text-center sm:px-6">
                 <p className="text-sm leading-relaxed text-brand-on-surface/60">
@@ -91,11 +104,11 @@ export function GalleryDomeSection() {
     );
 }
 
-export function GalleryLanding() {
+export function GalleryLanding({ photos }: GalleryLandingProps) {
     return (
         <div className="w-full">
             <GalleryHero />
-            <GalleryDomeSection />
+            <GalleryDomeSection photos={photos} />
         </div>
     );
 }

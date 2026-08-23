@@ -181,7 +181,7 @@ export default function HeroSection({ eyebrow, slides }: HeroSectionPageProps) {
 
                 <PremiumDataTable
                     title="Hero slides"
-                    description={`${publishedCount} published slide${publishedCount === 1 ? '' : 's'} are currently visible in the homepage carousel.`}
+                    description={`${publishedCount} published slide${publishedCount === 1 ? '' : 's'} in total. The homepage carousel always shows the latest 3 published slides.`}
                     data={slides}
                     columns={columns}
                     rowKey={(row) => row.id}

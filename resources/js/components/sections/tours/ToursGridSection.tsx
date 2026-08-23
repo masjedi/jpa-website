@@ -6,14 +6,14 @@ import { tourShowHref } from '@/components/public/navigation';
 import { FadeIn, RevealItem, RevealStagger } from '@/components/motion/FadeIn';
 import { TourOfferBadges } from '@/components/sections/tours/TourOfferBadges';
 import { shortDepartureStatus } from '@/components/sections/tours/tourDisplay';
-import { allTours } from '@/data/toursData';
 import type { Tour } from '@/types/tours';
 
 interface ToursGridSectionProps {
+    tours: Tour[];
     onSelectTour: (tour: Tour) => void;
 }
 
-export function ToursGridSection({ onSelectTour }: ToursGridSectionProps) {
+export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDestination, setSelectedDestination] = useState('all');
     const [selectedStyle, setSelectedStyle] = useState('all');
@@ -22,12 +22,12 @@ export function ToursGridSection({ onSelectTour }: ToursGridSectionProps) {
     const destinations = useMemo(
         () => [
             { value: 'all', label: 'All regions' },
-            ...Array.from(new Set(allTours.map((t) => t.region))).map((region) => ({
+            ...Array.from(new Set(tours.map((t) => t.region))).map((region) => ({
                 value: region,
                 label: region,
             })),
         ],
-        [],
+        [tours],
     );
 
     const travelStyles = [
@@ -46,7 +46,7 @@ export function ToursGridSection({ onSelectTour }: ToursGridSectionProps) {
     ];
 
     const filteredTours = useMemo(() => {
-        return allTours.filter((tour) => {
+        return tours.filter((tour) => {
             if (searchQuery.trim()) {
                 const query = searchQuery.toLowerCase();
                 const haystack = [
@@ -80,7 +80,7 @@ export function ToursGridSection({ onSelectTour }: ToursGridSectionProps) {
 
             return true;
         });
-    }, [searchQuery, selectedDestination, selectedStyle, selectedDuration]);
+    }, [searchQuery, selectedDestination, selectedStyle, selectedDuration, tours]);
 
     const hasActiveFilters =
         searchQuery.trim() !== '' ||
@@ -121,7 +121,7 @@ export function ToursGridSection({ onSelectTour }: ToursGridSectionProps) {
                         </h2>
                     </div>
                     <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-                        {filteredTours.length} of {allTours.length} journeys.
+                        {filteredTours.length} of {tours.length} journeys.
                         Every tour can be private or small group.
                     </p>
                 </div>

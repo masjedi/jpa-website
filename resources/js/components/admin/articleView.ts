@@ -1,11 +1,21 @@
-import { resolveArticleContent } from '@/components/admin/articleForm';
 import type { ContentRecordStatus, ContentRecordViewModel } from '@/components/admin/contentRecordViewModel';
+import {
+    articleToFormValues,
+    resolveArticleContent,
+    type ArticleFormStatus,
+} from '@/components/admin/articleForm';
 import { isRichTextHtml } from '@/lib/richText';
-import { getTourBySlug } from '@/lib/travelOfferMappers';
 import type { ArticleDetail } from '@/types/articles';
 
+export type ManagedArticle = ArticleDetail & {
+    id: number;
+    status: ArticleFormStatus;
+    isFeatured?: boolean;
+    relatedTourSlugs?: readonly string[];
+};
+
 interface BuildArticleViewModelOptions {
-    article: ArticleDetail;
+    article: ManagedArticle;
     status: ContentRecordStatus;
 }
 
@@ -13,9 +23,6 @@ export function buildArticleViewModel({
     article,
     status,
 }: BuildArticleViewModelOptions): ContentRecordViewModel {
-    const relatedTours = (article.relatedTourSlugs ?? [])
-        .map((slug) => getTourBySlug(slug))
-        .filter((tour): tour is NonNullable<typeof tour> => Boolean(tour));
     const content = resolveArticleContent(article);
     const usesRichContent = isRichTextHtml(content);
 
@@ -38,6 +45,11 @@ export function buildArticleViewModel({
                 value: `${article.readingTimeMinutes} min`,
             },
             { id: 'author', label: 'Author', value: article.author.name },
+            {
+                id: 'featured',
+                label: 'Featured',
+                value: article.isFeatured ? 'Yes' : 'No',
+            },
             { id: 'status', label: 'Status', value: status },
         ],
         bodyHtml: usesRichContent ? content : undefined,
@@ -48,14 +60,9 @@ export function buildArticleViewModel({
                   heading: section.heading,
                   paragraphs: section.paragraphs,
               })),
-        relatedItems:
-            relatedTours.length > 0
-                ? relatedTours.map((tour) => ({
-                      id: tour.id,
-                      title: tour.title,
-                      meta: tour.duration,
-                  }))
-                : undefined,
-        relatedItemsTitle: 'Related tours',
     };
+}
+
+export function managedArticleToFormValues(article: ManagedArticle) {
+    return articleToFormValues(article, article.status);
 }

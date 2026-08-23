@@ -4,17 +4,19 @@ import { BRAND_NAME } from '@/components/public/brand';
 import { PageMeta } from '@/components/public/PageMeta';
 import { HomeLanding } from '@/components/sections/home/HomeLanding';
 import { PublicLayout } from '@/layouts/PublicLayout';
+import type { GalleryPhoto } from '@/types/gallery';
 import type { PublicHeroSection } from '@/types/heroSection';
 import type { SharedPageProps } from '@/types/inertia';
 
 interface HomePageProps extends SharedPageProps {
     hero: PublicHeroSection;
+    galleryPreview?: GalleryPhoto[];
 }
 
 export default function Home() {
     setLayoutProps({ transparentHeader: true });
 
-    const { hero } = usePage<HomePageProps>().props;
+    const { hero, galleryPreview = [] } = usePage<HomePageProps>().props;
     const leadSlide = hero.slides[0];
     const description =
         leadSlide?.subtitle?.trim() ||
@@ -26,6 +28,7 @@ export default function Home() {
             <HomeLanding
                 key={`hero-${hero.eyebrow}-${hero.slides.map((slide) => slide.id).join('-')}`}
                 hero={hero}
+                galleryPreview={galleryPreview}
             />
         </>
     );

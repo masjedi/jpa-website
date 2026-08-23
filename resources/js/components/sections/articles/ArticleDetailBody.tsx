@@ -3,25 +3,22 @@ import { ArrowRight, Check, Link2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { FadeIn } from '@/components/motion/FadeIn';
-import {
-    articleShowHref,
-    tourShowHref,
-} from '@/components/public/navigation';
-import { getRelatedArticles } from '@/data/articlesData';
+import { articleShowHref } from '@/components/public/navigation';
 import { isRichTextHtml } from '@/lib/richText';
-import { getTourBySlug } from '@/lib/travelOfferMappers';
-import type { ArticleDetail } from '@/types/articles';
+import type { ArticleDetail, ArticleListItem, ArticleRelatedTour } from '@/types/articles';
 
 interface ArticleDetailBodyProps {
     article: ArticleDetail;
+    relatedArticles: readonly ArticleListItem[];
+    relatedTours: readonly ArticleRelatedTour[];
 }
 
-export function ArticleDetailBody({ article }: ArticleDetailBodyProps) {
+export function ArticleDetailBody({
+    article,
+    relatedArticles,
+    relatedTours,
+}: ArticleDetailBodyProps) {
     const [copied, setCopied] = useState(false);
-    const relatedArticles = getRelatedArticles(article.slug, 3);
-    const relatedTours = (article.relatedTourSlugs ?? [])
-        .map((slug) => getTourBySlug(slug))
-        .filter((tour): tour is NonNullable<typeof tour> => Boolean(tour));
     const usesRichContent = Boolean(article.content && isRichTextHtml(article.content));
 
     const handleCopyLink = async () => {
@@ -117,7 +114,7 @@ export function ArticleDetailBody({ article }: ArticleDetailBodyProps) {
                                             {relatedTours.map((tour) => (
                                                 <li key={tour.id}>
                                                     <Link
-                                                        href={tourShowHref(tour.slug)}
+                                                        href={tour.href}
                                                         className="group block rounded-xl border border-border p-3 transition-colors hover:border-secondary/30 hover:bg-surface-muted"
                                                     >
                                                         <p className="font-heading text-sm font-semibold text-foreground">

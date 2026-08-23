@@ -12,6 +12,7 @@ interface ImageUploadFieldProps {
     previewUrl: string | null;
     onChange: (file: File | null, previewUrl: string | null) => void;
     error?: string;
+    hint?: string;
     className?: string;
 }
 
@@ -23,6 +24,7 @@ export function ImageUploadField({
     previewUrl,
     onChange,
     error,
+    hint,
     className,
 }: ImageUploadFieldProps) {
     const generatedId = useId();
@@ -119,10 +121,20 @@ export function ImageUploadField({
                 accept="image/*"
                 disabled={disabled}
                 aria-invalid={Boolean(error)}
-                aria-describedby={error ? errorId : undefined}
+                aria-describedby={
+                    [hint ? `${inputId}-hint` : null, error ? errorId : null]
+                        .filter(Boolean)
+                        .join(' ') || undefined
+                }
                 className="sr-only"
                 onChange={handleFileChange}
             />
+
+            {hint ? (
+                <p id={`${inputId}-hint`} className="text-[11px] leading-relaxed text-muted-foreground">
+                    {hint}
+                </p>
+            ) : null}
 
             {error ? (
                 <p id={errorId} role="alert" className={adminFieldErrorTextClass}>

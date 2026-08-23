@@ -6,7 +6,12 @@ import { ToursGridSection } from '@/components/sections/tours/ToursGridSection';
 import { ToursHero } from '@/components/sections/tours/ToursHero';
 import type { InquiryFormData, Tour, TourPackage } from '@/types/tours';
 
-export function ToursLanding() {
+interface ToursLandingProps {
+    tours: Tour[];
+    packages: TourPackage[];
+}
+
+export function ToursLanding({ tours, packages }: ToursLandingProps) {
     const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
     const [inquiryInitialData, setInquiryInitialData] = useState<InquiryFormData>({
         tourTitle: '',
@@ -44,8 +49,8 @@ export function ToursLanding() {
     return (
         <div className="w-full">
             <ToursHero onOpenCustomInquiry={handleOpenCustomInquiry} />
-            <TourPackagesSection onSelectPackage={handleSelectPackage} />
-            <ToursGridSection onSelectTour={handleSelectTour} />
+            <TourPackagesSection packages={packages} onSelectPackage={handleSelectPackage} />
+            <ToursGridSection tours={tours} onSelectTour={handleSelectTour} />
             <TourInquiryModal
                 isOpen={inquiryModalOpen}
                 onClose={() => setInquiryModalOpen(false)}

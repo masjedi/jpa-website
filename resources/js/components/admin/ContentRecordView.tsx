@@ -4,7 +4,7 @@ import {
     contentRecordStatusStyles,
     type ContentRecordViewModel,
 } from '@/components/admin/contentRecordViewModel';
-import { isRichTextHtml } from '@/lib/richText';
+import { normalizeRichHtml } from '@/lib/richText';
 import { cn } from '@/lib/utils';
 
 interface ContentRecordViewProps {
@@ -16,7 +16,8 @@ const richTextClass =
     'text-sm leading-relaxed text-muted-foreground [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:font-heading [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-foreground [&_li]:mb-1 [&_ol]:mb-3 [&_ol]:list-decimal [&_ol]:ps-5 [&_p]:mb-2 [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:mb-3 [&_ul]:list-disc [&_ul]:ps-5';
 
 export function ContentRecordView({ model, className }: ContentRecordViewProps) {
-    const usesRichBody = Boolean(model.bodyHtml && isRichTextHtml(model.bodyHtml));
+    const bodyHtml = model.bodyHtml ? normalizeRichHtml(model.bodyHtml) : undefined;
+    const usesRichBody = Boolean(bodyHtml);
     const hasSections = Boolean(model.sections && model.sections.length > 0);
     const hasHighlights = Boolean(model.highlights && model.highlights.length > 0);
     const hasImage = Boolean(model.imageUrl);
@@ -165,7 +166,7 @@ export function ContentRecordView({ model, className }: ContentRecordViewProps) 
                     {usesRichBody ? (
                         <div
                             className={richTextClass}
-                            dangerouslySetInnerHTML={{ __html: model.bodyHtml ?? '' }}
+                            dangerouslySetInnerHTML={{ __html: bodyHtml ?? '' }}
                         />
                     ) : null}
 

@@ -1,41 +1,49 @@
-import { Head } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { BookOpen, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 
-import { ArticleFormDialog } from '@/components/admin/ArticleFormDialog';
 import {
-    articleToFormValues,
-    defaultArticleAuthor,
-    estimateReadingTimeMinutes,
-    formatArticleDate,
-    slugifyArticleTitle,
-    type ArticleFormValues,
+    buildArticleFormData,
+    type ArticleFormSubmitPayload,
 } from '@/components/admin/articleForm';
-import { buildArticleViewModel } from '@/components/admin/articleView';
-import { ContentRecordViewDialog } from '@/components/admin/ContentRecordViewDialog';
+import {
+    buildArticleViewModel,
+    managedArticleToFormValues,
+    type ManagedArticle,
+} from '@/components/admin/articleView';
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
 import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
-import { allArticles } from '@/data/articlesData';
-import type { ArticleDetail } from '@/types/articles';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
+
+const ArticleFormDialog = lazy(() =>
+    import('@/components/admin/ArticleFormDialog').then((module) => ({
+        default: module.ArticleFormDialog,
+    })),
+);
+
+const ContentRecordViewDialog = lazy(() =>
+    import('@/components/admin/ContentRecordViewDialog').then((module) => ({
+        default: module.ContentRecordViewDialog,
+    })),
+);
 
 type ArticleStatus = 'Published' | 'Draft';
 
-interface ManagedArticle extends ArticleDetail {
-    status: ArticleStatus;
-}
-
 interface ArticleRow {
-    id: string;
+    id: number;
     title: string;
     slug: string;
     category: string;
     summary: string;
     date: string;
     status: ArticleStatus;
+}
+
+interface ArticlesPageProps {
+    articles: ManagedArticle[];
 }
 
 function buildArticleRow(article: ManagedArticle): ArticleRow {
@@ -48,13 +56,6 @@ function buildArticleRow(article: ManagedArticle): ArticleRow {
         date: article.date,
         status: article.status,
     };
-}
-
-function buildInitialArticles(): ManagedArticle[] {
-    return allArticles.map((article) => ({
-        ...article,
-        status: article.isFeatured ? 'Published' : 'Published',
-    }));
 }
 
 const statusStyles: Record<ArticleStatus, string> = {
@@ -93,12 +94,40 @@ const columns: DataTableColumn<ArticleRow>[] = [
     },
 ];
 
-export default function Articles() {
-    const [articles, setArticles] = useState<ManagedArticle[]>(buildInitialArticles);
+function submitArticleForm(
+    payload: ArticleFormSubmitPayload,
+    editingArticleId: number | null,
+): Promise<void> {
+    const formData = buildArticleFormData(payload);
+
+    return new Promise((resolve, reject) => {
+        const options = {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                router.flush('/articles');
+                resolve();
+            },
+            onError: () => reject(),
+        };
+
+        if (editingArticleId !== null) {
+            formData.append('_method', 'patch');
+            router.post(`/admin/articles/${editingArticleId}`, formData, options);
+
+            return;
+        }
+
+        router.post('/admin/articles', formData, options);
+    });
+}
+
+export default function Articles({ articles }: ArticlesPageProps) {
+    const { flash } = usePage().props;
     const [formOpen, setFormOpen] = useState(false);
     const [viewOpen, setViewOpen] = useState(false);
-    const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
-    const [viewingArticleId, setViewingArticleId] = useState<string | null>(null);
+    const [editingArticleId, setEditingArticleId] = useState<number | null>(null);
+    const [viewingArticleId, setViewingArticleId] = useState<number | null>(null);
 
     const rows = articles.map(buildArticleRow);
     const publishedCount = articles.filter((article) => article.status === 'Published').length;
@@ -144,47 +173,16 @@ export default function Articles() {
         setFormOpen(true);
     };
 
-    const handleSubmitArticle = (values: ArticleFormValues) => {
-        if (editingArticleId) {
-            setArticles((current) =>
-                current.map((article) =>
-                    article.id === editingArticleId
-                        ? {
-                              ...article,
-                              title: values.title,
-                              summary: values.summary,
-                              category: values.category,
-                              image: values.image,
-                              content: values.content,
-                              sections: [],
-                              status: values.status,
-                              readingTimeMinutes: estimateReadingTimeMinutes(values.content),
-                          }
-                        : article,
-                ),
-            );
+    const handleSubmitArticle = async (payload: ArticleFormSubmitPayload) => {
+        await submitArticleForm(payload, editingArticleId);
+        closeForm();
+    };
 
-            return;
-        }
-
-        const slug = slugifyArticleTitle(values.title);
-
-        const article: ManagedArticle = {
-            id: slug,
-            slug,
-            title: values.title,
-            summary: values.summary,
-            category: values.category,
-            image: values.image,
-            content: values.content,
-            sections: [],
-            date: formatArticleDate(),
-            readingTimeMinutes: estimateReadingTimeMinutes(values.content),
-            author: defaultArticleAuthor,
-            status: values.status,
-        };
-
-        setArticles((current) => [article, ...current]);
+    const handleDeleteArticle = (row: ArticleRow) => {
+        router.delete(`/admin/articles/${row.id}`, {
+            preserveScroll: true,
+            onSuccess: () => router.flush('/articles'),
+        });
     };
 
     return (
@@ -192,6 +190,15 @@ export default function Articles() {
             <Head title="Articles" />
 
             <div className="space-y-4">
+                {flash.success ? (
+                    <div
+                        role="status"
+                        className="rounded-xl border border-secondary/20 bg-secondary/10 px-4 py-3 text-sm text-secondary"
+                    >
+                        {flash.success}
+                    </div>
+                ) : null}
+
                 <AdminSectionHeader
                     eyebrow="Content"
                     title="Articles"
@@ -219,37 +226,46 @@ export default function Articles() {
                     initialPageSize={5}
                     onView={openViewDialog}
                     onEdit={openEditForm}
+                    onDelete={handleDeleteArticle}
                 />
             </div>
 
-            <ContentRecordViewDialog
-                open={viewOpen}
-                title="View article"
-                description={viewingArticle?.title}
-                model={
-                    viewingArticle
-                        ? buildArticleViewModel({
-                              article: viewingArticle,
-                              status: viewingArticle.status,
-                          })
-                        : null
-                }
-                onClose={closeView}
-                onEdit={openEditFromView}
-            />
+            {viewOpen ? (
+                <Suspense fallback={null}>
+                    <ContentRecordViewDialog
+                        open={viewOpen}
+                        title="View article"
+                        description={viewingArticle?.title}
+                        model={
+                            viewingArticle
+                                ? buildArticleViewModel({
+                                      article: viewingArticle,
+                                      status: viewingArticle.status,
+                                  })
+                                : null
+                        }
+                        onClose={closeView}
+                        onEdit={openEditFromView}
+                    />
+                </Suspense>
+            ) : null}
 
-            <ArticleFormDialog
-                open={formOpen}
-                mode={editingArticleId ? 'edit' : 'create'}
-                resetKey={editingArticleId ?? 'create'}
-                initialValues={
-                    editingArticle
-                        ? articleToFormValues(editingArticle, editingArticle.status)
-                        : undefined
-                }
-                onClose={closeForm}
-                onSubmit={handleSubmitArticle}
-            />
+            {formOpen ? (
+                <Suspense fallback={null}>
+                    <ArticleFormDialog
+                        open={formOpen}
+                        mode={editingArticleId ? 'edit' : 'create'}
+                        resetKey={editingArticleId ? String(editingArticleId) : 'create'}
+                        initialValues={
+                            editingArticle
+                                ? managedArticleToFormValues(editingArticle)
+                                : undefined
+                        }
+                        onClose={closeForm}
+                        onSubmit={handleSubmitArticle}
+                    />
+                </Suspense>
+            ) : null}
         </>
     );
 }
