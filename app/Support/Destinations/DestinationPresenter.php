@@ -45,6 +45,23 @@ class DestinationPresenter
     }
 
     /**
+     * @return list<array<string, mixed>>
+     */
+    public static function forPublicHomePreview(int $limit = 4): array
+    {
+        $tours = self::tourCandidates();
+
+        return Destination::query()
+            ->published()
+            ->latestFirst()
+            ->limit($limit)
+            ->get()
+            ->map(fn (Destination $destination): array => self::publicCardPayload($destination, $tours))
+            ->values()
+            ->all();
+    }
+
+    /**
      * @return array{
      *     destination: array<string, mixed>,
      *     relatedTours: list<array<string, mixed>>,

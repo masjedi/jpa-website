@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { CircleHelp, Plus } from 'lucide-react';
 import { useState } from 'react';
 
@@ -6,10 +6,8 @@ import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
 import { ContentRecordViewDialog } from '@/components/admin/ContentRecordViewDialog';
 import { FaqFormDialog } from '@/components/admin/FaqFormDialog';
 import {
+    buildFaqPayload,
     faqToFormValues,
-    formatFaqUpdatedLabel,
-    nextFaqItemId,
-    nextFaqItemOrder,
     type FaqFormValues,
 } from '@/components/admin/faqForm';
 import { buildFaqViewModel } from '@/components/admin/faqView';
@@ -17,7 +15,6 @@ import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
-import { allFaqItems as initialFaqItems } from '@/data/faqData';
 import type { FaqItem } from '@/types/faq';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 
@@ -57,12 +54,35 @@ const columns: DataTableColumn<FaqItem>[] = [
     { id: 'updated', header: 'Updated', accessor: (row) => row.updated },
 ];
 
-function buildInitialFaqItems(): FaqItem[] {
-    return initialFaqItems.map((item) => ({ ...item }));
+interface FaqPageProps {
+    items: FaqItem[];
 }
 
-export default function Faq() {
-    const [items, setItems] = useState<FaqItem[]>(buildInitialFaqItems);
+function submitFaqForm(values: FaqFormValues, editingItemId: number | null): Promise<void> {
+    const payload = buildFaqPayload(values);
+
+    return new Promise((resolve, reject) => {
+        const options = {
+            preserveScroll: true,
+            onSuccess: () => {
+                router.flush('/faq');
+                resolve();
+            },
+            onError: () => reject(),
+        };
+
+        if (editingItemId !== null) {
+            router.patch(`/admin/faq/${editingItemId}`, payload, options);
+
+            return;
+        }
+
+        router.post('/admin/faq', payload, options);
+    });
+}
+
+export default function Faq({ items }: FaqPageProps) {
+    const { flash } = usePage().props;
     const [formOpen, setFormOpen] = useState(false);
     const [viewOpen, setViewOpen] = useState(false);
     const [editingItemId, setEditingItemId] = useState<number | null>(null);
@@ -109,35 +129,16 @@ export default function Faq() {
         setFormOpen(true);
     };
 
-    const handleSubmitFaq = (values: FaqFormValues) => {
-        if (editingItemId !== null) {
-            setItems((current) =>
-                current.map((item) =>
-                    item.id === editingItemId
-                        ? {
-                              ...item,
-                              question: values.question,
-                              answer: values.answer,
-                              status: values.status,
-                              updated: formatFaqUpdatedLabel(),
-                          }
-                        : item,
-                ),
-            );
+    const handleSubmitFaq = async (values: FaqFormValues) => {
+        await submitFaqForm(values, editingItemId);
+        closeForm();
+    };
 
-            return;
-        }
-
-        const item: FaqItem = {
-            id: nextFaqItemId(items),
-            question: values.question,
-            answer: values.answer,
-            status: values.status,
-            order: nextFaqItemOrder(items),
-            updated: formatFaqUpdatedLabel(),
-        };
-
-        setItems((current) => [...current, item]);
+    const handleDeleteFaq = (row: FaqItem) => {
+        router.delete(`/admin/faq/${row.id}`, {
+            preserveScroll: true,
+            onSuccess: () => router.flush('/faq'),
+        });
     };
 
     return (
@@ -145,10 +146,19 @@ export default function Faq() {
             <Head title="FAQ" />
 
             <div className="space-y-4">
+                {flash.success ? (
+                    <div
+                        role="status"
+                        className="rounded-xl border border-secondary/20 bg-secondary/10 px-4 py-3 text-sm text-secondary"
+                    >
+                        {flash.success}
+                    </div>
+                ) : null}
+
                 <AdminSectionHeader
                     eyebrow="Public website"
                     title="Frequently asked questions"
-                    description="Manage travel information Q&A shown on the homepage. Content will be loaded from the database once CMS persistence is connected."
+                    description="Manage travel information Q&A shown on the homepage."
                     icon={CircleHelp}
                     actions={
                         <button
@@ -172,6 +182,7 @@ export default function Faq() {
                     initialPageSize={5}
                     onView={openViewDialog}
                     onEdit={openEditForm}
+                    onDelete={handleDeleteFaq}
                 />
             </div>
 

@@ -48,6 +48,22 @@ class TourPresenter
     }
 
     /**
+     * @return list<array<string, mixed>>
+     */
+    public static function forPublicHomePreview(int $limit = 3): array
+    {
+        return Tour::query()
+            ->published()
+            ->tours()
+            ->latestFirst()
+            ->limit($limit)
+            ->get()
+            ->map(fn (Tour $tour): array => self::publicTourPayload($tour))
+            ->values()
+            ->all();
+    }
+
+    /**
      * @return list<Tour>
      */
     public static function relatedTours(Tour $current, int $limit = 2): array

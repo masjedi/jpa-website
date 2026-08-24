@@ -8,3 +8,9 @@ export interface FaqItem {
     status: FaqStatus;
     updated: string;
 }
+
+export interface PublicFaqItem {
+    id: number;
+    question: string;
+    answer: string;
+}

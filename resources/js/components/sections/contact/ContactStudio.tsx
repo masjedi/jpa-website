@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import {
     ArrowUpRight,
@@ -14,16 +14,8 @@ import { type FormEvent, useState } from 'react';
 
 import { FadeInOnMount } from '@/components/motion/FadeIn';
 import { ContactOfficeMap } from '@/components/sections/contact/ContactOfficeMap';
-import {
-    CONTACT_EMAIL,
-    CONTACT_EMAIL_HREF,
-    OFFICE_LOCATION,
-    OFFICE_MAPS_HREF,
-    WHATSAPP_DISPLAY,
-    WHATSAPP_HREF,
-} from '@/components/public/brand';
 import { BorderGlow } from '@/components/react-bits/BorderGlow/BorderGlow';
-import { SpotlightCard } from '@/components/react-bits/SpotlightCard/SpotlightCard';
+import { useSiteSettings } from '@/hooks/use-site-settings';
 import { cn } from '@/lib/utils';
 
 const topics = [
@@ -35,50 +27,61 @@ const topics = [
 
 type Topic = (typeof topics)[number];
 
-const channels = [
-    {
-        icon: Mail,
-        label: 'Email',
-        value: CONTACT_EMAIL,
-        href: CONTACT_EMAIL_HREF,
-    },
-    {
-        icon: Phone,
-        label: 'WhatsApp',
-        value: WHATSAPP_DISPLAY,
-        href: WHATSAPP_HREF,
-    },
-    {
-        icon: MapPin,
-        label: 'Location',
-        value: OFFICE_LOCATION,
-        href: OFFICE_MAPS_HREF,
-        external: true,
-    },
-] as const;
-
 const fieldClass =
     'peer w-full border-0 border-b border-border/80 bg-transparent py-3.5 text-sm text-foreground placeholder-transparent transition-colors focus:border-secondary focus:outline-none';
 
 const labelClass =
-    'pointer-events-none absolute start-0 top-3.5 text-sm text-muted-foreground transition-all duration-200 peer-focus:-top-0.5 peer-focus:text-[11px] peer-focus:font-medium peer-focus:text-secondary peer-[:not(:placeholder-shown)]:-top-0.5 peer-[:not(:placeholder-shown)]:text-[11px] peer-[:not(:placeholder-shown)]:font-medium';
+    'pointer-events-none absolute start-0 top-3.5 text-sm text-muted-foreground transition-all duration-200 peer-focus:-top-0.5 peer-focus:text-[11px] peer-focus:font-medium peer-focus:text-secondary peer-[:not(:placeholder-shown)]:-top-0.5 peer-[:not(:placeholder-shown)]:text-[11px] peer-[:not(:placeholder-shown)]:font-medium peer-[:not(:placeholder-shown)]:text-secondary';
 
 export function ContactStudio() {
     const reducedMotion = useReducedMotion();
-    const [topic, setTopic] = useState<Topic>('Plan a custom trip');
+    const settings = useSiteSettings();
     const [submitted, setSubmitted] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
+        name: '',
+        email: '',
+        topic: 'Plan a custom trip' as Topic,
+        message: '',
+    });
+
+    const channels = [
+        {
+            icon: Mail,
+            label: 'Email',
+            value: settings.contactEmail,
+            href: settings.contactEmailHref,
+        },
+        {
+            icon: Phone,
+            label: 'WhatsApp',
+            value: settings.whatsappDisplay,
+            href: settings.whatsappHref,
+        },
+        {
+            icon: MapPin,
+            label: 'Location',
+            value: settings.officeLocation,
+            href: settings.officeMapsHref,
+            external: true,
+        },
+    ] as const;
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        if (submitting || submitted) {
+        if (processing || submitted) {
             return;
         }
 
-        setSubmitting(true);
-        setSubmitted(true);
-        setSubmitting(false);
+        clearErrors();
+
+        post('/inquiries/contact', {
+            preserveScroll: true,
+            onSuccess: () => {
+                setSubmitted(true);
+                reset('name', 'email', 'message');
+            },
+        });
     };
 
     return (
@@ -119,112 +122,61 @@ export function ContactStudio() {
                                     >
                                         <Link
                                             href="/"
-                                            className="transition-colors hover:text-brand-on-surface"
+                                            className="transition-colors hover:text-brand-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                         >
                                             Home
                                         </Link>
-                                        <ChevronRight
-                                            className="size-3.5 opacity-50 rtl:rotate-180"
-                                            aria-hidden
-                                        />
-                                        <span aria-current="page">Contact</span>
+                                        <ChevronRight className="size-3.5 opacity-50" aria-hidden />
+                                        <span className="text-brand-on-surface" aria-current="page">
+                                            Contact
+                                        </span>
                                     </nav>
 
-                                    <p className="mt-8 text-xs font-semibold uppercase tracking-[0.18em] text-brand-on-surface/55">
+                                    <p className="mt-8 text-xs font-semibold uppercase tracking-[0.16em] text-brand-on-surface/55">
                                         Get in touch
                                     </p>
                                     <h1 className="font-heading mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-                                        Start a
-                                        <br />
-                                        conversation
+                                        Plan your journey with us
                                     </h1>
-                                    <p className="mt-4 max-w-xs text-sm leading-relaxed text-brand-on-surface/70">
-                                        Every message reaches a real person on our
-                                        team — no bots, no autoresponders.
+                                    <p className="mt-4 text-sm leading-relaxed text-brand-on-surface/70">
+                                        Every message is reviewed personally. Submitting a form
+                                        does not reserve a seat or confirm a trip.
                                     </p>
+
+                                    <div className="mt-8 inline-flex items-center gap-2 rounded-full border border-brand-on-surface/15 bg-brand-on-surface/5 px-3.5 py-1.5 text-xs text-brand-on-surface/75">
+                                        <Clock className="size-3.5 text-accent" aria-hidden />
+                                        Typical reply within 24–48 hours
+                                    </div>
                                 </div>
 
-                                <ul className="mt-10 space-y-5 text-start">
-                                    {channels.map((channel) => {
-                                        const Icon = channel.icon;
-                                        const content = (
-                                            <>
-                                                <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-brand-on-surface/15 bg-brand-on-surface/10 text-accent transition-colors group-hover:border-accent/40 group-hover:bg-accent/10">
-                                                    <Icon
-                                                        className="size-4"
-                                                        aria-hidden
-                                                    />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-on-surface/50">
-                                                        {channel.label}
-                                                    </p>
-                                                    <p
-                                                        className={cn(
-                                                            'mt-0.5 text-sm font-medium text-brand-on-surface',
-                                                            channel.label === 'Location'
-                                                                ? 'whitespace-normal leading-snug'
-                                                                : 'truncate',
-                                                        )}
-                                                    >
-                                                        {channel.value}
-                                                    </p>
-                                                </div>
-                                                {channel.href ? (
-                                                    <ArrowUpRight
-                                                        className="ms-auto size-4 shrink-0 text-brand-on-surface/30 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
-                                                        aria-hidden
-                                                    />
-                                                ) : null}
-                                            </>
-                                        );
-
-                                        return (
-                                            <li key={channel.label}>
-                                                {channel.href ? (
-                                                    <a
-                                                        href={channel.href}
-                                                        {...('external' in channel && channel.external
-                                                            ? {
-                                                                  target: '_blank',
-                                                                  rel: 'noopener noreferrer',
-                                                              }
-                                                            : channel.href.startsWith('https://')
-                                                              ? {
-                                                                    target: '_blank',
-                                                                    rel: 'noopener noreferrer',
-                                                                }
-                                                              : {})}
-                                                        className="group flex items-center gap-4 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                                                    >
-                                                        {content}
-                                                    </a>
-                                                ) : (
-                                                    <div className="group flex items-center gap-4">
-                                                        {content}
-                                                    </div>
-                                                )}
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-
-                                <SpotlightCard
-                                    className="mt-8 rounded-2xl border border-brand-on-surface/10 bg-brand-on-surface/5"
-                                    spotlightColor="rgba(215, 162, 58, 0.12)"
-                                >
-                                    <div className="flex items-start gap-3 p-4 text-start">
-                                        <Clock
-                                            className="mt-0.5 size-4 shrink-0 text-accent"
-                                            aria-hidden
-                                        />
-                                        <p className="text-xs leading-relaxed text-brand-on-surface/65">
-                                            Replies within two business days.
-                                            Inquiries are reviewed personally —
-                                            never instant confirmation.
-                                        </p>
-                                    </div>
-                                </SpotlightCard>
+                                <div className="mt-10 space-y-3">
+                                    {channels.map((channel) => (
+                                        <a
+                                            key={channel.label}
+                                            href={channel.href}
+                                            {...('external' in channel && channel.external
+                                                ? { target: '_blank', rel: 'noopener noreferrer' }
+                                                : {})}
+                                            className="group flex items-start gap-3 rounded-2xl border border-brand-on-surface/10 bg-brand-on-surface/5 p-3.5 transition-colors hover:bg-brand-on-surface/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                                        >
+                                            <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-on-surface/10 text-accent">
+                                                <channel.icon className="size-4" aria-hidden />
+                                            </span>
+                                            <span className="min-w-0 text-start">
+                                                <span className="block text-[11px] font-semibold uppercase tracking-wider text-brand-on-surface/55">
+                                                    {channel.label}
+                                                </span>
+                                                <span className="mt-0.5 block truncate text-sm text-brand-on-surface">
+                                                    {channel.value}
+                                                </span>
+                                            </span>
+                                            <ArrowUpRight
+                                                className="ms-auto mt-1 size-4 shrink-0 text-brand-on-surface/40 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                                                aria-hidden
+                                            />
+                                        </a>
+                                    ))}
+                                </div>
                             </aside>
 
                             <div className="bg-surface p-8 sm:p-10 lg:col-span-3">
@@ -238,15 +190,17 @@ export function ContactStudio() {
                                                     : { opacity: 0, y: 12 }
                                             }
                                             animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.45 }}
-                                            className="flex min-h-[28rem] flex-col items-center justify-center text-center"
+                                            exit={
+                                                reducedMotion
+                                                    ? undefined
+                                                    : { opacity: 0, y: -8 }
+                                            }
+                                            transition={{ duration: 0.35 }}
+                                            className="flex min-h-[22rem] flex-col items-center justify-center text-center"
                                             role="status"
                                         >
-                                            <div className="flex size-16 items-center justify-center rounded-full bg-secondary/10 text-secondary">
-                                                <Check
-                                                    className="size-8"
-                                                    aria-hidden
-                                                />
+                                            <div className="inline-flex size-14 items-center justify-center rounded-full bg-secondary/10 text-secondary">
+                                                <Check className="size-7" aria-hidden />
                                             </div>
                                             <h2 className="font-heading mt-6 text-2xl font-semibold text-foreground">
                                                 Message sent
@@ -254,10 +208,6 @@ export function ContactStudio() {
                                             <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
                                                 Thank you for reaching out. We&apos;ll
                                                 be in touch shortly.
-                                            </p>
-                                            <p className="mt-8 text-[11px] text-muted-foreground/60">
-                                                Preview only — delivery connects
-                                                after platform approval.
                                             </p>
                                         </motion.div>
                                     ) : (
@@ -284,6 +234,7 @@ export function ContactStudio() {
                                             <form
                                                 onSubmit={handleSubmit}
                                                 className="mt-8 space-y-7"
+                                                noValidate
                                             >
                                                 <div className="grid gap-7 sm:grid-cols-2">
                                                     <div className="relative">
@@ -292,8 +243,13 @@ export function ContactStudio() {
                                                             name="name"
                                                             type="text"
                                                             required
+                                                            value={data.name}
+                                                            onChange={(event) =>
+                                                                setData('name', event.target.value)
+                                                            }
                                                             placeholder="Name"
                                                             autoComplete="name"
+                                                            aria-invalid={errors.name ? true : undefined}
                                                             className={fieldClass}
                                                         />
                                                         <label
@@ -302,6 +258,11 @@ export function ContactStudio() {
                                                         >
                                                             Your name
                                                         </label>
+                                                        {errors.name ? (
+                                                            <p className="mt-1 text-xs text-destructive" role="alert">
+                                                                {errors.name}
+                                                            </p>
+                                                        ) : null}
                                                     </div>
                                                     <div className="relative">
                                                         <input
@@ -309,8 +270,13 @@ export function ContactStudio() {
                                                             name="email"
                                                             type="email"
                                                             required
+                                                            value={data.email}
+                                                            onChange={(event) =>
+                                                                setData('email', event.target.value)
+                                                            }
                                                             placeholder="Email"
                                                             autoComplete="email"
+                                                            aria-invalid={errors.email ? true : undefined}
                                                             className={fieldClass}
                                                         />
                                                         <label
@@ -319,6 +285,11 @@ export function ContactStudio() {
                                                         >
                                                             Email address
                                                         </label>
+                                                        {errors.email ? (
+                                                            <p className="mt-1 text-xs text-destructive" role="alert">
+                                                                {errors.email}
+                                                            </p>
+                                                        ) : null}
                                                     </div>
                                                 </div>
 
@@ -326,22 +297,17 @@ export function ContactStudio() {
                                                     <legend className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                                                         Topic
                                                     </legend>
-                                                    <input
-                                                        type="hidden"
-                                                        name="topic"
-                                                        value={topic}
-                                                    />
                                                     <div className="mt-3 flex flex-wrap gap-2">
                                                         {topics.map((item) => (
                                                             <button
                                                                 key={item}
                                                                 type="button"
                                                                 onClick={() =>
-                                                                    setTopic(item)
+                                                                    setData('topic', item)
                                                                 }
                                                                 className={cn(
                                                                     'rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
-                                                                    topic === item
+                                                                    data.topic === item
                                                                         ? 'bg-primary text-primary-foreground shadow-sm'
                                                                         : 'border border-border text-muted-foreground hover:border-secondary/40 hover:text-foreground',
                                                                 )}
@@ -350,6 +316,11 @@ export function ContactStudio() {
                                                             </button>
                                                         ))}
                                                     </div>
+                                                    {errors.topic ? (
+                                                        <p className="mt-1 text-xs text-destructive" role="alert">
+                                                            {errors.topic}
+                                                        </p>
+                                                    ) : null}
                                                 </fieldset>
 
                                                 <div className="relative">
@@ -358,15 +329,25 @@ export function ContactStudio() {
                                                         name="message"
                                                         required
                                                         rows={4}
+                                                        value={data.message}
+                                                        onChange={(event) =>
+                                                            setData('message', event.target.value)
+                                                        }
                                                         placeholder="Message"
-                                                        className={`${fieldClass} resize-none pt-1`}
+                                                        aria-invalid={errors.message ? true : undefined}
+                                                        className={`${fieldClass} min-h-[7.5rem] resize-none`}
                                                     />
                                                     <label
                                                         htmlFor="contact-message"
-                                                        className={`${labelClass} top-1 peer-focus:top-0 peer-[:not(:placeholder-shown)]:top-0`}
+                                                        className={labelClass}
                                                     >
                                                         How can we help?
                                                     </label>
+                                                    {errors.message ? (
+                                                        <p className="mt-1 text-xs text-destructive" role="alert">
+                                                            {errors.message}
+                                                        </p>
+                                                    ) : null}
                                                 </div>
 
                                                 <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
@@ -377,10 +358,10 @@ export function ContactStudio() {
                                                     </p>
                                                     <button
                                                         type="submit"
-                                                        disabled={submitting}
+                                                        disabled={processing}
                                                         className="group inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-accent px-7 py-3 text-sm font-semibold text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
                                                     >
-                                                        {submitting
+                                                        {processing
                                                             ? 'Sending…'
                                                             : 'Send message'}
                                                         <Send

@@ -5,13 +5,13 @@ import { AboutLanding } from '@/components/sections/about/AboutLanding';
 import { PublicLayout } from '@/layouts/PublicLayout';
 
 export default function About() {
-    setLayoutProps({ transparentHeader: true });
+    setLayoutProps({ transparentHeader: false });
 
     return (
         <>
             <PageMeta
                 title="About"
-                description="Meet Journey to Peace Afghanistan Tours — our story, mission, values, leadership and the Afghan team guiding travellers with local expertise and cultural respect."
+                description="Discover Journey to Peace Afghanistan Tours — our story of Afghan-led guiding, cultural heritage journeys and the milestones shaping responsible tourism across Afghanistan."
             />
             <AboutLanding />
         </>

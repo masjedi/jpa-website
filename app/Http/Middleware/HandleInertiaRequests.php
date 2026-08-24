@@ -2,7 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Admin\AdminFeedPresenter;
+use App\Support\Brand;
 use App\Support\Locale;
+use App\Support\SiteSettings\SiteSettingsPresenter;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -44,8 +47,9 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'locale' => $locale,
             'direction' => Locale::direction($locale),
-            'appName' => config('app.name'),
+            'appName' => Brand::appName(),
             'appUrl' => rtrim((string) config('app.url'), '/'),
+            'siteSettings' => fn () => SiteSettingsPresenter::forShared(),
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,
@@ -56,6 +60,9 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
             ],
+            'adminFeed' => fn () => $user !== null && $request->is('admin', 'admin/*')
+                ? AdminFeedPresenter::forNavbar()
+                : null,
         ];
     }
 }

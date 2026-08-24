@@ -1,8 +1,8 @@
 import { Link } from '@inertiajs/react';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 
-import type { AdminNavbarFeedItem } from '@/data/adminNavbarFeed';
 import { cn } from '@/lib/utils';
+import type { AdminNavbarFeedItem } from '@/types/inertia';
 
 interface AdminNavbarDropdownProps {
     label: string;
@@ -10,6 +10,7 @@ interface AdminNavbarDropdownProps {
     icon: ReactNode;
     badge?: number;
     items: AdminNavbarFeedItem[];
+    emptyLabel?: string;
     isOpen: boolean;
     onToggle: () => void;
     onClose: () => void;
@@ -23,6 +24,7 @@ export function AdminNavbarDropdown({
     icon,
     badge,
     items,
+    emptyLabel = 'Nothing here yet',
     isOpen,
     onToggle,
     onClose,
@@ -73,9 +75,12 @@ export function AdminNavbarDropdown({
                 )}
             >
                 {icon}
-                {badge ? (
-                    <span className="absolute end-1 top-1 inline-flex min-w-[14px] items-center justify-center rounded-full bg-accent px-0.5 text-[9px] font-semibold leading-none text-accent-foreground">
-                        {badge > 9 ? '9+' : badge}
+                {(badge ?? 0) > 0 ? (
+                    <span
+                        aria-hidden
+                        className="absolute -end-1.5 -top-1.5 z-10 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold leading-none text-accent-foreground shadow-sm ring-2 ring-surface"
+                    >
+                        {badge! > 9 ? '9+' : badge}
                     </span>
                 ) : null}
             </button>
@@ -97,24 +102,30 @@ export function AdminNavbarDropdown({
                     </div>
 
                     <ul className="max-h-52 divide-y divide-border overflow-y-auto border-t border-border">
-                        {items.map((item) => (
-                            <li key={item.id}>
-                                {item.href ? (
-                                    <Link
-                                        href={item.href}
-                                        role="menuitem"
-                                        onClick={onClose}
-                                        className="block px-3 py-2 transition-colors hover:bg-surface-muted/80 focus-visible:bg-surface-muted/80 focus-visible:outline-none"
-                                    >
-                                        <FeedItemContent item={item} />
-                                    </Link>
-                                ) : (
-                                    <div className="px-3 py-2">
-                                        <FeedItemContent item={item} />
-                                    </div>
-                                )}
+                        {items.length === 0 ? (
+                            <li className="px-3 py-4 text-center text-[11px] text-muted-foreground">
+                                {emptyLabel}
                             </li>
-                        ))}
+                        ) : (
+                            items.map((item) => (
+                                <li key={item.id}>
+                                    {item.href ? (
+                                        <Link
+                                            href={item.href}
+                                            role="menuitem"
+                                            onClick={onClose}
+                                            className="block px-3 py-2 transition-colors hover:bg-surface-muted/80 focus-visible:bg-surface-muted/80 focus-visible:outline-none"
+                                        >
+                                            <FeedItemContent item={item} />
+                                        </Link>
+                                    ) : (
+                                        <div className="px-3 py-2">
+                                            <FeedItemContent item={item} />
+                                        </div>
+                                    )}
+                                </li>
+                            ))
+                        )}
                     </ul>
 
                     <div className="border-t border-border bg-surface-muted/50 px-3 py-2">

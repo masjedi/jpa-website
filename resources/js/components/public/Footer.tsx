@@ -3,9 +3,10 @@ import { Link } from '@inertiajs/react';
 import { AnimatedAxisDivider } from '@/components/motion/AnimatedAxisDivider';
 import { BrandLogo, brandLogoVariantForTheme } from '@/components/public/BrandLogo';
 import { FooterNewsletter } from '@/components/public/FooterNewsletter';
-import { SOCIAL_LINKS, type SocialLink } from '@/components/public/brand';
+import type { SocialLink } from '@/components/public/brand';
 import { socialIconComponents } from '@/components/public/SocialIcons';
 import { useAppearance } from '@/hooks/use-appearance';
+import { useSiteSettings } from '@/hooks/use-site-settings';
 import {
     companyLinks,
     exploreLinks,
@@ -28,7 +29,7 @@ const linkClassName =
 function FooterLink({ link }: { link: PublicNavLink }) {
     if (isInertiaPageLink(link.href)) {
         return (
-            <Link href={link.href} prefetch="hover" className={linkClassName}>
+            <Link href={link.href} className={linkClassName}>
                 {link.label}
             </Link>
         );
@@ -85,6 +86,7 @@ export function Footer() {
     const year = new Date().getFullYear();
     const { resolved } = useAppearance();
     const logoVariant = brandLogoVariantForTheme(resolved === 'dark');
+    const { brandName, socialLinks } = useSiteSettings();
 
     return (
         <footer className="bg-background px-4 py-10 text-start sm:px-6 lg:px-8 lg:py-12">
@@ -107,7 +109,7 @@ export function Footer() {
                                 {footerTagline}
                             </p>
                             <div className="mt-6 flex items-center gap-5">
-                                {SOCIAL_LINKS.map((link) => (
+                                {socialLinks.map((link) => (
                                     <SocialIconLink key={link.label} link={link} />
                                 ))}
                             </div>
@@ -121,7 +123,7 @@ export function Footer() {
                     <div className="mt-8 border-t border-border pt-5 sm:mt-10">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <p className="text-sm text-muted-foreground">
-                                © {year} Journey to Peace Afghanistan Tours. All rights reserved.
+                                © {year} {brandName}. All rights reserved.
                             </p>
                             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                                 <Link

@@ -40,14 +40,10 @@ export function validateFaqFormValues(values: FaqFormValues): FaqFormErrors {
     return errors;
 }
 
-export function formatFaqUpdatedLabel(): string {
-    return 'Just now';
-}
-
-export function nextFaqItemId(items: readonly FaqItem[]): number {
-    return items.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1;
-}
-
-export function nextFaqItemOrder(items: readonly FaqItem[]): number {
-    return items.reduce((maxOrder, item) => Math.max(maxOrder, item.order), 0) + 1;
+export function buildFaqPayload(values: FaqFormValues): Record<string, string> {
+    return {
+        question: values.question.trim(),
+        answer: values.answer.trim(),
+        status: values.status,
+    };
 }

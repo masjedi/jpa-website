@@ -24,7 +24,6 @@ export function AboutWhatWeDoSection() {
                         </div>
                         <Link
                             href="/services"
-                            prefetch="hover"
                             className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                         >
                             View all services

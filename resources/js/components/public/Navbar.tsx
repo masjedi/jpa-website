@@ -1,8 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Menu, X } from 'lucide-react';
+import { ChevronDown, Menu, X } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';
 
-import { planTripHref, primaryLinks } from '@/components/public/navigation';
+import { planTripHref, primaryLinks, isNavDropdown, type PrimaryNavItem, type PublicNavLink } from '@/components/public/navigation';
 import { BrandLogo, brandLogoVariantForTheme } from '@/components/public/BrandLogo';
 import { ThemeToggle } from '@/components/public/ThemeToggle';
 import { useAppearance } from '@/hooks/use-appearance';
@@ -18,23 +18,34 @@ function NavLink({
     overlayHeader,
     block = false,
     onNavigate,
+    nested = false,
 }: {
-    link: (typeof primaryLinks)[number];
+    link: PublicNavLink;
     active: boolean;
     overlayHeader: boolean;
     block?: boolean;
     onNavigate?: () => void;
+    nested?: boolean;
 }) {
     const className = cn(
-        'rounded-full px-3.5 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus lg:px-4',
-        block && 'block w-full',
+        'rounded-full text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
+        nested ? 'block w-full px-4 py-2.5 text-start' : 'px-3.5 py-2 lg:px-4',
+        block && !nested && 'block w-full',
         overlayHeader
-            ? 'text-brand-on-surface/90 hover:text-brand-on-surface'
-            : 'text-foreground/90 hover:text-foreground',
+            ? nested
+                ? 'text-brand-on-surface/85 hover:bg-white/10 hover:text-brand-on-surface'
+                : 'text-brand-on-surface/90 hover:text-brand-on-surface'
+            : nested
+              ? 'text-foreground/85 hover:bg-foreground/5 hover:text-foreground'
+              : 'text-foreground/90 hover:text-foreground',
         active &&
             (overlayHeader
-                ? 'text-brand-on-surface underline decoration-secondary decoration-2 underline-offset-4'
-                : 'font-semibold text-primary dark:text-secondary'),
+                ? nested
+                    ? 'bg-white/10 text-brand-on-surface'
+                    : 'text-brand-on-surface underline decoration-secondary decoration-2 underline-offset-4'
+                : nested
+                  ? 'bg-foreground/5 font-semibold text-primary dark:text-secondary'
+                  : 'font-semibold text-primary dark:text-secondary'),
     );
 
     const isInternalPage = link.href.startsWith('/') && !link.href.includes('#');
@@ -43,7 +54,6 @@ function NavLink({
         return (
             <Link
                 href={link.href}
-                prefetch={link.href === '/' ? false : 'hover'}
                 className={className}
                 onClick={onNavigate}
             >
@@ -56,6 +66,170 @@ function NavLink({
         <a href={link.href} className={className} onClick={onNavigate}>
             {link.label}
         </a>
+    );
+}
+
+function NavDropdown({
+    item,
+    active,
+    overlayHeader,
+    isActive,
+    onNavigate,
+    mobile = false,
+}: {
+    item: Extract<PrimaryNavItem, { children: readonly PublicNavLink[] }>;
+    active: boolean;
+    overlayHeader: boolean;
+    isActive: (href: string) => boolean;
+    onNavigate?: () => void;
+    mobile?: boolean;
+}) {
+    const [open, setOpen] = useState(false);
+    const dropdownId = useId();
+
+    const triggerClassName = cn(
+        'inline-flex items-center gap-1 rounded-full px-3.5 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus lg:px-4',
+        mobile && 'w-full justify-between',
+        overlayHeader
+            ? 'text-brand-on-surface/90 hover:text-brand-on-surface'
+            : 'text-foreground/90 hover:text-foreground',
+        active &&
+            (overlayHeader
+                ? 'text-brand-on-surface underline decoration-secondary decoration-2 underline-offset-4'
+                : 'font-semibold text-primary dark:text-secondary'),
+    );
+
+    const panelClassName = cn(
+        mobile
+            ? 'mt-1 space-y-1 ps-2'
+            : 'absolute start-0 top-[calc(100%+0.35rem)] z-50 min-w-44 overflow-hidden rounded-2xl border py-1.5 shadow-xl backdrop-blur-xl',
+        !mobile &&
+            (overlayHeader
+                ? 'border-white/10 bg-brand-deep/95'
+                : 'border-border/70 bg-surface/95 dark:border-white/10'),
+    );
+
+    if (mobile) {
+        return (
+            <div>
+                <button
+                    type="button"
+                    className={triggerClassName}
+                    aria-expanded={open}
+                    aria-controls={dropdownId}
+                    onClick={() => setOpen((value) => !value)}
+                >
+                    <span>{item.label}</span>
+                    <ChevronDown
+                        className={cn('size-4 transition-transform', open && 'rotate-180')}
+                        aria-hidden
+                    />
+                </button>
+                {open ? (
+                    <div id={dropdownId} className={panelClassName}>
+                        {item.children.map((child) => (
+                            <NavLink
+                                key={child.href}
+                                link={child}
+                                active={isActive(child.href)}
+                                overlayHeader={overlayHeader}
+                                block
+                                nested
+                                onNavigate={onNavigate}
+                            />
+                        ))}
+                    </div>
+                ) : null}
+            </div>
+        );
+    }
+
+    return (
+        <div
+            className="group relative"
+            onMouseEnter={() => setOpen(true)}
+            onMouseLeave={() => setOpen(false)}
+        >
+            <button
+                type="button"
+                className={triggerClassName}
+                aria-expanded={open}
+                aria-haspopup="true"
+                aria-controls={dropdownId}
+                onClick={() => setOpen((value) => !value)}
+            >
+                <span>{item.label}</span>
+                <ChevronDown
+                    className={cn(
+                        'size-3.5 transition-transform',
+                        open && 'rotate-180',
+                        'group-hover:rotate-180',
+                    )}
+                    aria-hidden
+                />
+            </button>
+
+            <div
+                id={dropdownId}
+                className={cn(
+                    panelClassName,
+                    'pointer-events-none invisible opacity-0 transition-[opacity,visibility] duration-150',
+                    open
+                        ? 'pointer-events-auto visible opacity-100'
+                        : 'group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100',
+                )}
+            >
+                {item.children.map((child) => (
+                    <NavLink
+                        key={child.href}
+                        link={child}
+                        active={isActive(child.href)}
+                        overlayHeader={overlayHeader}
+                        nested
+                        onNavigate={onNavigate}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function PrimaryNavItem({
+    item,
+    overlayHeader,
+    isActive,
+    onNavigate,
+    mobile = false,
+}: {
+    item: PrimaryNavItem;
+    overlayHeader: boolean;
+    isActive: (href: string) => boolean;
+    onNavigate?: () => void;
+    mobile?: boolean;
+}) {
+    if (isNavDropdown(item)) {
+        const dropdownActive = item.children.some((child) => isActive(child.href));
+
+        return (
+            <NavDropdown
+                item={item}
+                active={dropdownActive}
+                overlayHeader={overlayHeader}
+                isActive={isActive}
+                onNavigate={onNavigate}
+                mobile={mobile}
+            />
+        );
+    }
+
+    return (
+        <NavLink
+            link={item}
+            active={isActive(item.href)}
+            overlayHeader={overlayHeader}
+            block={mobile}
+            onNavigate={onNavigate}
+        />
     );
 }
 
@@ -132,7 +306,11 @@ export function Navbar({ transparent = false }: NavbarProps) {
         }
 
         if (href === '/about') {
-            return url === '/about' || url.startsWith('/about/');
+            return url === '/about';
+        }
+
+        if (href === '/about/team') {
+            return url === '/about/team';
         }
 
         if (href === '/contact') {
@@ -176,12 +354,12 @@ export function Navbar({ transparent = false }: NavbarProps) {
                     />
 
                     <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 xl:flex" aria-label="Primary">
-                        {primaryLinks.map((link) => (
-                            <NavLink
-                                key={link.label}
-                                link={link}
-                                active={isActive(link.href)}
+                        {primaryLinks.map((item) => (
+                            <PrimaryNavItem
+                                key={isNavDropdown(item) ? item.label : item.href}
+                                item={item}
                                 overlayHeader={overlayHeader}
+                                isActive={isActive}
                             />
                         ))}
                     </nav>
@@ -214,10 +392,9 @@ export function Navbar({ transparent = false }: NavbarProps) {
 
                         <Link
                             href={planTripHref}
-                            prefetch="hover"
                             className="hidden rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:inline-flex"
                         >
-                            Plan My Trip
+                            Book Now
                         </Link>
 
                         <button
@@ -262,14 +439,14 @@ export function Navbar({ transparent = false }: NavbarProps) {
                             />
                         </div>
                         <ul className="space-y-1">
-                            {primaryLinks.map((link) => (
-                                <li key={link.label}>
-                                    <NavLink
-                                        link={link}
-                                        active={isActive(link.href)}
+                            {primaryLinks.map((item) => (
+                                <li key={isNavDropdown(item) ? item.label : item.href}>
+                                    <PrimaryNavItem
+                                        item={item}
                                         overlayHeader={overlayHeader}
-                                        block
+                                        isActive={isActive}
                                         onNavigate={() => setMobileOpen(false)}
+                                        mobile
                                     />
                                 </li>
                             ))}
@@ -285,11 +462,10 @@ export function Navbar({ transparent = false }: NavbarProps) {
                             <li className="pt-1">
                                 <Link
                                     href={planTripHref}
-                                    prefetch="hover"
                                     className="inline-flex w-full justify-center rounded-full bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                     onClick={() => setMobileOpen(false)}
                                 >
-                                    Plan My Trip
+                                    Book Now
                                 </Link>
                             </li>
                         </ul>

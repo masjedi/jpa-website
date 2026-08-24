@@ -1,10 +1,11 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage, usePoll } from '@inertiajs/react';
 import { Bell, LogOut, Menu, MessageSquare, UserRound } from 'lucide-react';
 import { useState } from 'react';
 
 import { AdminNavbarDropdown } from '@/components/admin/AdminNavbarDropdown';
-import { adminMessages, adminNotifications } from '@/data/adminNavbarFeed';
+import { useSiteSettings } from '@/hooks/use-site-settings';
 import { cn } from '@/lib/utils';
+import type { AdminFeed, SharedPageProps } from '@/types/inertia';
 import '@/types/inertia';
 
 interface AdminNavbarProps {
@@ -14,10 +15,29 @@ interface AdminNavbarProps {
 
 type OpenMenu = 'notifications' | 'messages' | null;
 
+const emptyFeed: AdminFeed = {
+    notifications: [],
+    messages: [],
+    unreadNotifications: 0,
+    unreadMessages: 0,
+};
+
 export function AdminNavbar({ title, onMenuToggle }: AdminNavbarProps) {
-    const { auth, appName } = usePage().props;
+    const { auth, adminFeed } = usePage<SharedPageProps>().props;
+    const { brandName } = useSiteSettings();
     const user = auth.user;
+    const feed = adminFeed ?? emptyFeed;
     const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
+
+    usePoll(5000, {
+        only: ['adminFeed'],
+    });
+
+    const unreadNotifications =
+        feed.unreadNotifications ||
+        feed.notifications.filter((item) => item.unread).length;
+    const unreadMessages =
+        feed.unreadMessages || feed.messages.filter((item) => item.unread).length;
 
     const initials =
         user?.name
@@ -27,11 +47,38 @@ export function AdminNavbar({ title, onMenuToggle }: AdminNavbarProps) {
             .slice(0, 2)
             .toUpperCase() ?? 'AD';
 
-    const unreadNotifications = adminNotifications.filter((item) => item.unread).length;
-    const unreadMessages = adminMessages.filter((item) => item.unread).length;
-
     const toggleMenu = (menu: Exclude<OpenMenu, null>) => {
+        const isOpening = openMenu !== menu;
+
         setOpenMenu((current) => (current === menu ? null : menu));
+
+        if (!isOpening) {
+            return;
+        }
+
+        if (menu === 'notifications' && unreadNotifications > 0) {
+            router.post(
+                '/admin/feed/notifications/read',
+                {},
+                {
+                    preserveScroll: true,
+                    preserveState: true,
+                    only: ['adminFeed'],
+                },
+            );
+        }
+
+        if (menu === 'messages' && unreadMessages > 0) {
+            router.post(
+                '/admin/feed/messages/read',
+                {},
+                {
+                    preserveScroll: true,
+                    preserveState: true,
+                    only: ['adminFeed'],
+                },
+            );
+        }
     };
 
     return (
@@ -49,7 +96,7 @@ export function AdminNavbar({ title, onMenuToggle }: AdminNavbarProps) {
 
                     <div className="min-w-0">
                         <p className="truncate text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                            {appName}
+                            {brandName}
                         </p>
                         <h1 className="truncate font-heading text-lg font-semibold text-foreground sm:text-xl">
                             {title}
@@ -63,12 +110,13 @@ export function AdminNavbar({ title, onMenuToggle }: AdminNavbarProps) {
                         title="Notifications"
                         icon={<Bell className="size-4" aria-hidden />}
                         badge={unreadNotifications}
-                        items={adminNotifications}
+                        items={feed.notifications}
+                        emptyLabel="No notifications yet"
                         isOpen={openMenu === 'notifications'}
                         onToggle={() => toggleMenu('notifications')}
                         onClose={() => setOpenMenu(null)}
-                        footerHref="/admin/inquiries"
-                        footerLabel="View all activity"
+                        footerHref="/admin/subscriptions"
+                        footerLabel="View subscriptions"
                     />
 
                     <AdminNavbarDropdown
@@ -76,7 +124,8 @@ export function AdminNavbar({ title, onMenuToggle }: AdminNavbarProps) {
                         title="Messages"
                         icon={<MessageSquare className="size-4" aria-hidden />}
                         badge={unreadMessages}
-                        items={adminMessages}
+                        items={feed.messages}
+                        emptyLabel="No messages yet"
                         isOpen={openMenu === 'messages'}
                         onToggle={() => toggleMenu('messages')}
                         onClose={() => setOpenMenu(null)}

@@ -27,6 +27,7 @@ export function FaqEntityForm({
 }: FaqEntityFormProps) {
     const questionFieldId = useId();
     const answerFieldId = useId();
+    const statusFieldId = useId();
 
     const [values, setValues] = useState<FaqFormValues>(
         () => initialValues ?? createEmptyFaqFormValues(),
@@ -119,6 +120,24 @@ export function FaqEntityForm({
                             errors.answer && adminFieldErrorClass,
                         )}
                     />
+                </AdminFormField>
+
+                <AdminFormField id={statusFieldId} label="Status">
+                    <select
+                        id={statusFieldId}
+                        value={values.status}
+                        disabled={submitting}
+                        onChange={(event) =>
+                            setValues((current) => ({
+                                ...current,
+                                status: event.target.value as FaqFormValues['status'],
+                            }))
+                        }
+                        className={adminFieldClass}
+                    >
+                        <option value="Draft">Draft</option>
+                        <option value="Published">Published</option>
+                    </select>
                 </AdminFormField>
             </div>
 

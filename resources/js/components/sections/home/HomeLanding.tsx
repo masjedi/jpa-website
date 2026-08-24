@@ -1,4 +1,4 @@
-import { Link } from "@inertiajs/react";
+import { Link } from '@inertiajs/react';
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import {
@@ -20,18 +20,22 @@ import {
     type LucideIcon,
 } from "lucide-react";
 
-import { publishedFaqItems } from "@/data/faqData";
+import type { PublicFaqItem } from '@/types/faq';
 import { SpotlightCard } from "@/components/react-bits/SpotlightCard/SpotlightCard";
 import { FadeIn, FadeInOnMount, RevealItem, RevealStagger } from "@/components/motion/FadeIn";
 import { destinationShowHref, articleShowHref } from "@/components/public/navigation";
 import { DonateButton } from "@/components/public/DonateButton";
-import { DeferredCommunityImpactSection, DeferredTestimonialsCarousel } from "@/components/sections/home/HomeDeferredSections";
+import { HomeDeferredSection } from '@/components/loading/HomeDeferredSection';
+import { DeferredCommunityImpactSection, DeferredTestimonialsCarousel } from '@/components/sections/home/HomeDeferredSections';
 import { HeroScannerBackground } from "@/components/sections/home/HeroScannerBackground";
+import type { ArticleListItem } from '@/types/articles';
+import type { Destination } from '@/types/destinations';
 import type { GalleryPhoto } from '@/types/gallery';
 import type { PublicHeroSlide, PublicHeroSection } from '@/types/heroSection';
+import type { Tour } from '@/types/tours';
 
 /* -------------------------------------------------------------------------- */
-/*  Mock data                                                                  */
+/*  Static home content (non-backend sections)                                 */
 /* -------------------------------------------------------------------------- */
 
 interface FinderOption {
@@ -45,25 +49,6 @@ interface TrustIndicator {
     description: string;
 }
 
-interface Tour {
-    image: string;
-    title: string;
-    destination: string;
-    duration: string;
-    difficulty: string;
-    travelStyle: string;
-    description: string;
-    action: string;
-}
-
-interface Destination {
-    image: string;
-    name: string;
-    slug: string;
-    description: string;
-    relatedTours: number;
-}
-
 interface Service {
     icon: LucideIcon;
     title: string;
@@ -75,15 +60,6 @@ interface Testimonial {
     journey: string;
     text: string;
     rating: number;
-}
-
-interface Article {
-    slug: string;
-    image: string;
-    category: string;
-    title: string;
-    summary: string;
-    date: string;
 }
 
 /* Finder options ----------------------------------------------------------- */
@@ -148,81 +124,6 @@ const trustIndicators: readonly TrustIndicator[] = [
     },
 ] as const;
 
-/* Tours -------------------------------------------------------------------- */
-
-const featuredTours: readonly Tour[] = [
-    {
-        image: "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=900&q=80",
-        title: "Bamiyan Heritage Circuit",
-        destination: "Bamiyan Valley",
-        duration: "7 days",
-        difficulty: "Moderate",
-        travelStyle: "Cultural & heritage",
-        description:
-            "Ancient cliff monasteries, Band-e Amir’s turquoise lakes and village hospitality in the heart of the Hazarajat.",
-        action: "Request This Tour",
-    },
-    {
-        image: "https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=900&q=80",
-        title: "Kabul & Panjshir Discovery",
-        destination: "Kabul / Panjshir",
-        duration: "5 days",
-        difficulty: "Easy",
-        travelStyle: "Culture & photography",
-        description:
-            "Old-city bazaars, the Gardens of Babur and a day in the dramatic Panjshir gorge with a local driver-guide.",
-        action: "Request This Tour",
-    },
-    {
-        image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=900&q=80",
-        title: "Herat Art & Architecture",
-        destination: "Herat",
-        duration: "4 days",
-        difficulty: "Easy",
-        travelStyle: "Cultural & heritage",
-        description:
-            "Timurid tilework, the Great Mosque and traditional craft workshops with a specialist cultural guide.",
-        action: "Request This Tour",
-    },
-];
-
-/* Destinations ------------------------------------------------------------- */
-
-const featuredDestinations: readonly Destination[] = [
-    {
-        image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80",
-        name: "Bamiyan Valley",
-        slug: "bamiyan-valley",
-        description:
-            "High-altitude lakes, cliff monasteries and star-filled nights in the central highlands.",
-        relatedTours: 3,
-    },
-    {
-        image: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=900&q=80",
-        name: "Panjshir Valley",
-        slug: "panjshir-valley",
-        description:
-            "Dramatic gorges, riverside picnics and day hikes within reach of Kabul.",
-        relatedTours: 2,
-    },
-    {
-        image: "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=900&q=80",
-        name: "Herat",
-        slug: "herat",
-        description:
-            "Persian-influenced art, architecture and one of the oldest living bazaars in the region.",
-        relatedTours: 2,
-    },
-    {
-        image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=900&q=80",
-        name: "Kabul",
-        slug: "kabul",
-        description:
-            "Museums, gardens, hillside views and the everyday rhythm of the capital.",
-        relatedTours: 4,
-    },
-];
-
 /* Services ------------------------------------------------------------------ */
 
 const servicesOverview: readonly Service[] = [
@@ -284,38 +185,6 @@ const testimonials: readonly Testimonial[] = [
         journey: "Herat Art & Architecture, 2024",
         text: "Small group, thoughtful pacing and deep respect for local culture. I felt looked after from start to finish.",
         rating: 4,
-    },
-];
-
-/* Articles ------------------------------------------------------------------- */
-
-const latestArticles: readonly Article[] = [
-    {
-        slug: "what-to-pack-for-spring-in-afghanistan",
-        image: "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80",
-        category: "Travel tips",
-        title: "What to pack for spring in Afghanistan",
-        summary:
-            "Layering, footwear and small essentials for variable mountain weather.",
-        date: "12 Mar 2026",
-    },
-    {
-        slug: "respectful-travellers-guide-to-herat",
-        image: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80",
-        category: "Culture",
-        title: "A respectful traveller’s guide to Herat",
-        summary:
-            "Etiquette, photography consent and how to support local artisans.",
-        date: "28 Feb 2026",
-    },
-    {
-        slug: "one-week-in-bamiyan-practical-route",
-        image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80",
-        category: "Itineraries",
-        title: "One week in Bamiyan: a practical route",
-        summary:
-            "How to structure days between the lakes, the cliffs and village homestays.",
-        date: "15 Feb 2026",
     },
 ];
 
@@ -501,10 +370,18 @@ function HeroMessageCarousel({ slides }: { slides: readonly PublicHeroSlide[] })
 
 export function HomeLanding({
     hero,
-    galleryPreview = [],
+    featuredTours,
+    featuredDestinations,
+    galleryPreview,
+    latestArticles,
+    faqItems,
 }: {
     hero: PublicHeroSection;
+    featuredTours?: readonly Tour[];
+    featuredDestinations?: readonly Destination[];
     galleryPreview?: readonly GalleryPhoto[];
+    latestArticles?: readonly ArticleListItem[];
+    faqItems?: readonly PublicFaqItem[];
 }) {
     return (
         <>
@@ -542,10 +419,9 @@ export function HomeLanding({
                             <Link
                                 id="plan-trip"
                                 href="/contact"
-                                prefetch="hover"
                                 className="inline-flex min-w-[9.5rem] items-center justify-center rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                             >
-                                Plan My Trip
+                                Send your Inquiry
                             </Link>
                         </div>
                         <DonateButton variant="hero" />
@@ -687,9 +563,10 @@ export function HomeLanding({
                         description="A few of our most requested routes, each built around local insight and flexible pacing."
                         action={{ label: "View all tours", href: "/tours" }}
                     />
+                    <HomeDeferredSection data="featuredTours" columns={3}>
                     <RevealStagger className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {featuredTours.map((tour) => (
-                            <RevealItem key={tour.title}>
+                        {(featuredTours ?? []).map((tour) => (
+                            <RevealItem key={tour.slug}>
                                 <Card>
                                     <div className="relative aspect-[4/3] overflow-hidden">
                                         <img
@@ -728,7 +605,7 @@ export function HomeLanding({
                                                 href="#contact"
                                                 className="inline-flex items-center gap-1 text-sm font-medium text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                             >
-                                                {tour.action}
+                                                Request This Tour
                                                 <ArrowRight
                                                     className="size-4"
                                                     aria-hidden
@@ -740,6 +617,7 @@ export function HomeLanding({
                             </RevealItem>
                         ))}
                     </RevealStagger>
+                    </HomeDeferredSection>
                 </div>
                 </FadeIn>
             </section>
@@ -757,9 +635,10 @@ export function HomeLanding({
                             href: "/destinations",
                         }}
                     />
+                    <HomeDeferredSection data="featuredDestinations" columns={4}>
                     <RevealStagger className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                        {featuredDestinations.map((destination) => (
-                            <RevealItem key={destination.name}>
+                        {(featuredDestinations ?? []).map((destination) => (
+                            <RevealItem key={destination.slug}>
                                 <Card>
                                     <div className="relative aspect-[4/3] overflow-hidden">
                                         <img
@@ -777,13 +656,13 @@ export function HomeLanding({
                                             {destination.name}
                                         </h3>
                                         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                                            {destination.description}
+                                            {destination.tagline}
                                         </p>
                                         <div className="mt-4 flex items-center justify-between">
                                             <p className="text-xs text-muted-foreground">
-                                                {destination.relatedTours}{" "}
+                                                {destination.linkedToursCount ?? 0}{" "}
                                                 related tour
-                                                {destination.relatedTours === 1
+                                                {(destination.linkedToursCount ?? 0) === 1
                                                     ? ""
                                                     : "s"}
                                             </p>
@@ -799,6 +678,7 @@ export function HomeLanding({
                             </RevealItem>
                         ))}
                     </RevealStagger>
+                    </HomeDeferredSection>
                 </div>
                 </FadeIn>
             </section>
@@ -850,8 +730,9 @@ export function HomeLanding({
                         description="A glimpse of the landscapes, cities and everyday life our travellers experience."
                         action={{ label: "View full gallery", href: "/gallery" }}
                     />
+                    <HomeDeferredSection data="galleryPreview" columns={6}>
                     <RevealStagger className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6" stagger={0.05}>
-                        {galleryPreview.map((item) => (
+                        {(galleryPreview ?? []).map((item) => (
                             <RevealItem key={item.id}>
                                 <figure className="group relative overflow-hidden rounded-xl">
                                     <img
@@ -870,6 +751,7 @@ export function HomeLanding({
                             </RevealItem>
                         ))}
                     </RevealStagger>
+                    </HomeDeferredSection>
                 </div>
                 </FadeIn>
             </section>
@@ -902,9 +784,10 @@ export function HomeLanding({
                             href: "/articles",
                         }}
                     />
+                    <HomeDeferredSection data="latestArticles" columns={3}>
                     <RevealStagger className="mt-10 grid gap-6 md:grid-cols-3">
-                        {latestArticles.map((article) => (
-                            <RevealItem key={article.title}>
+                        {(latestArticles ?? []).map((article) => (
+                            <RevealItem key={article.slug}>
                                 <Card>
                                     <div className="relative aspect-[16/10] overflow-hidden">
                                         <img
@@ -947,6 +830,7 @@ export function HomeLanding({
                             </RevealItem>
                         ))}
                     </RevealStagger>
+                    </HomeDeferredSection>
                 </div>
                 </FadeIn>
             </section>
@@ -962,7 +846,8 @@ export function HomeLanding({
                         center
                     />
                     <RevealStagger className="mt-10 space-y-3" stagger={0.06}>
-                        {publishedFaqItems.map((faq) => (
+                        <HomeDeferredSection data="faqItems" columns={1}>
+                        {(faqItems ?? []).map((faq) => (
                             <RevealItem key={faq.id}>
                                 <details className="group rounded-2xl border border-border bg-surface shadow-sm open:bg-surface-muted">
                                     <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4 text-start font-heading text-base font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
@@ -978,6 +863,7 @@ export function HomeLanding({
                                 </details>
                             </RevealItem>
                         ))}
+                        </HomeDeferredSection>
                     </RevealStagger>
                 </div>
                 </FadeIn>

@@ -11,8 +11,9 @@ export function PageMeta({ title, description, image, noIndex = false }: PageMet
     const { url, props } = usePage();
     const appUrl = props.appUrl.replace(/\/$/, '');
     const appName = props.appName;
+    const logoColor = props.siteSettings?.logoColor ?? `${appUrl}/brand/logo-color-h.png`;
     const canonical = `${appUrl}${url.split('?')[0] || '/'}`;
-    const ogImage = image ?? `${appUrl}/brand/logo-color-h.png`;
+    const ogImage = image ?? (logoColor.startsWith('http') ? logoColor : `${appUrl}${logoColor}`);
 
     return (
         <Head>
