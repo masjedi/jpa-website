@@ -75,6 +75,8 @@ export function FooterNewsletter() {
                             onChange={(event) => setData('email', event.target.value)}
                             placeholder="you@example.com"
                             required
+                            minLength={5}
+                            maxLength={255}
                             autoComplete="email"
                             aria-invalid={errors.email ? true : undefined}
                             aria-describedby={errors.email ? `${emailId}-error` : undefined}

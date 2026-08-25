@@ -24,8 +24,42 @@ class AdminSiteSettingsTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('admin/Settings')
                 ->has('settings')
+                ->has('settings.socialLinks', 4)
                 ->where('settings.brandName', SiteSettingsDefaults::BRAND_NAME)
                 ->where('settings.contactEmail', SiteSettingsDefaults::CONTACT_EMAIL));
+    }
+
+    public function test_admin_can_update_settings_via_form_method_spoof_with_optional_maps(): void
+    {
+        $user = User::factory()->create();
+        SiteSetting::current();
+
+        $this->actingAs($user)
+            ->post('/admin/settings', [
+                '_method' => 'patch',
+                'brand_name' => 'JPA Heritage Tours',
+                'contact_email' => 'hello@example.com',
+                'whatsapp_display' => '+93 700 000000',
+                'whatsapp_href' => 'https://wa.me/93700000000',
+                'office_location' => 'Kabul, Afghanistan',
+                'office_maps_href' => '',
+                'office_maps_embed_src' => '',
+                'social_links' => [
+                    ['label' => 'Instagram', 'href' => 'https://instagram.com/jpa'],
+                    ['label' => 'Facebook', 'href' => ''],
+                    ['label' => 'YouTube', 'href' => ''],
+                    ['label' => 'LinkedIn', 'href' => ''],
+                ],
+            ])
+            ->assertRedirect(route('admin.settings.index'))
+            ->assertSessionHas('success');
+
+        $settings = SiteSetting::query()->first();
+
+        $this->assertNotNull($settings);
+        $this->assertSame('JPA Heritage Tours', $settings->brand_name);
+        $this->assertNull($settings->office_maps_href);
+        $this->assertCount(1, $settings->social_links);
     }
 
     public function test_admin_can_update_site_identity_settings(): void

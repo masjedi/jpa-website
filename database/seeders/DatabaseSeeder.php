@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             HeroSectionSeeder::class,
             SiteSettingsSeeder::class,
+            AboutPageSeeder::class,
         ]);
     }
 }

@@ -19,6 +19,7 @@ class ArticleController extends Controller
     {
         $article = Article::query()
             ->published()
+            ->with('teamMember')
             ->where('slug', $articleSlug)
             ->first();
 

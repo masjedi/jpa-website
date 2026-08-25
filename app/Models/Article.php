@@ -8,6 +8,7 @@ use App\Support\Media\MediaProcessor;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'slug',
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
     'cover_media',
     'content',
     'reading_time_minutes',
+    'team_member_id',
     'author_name',
     'author_role',
     'author_avatar',
@@ -48,6 +50,14 @@ class Article extends Model
         }
 
         return app(MediaProcessor::class)->hydrate($this->cover_media);
+    }
+
+    /**
+     * @return BelongsTo<TeamMember, $this>
+     */
+    public function teamMember(): BelongsTo
+    {
+        return $this->belongsTo(TeamMember::class);
     }
 
     public function coverImageUrl(): ?string

@@ -39,13 +39,38 @@ class SiteSettingsPresenter
      */
     public static function adminPayload(SiteSetting $settings): array
     {
-        $public = self::publicPayload($settings);
-
         return [
-            ...$public,
+            'brandName' => (string) $settings->brand_name,
+            'contactEmail' => (string) $settings->contact_email,
+            'contactEmailHref' => 'mailto:'.(string) $settings->contact_email,
+            'whatsappDisplay' => (string) $settings->whatsapp_display,
+            'whatsappHref' => (string) $settings->whatsapp_href,
+            'officeLocation' => (string) $settings->office_location,
+            'officeMapsHref' => (string) ($settings->office_maps_href ?? ''),
+            'officeMapsEmbedSrc' => (string) ($settings->office_maps_embed_src ?? ''),
+            'socialLinks' => self::adminSocialLinks($settings),
+            'logoColor' => self::logoUrl($settings->logoColorAsset(), SiteSettingsDefaults::LOGO_COLOR),
+            'logoWhite' => self::logoUrl($settings->logoWhiteAsset(), SiteSettingsDefaults::LOGO_WHITE),
             'logoColorMedia' => is_array($settings->logo_color_media) ? $settings->logo_color_media : null,
             'logoWhiteMedia' => is_array($settings->logo_white_media) ? $settings->logo_white_media : null,
         ];
+    }
+
+    /**
+     * @return list<array{label: string, href: string}>
+     */
+    private static function adminSocialLinks(SiteSetting $settings): array
+    {
+        $stored = collect(is_array($settings->social_links) ? $settings->social_links : [])
+            ->keyBy(fn (mixed $link): string => (string) data_get($link, 'label', ''));
+
+        return collect(SiteSettingsDefaults::socialLinks())
+            ->map(fn (array $default): array => [
+                'label' => $default['label'],
+                'href' => (string) data_get($stored->get($default['label']), 'href', ''),
+            ])
+            ->values()
+            ->all();
     }
 
     /**

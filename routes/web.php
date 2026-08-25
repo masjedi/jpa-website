@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AboutPageController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\DestinationController;
 use App\Http\Controllers\GalleryPageController;
@@ -7,6 +8,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\InvoiceVerificationController;
 use App\Http\Controllers\NewsletterSubscriptionController;
+use App\Http\Controllers\TeamPageController;
 use App\Http\Controllers\TourController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -43,13 +45,9 @@ Route::get('/articles', [ArticleController::class, 'index'])->name('articles.ind
 
 Route::get('/articles/{articleSlug}', [ArticleController::class, 'show'])->name('articles.show');
 
-Route::get('/about', function () {
-    return Inertia::render('public/About');
-})->name('about');
+Route::get('/about', [AboutPageController::class, 'show'])->name('about');
 
-Route::get('/about/team', function () {
-    return Inertia::render('public/OurTeam');
-})->name('about.team');
+Route::get('/about/team', [TeamPageController::class, 'index'])->name('about.team');
 
 Route::get('/gallery', [GalleryPageController::class, 'index'])->name('gallery');
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AboutPageController as AdminAboutPageController;
 use App\Http\Controllers\Admin\AdminFeedController;
 use App\Http\Controllers\Admin\ArticlesController;
 use App\Http\Controllers\Admin\Auth\LoginController;
@@ -13,6 +14,8 @@ use App\Http\Controllers\Admin\InvoicesController;
 use App\Http\Controllers\Admin\ProtectedMediaController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SubscriptionsController;
+use App\Http\Controllers\Admin\TeamsController;
+use App\Http\Controllers\Admin\TestimonialsController;
 use App\Http\Controllers\Admin\ToursController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,6 +58,19 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         Route::post('faq', [FaqController::class, 'store'])->name('faq.store');
         Route::patch('faq/{faqItem}', [FaqController::class, 'update'])->name('faq.update');
         Route::delete('faq/{faqItem}', [FaqController::class, 'destroy'])->name('faq.destroy');
+        Route::get('about', [AdminAboutPageController::class, 'index'])->name('about.index');
+        Route::patch('about', [AdminAboutPageController::class, 'update'])->name('about.update');
+        Route::post('about/journey-steps', [AdminAboutPageController::class, 'storeJourneyStep'])->name('about.journey-steps.store');
+        Route::patch('about/journey-steps/{aboutJourneyStep}', [AdminAboutPageController::class, 'updateJourneyStep'])->name('about.journey-steps.update');
+        Route::delete('about/journey-steps/{aboutJourneyStep}', [AdminAboutPageController::class, 'destroyJourneyStep'])->name('about.journey-steps.destroy');
+        Route::get('teams', [TeamsController::class, 'index'])->name('teams.index');
+        Route::post('teams', [TeamsController::class, 'store'])->name('teams.store');
+        Route::patch('teams/{teamMember}', [TeamsController::class, 'update'])->name('teams.update');
+        Route::delete('teams/{teamMember}', [TeamsController::class, 'destroy'])->name('teams.destroy');
+        Route::get('testimonials', [TestimonialsController::class, 'index'])->name('testimonials.index');
+        Route::post('testimonials', [TestimonialsController::class, 'store'])->name('testimonials.store');
+        Route::patch('testimonials/{testimonial}', [TestimonialsController::class, 'update'])->name('testimonials.update');
+        Route::delete('testimonials/{testimonial}', [TestimonialsController::class, 'destroy'])->name('testimonials.destroy');
         Route::get('subscriptions', [SubscriptionsController::class, 'index'])->name('subscriptions.index');
         Route::delete('subscriptions/{newsletterSubscription}', [SubscriptionsController::class, 'destroy'])->name('subscriptions.destroy');
         Route::post('feed/notifications/read', [AdminFeedController::class, 'markNotificationsRead'])->name('feed.notifications.read');

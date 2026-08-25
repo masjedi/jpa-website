@@ -8,6 +8,7 @@ import type { Destination } from '@/types/destinations';
 import type { GalleryPhoto } from '@/types/gallery';
 import type { PublicHeroSection } from '@/types/heroSection';
 import type { PublicFaqItem } from '@/types/faq';
+import type { PublicTestimonial } from '@/types/testimonials';
 import type { SharedPageProps } from '@/types/inertia';
 import type { Tour } from '@/types/tours';
 
@@ -18,6 +19,7 @@ interface HomePageProps extends SharedPageProps {
     galleryPreview?: GalleryPhoto[];
     latestArticles?: ArticleListItem[];
     faqItems?: PublicFaqItem[];
+    testimonials?: PublicTestimonial[];
 }
 
 export default function Home() {
@@ -30,6 +32,7 @@ export default function Home() {
         galleryPreview,
         latestArticles,
         faqItems,
+        testimonials,
         appName,
     } = usePage<HomePageProps>().props;
     const leadSlide = hero.slides[0];
@@ -48,6 +51,7 @@ export default function Home() {
                 galleryPreview={galleryPreview}
                 latestArticles={latestArticles}
                 faqItems={faqItems}
+                testimonials={testimonials}
             />
         </>
     );

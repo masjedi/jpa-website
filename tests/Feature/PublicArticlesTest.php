@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Enums\ArticleStatus;
+use App\Enums\TeamMemberStatus;
 use App\Enums\TourListingStatus;
 use App\Enums\TourListingType;
 use App\Models\Article;
+use App\Models\TeamMember;
 use App\Models\Tour;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,6 +15,25 @@ use Tests\TestCase;
 class PublicArticlesTest extends TestCase
 {
     use RefreshDatabase;
+
+    private TeamMember $teamMember;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->teamMember = TeamMember::query()->create([
+            'status' => TeamMemberStatus::Published,
+            'name' => 'Wahid Rahimi',
+            'role' => 'Founder & lead guide',
+            'bio' => 'Wahid has guided across all 34 provinces.',
+            'email' => 'wahid@journey-to-afghanistan.com',
+            'whatsapp' => '+93 70 123 4567',
+            'whatsapp_href' => 'https://wa.me/93701234567',
+            'avatar_media' => null,
+            'sort_order' => 1,
+        ]);
+    }
 
     public function test_articles_index_receives_only_published_listings(): void
     {
@@ -84,6 +105,8 @@ class PublicArticlesTest extends TestCase
                 ->where('article.slug', 'spring-packing-guide')
                 ->where('article.title', 'Spring packing guide')
                 ->where('article.content', '<p>Detailed article content.</p>')
+                ->where('article.author.name', 'Wahid Rahimi')
+                ->where('article.author.role', 'Founder & lead guide')
                 ->has('relatedTours', 1)
                 ->where('relatedTours.0.slug', 'bamiyan-circuit')
                 ->has('relatedArticles', 1)
@@ -115,8 +138,9 @@ class PublicArticlesTest extends TestCase
             'category' => 'Travel tips',
             'content' => '<p>Sample content.</p>',
             'reading_time_minutes' => 3,
-            'author_name' => 'Sara Ahmad',
-            'author_role' => 'Lead travel editor',
+            'team_member_id' => $this->teamMember->id,
+            'author_name' => 'Wahid Rahimi',
+            'author_role' => 'Founder & lead guide',
             'author_avatar' => null,
             'is_featured' => false,
             'related_tour_slugs' => [],

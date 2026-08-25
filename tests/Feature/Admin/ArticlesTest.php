@@ -3,7 +3,9 @@
 namespace Tests\Feature\Admin;
 
 use App\Enums\ArticleStatus;
+use App\Enums\TeamMemberStatus;
 use App\Models\Article;
+use App\Models\TeamMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -14,6 +16,8 @@ class ArticlesTest extends TestCase
 {
     use RefreshDatabase;
 
+    private TeamMember $teamMember;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -23,6 +27,8 @@ class ArticlesTest extends TestCase
         }
 
         Storage::fake('public');
+
+        $this->teamMember = $this->createTeamMember();
     }
 
     public function test_authenticated_admin_can_view_articles_index(): void
@@ -56,6 +62,9 @@ class ArticlesTest extends TestCase
             'status' => ArticleStatus::Draft->value,
             'slug' => 'spring-packing-guide',
             'is_featured' => true,
+            'team_member_id' => $this->teamMember->id,
+            'author_name' => 'Wahid Rahimi',
+            'author_role' => 'Founder & lead guide',
         ]);
 
         $this->assertNotNull($article->cover_media);
@@ -147,10 +156,26 @@ class ArticlesTest extends TestCase
             'summary' => 'Layering, footwear and small essentials for variable mountain weather.',
             'category' => 'Travel tips',
             'content' => '<p>Pack layers for highland mornings and warm afternoons.</p>',
+            'team_member_id' => (string) $this->teamMember->id,
             'is_featured' => '1',
             'status' => 'Draft',
             'cover_image' => $this->makeCoverUpload(),
         ];
+    }
+
+    private function createTeamMember(): TeamMember
+    {
+        return TeamMember::query()->create([
+            'status' => TeamMemberStatus::Published,
+            'name' => 'Wahid Rahimi',
+            'role' => 'Founder & lead guide',
+            'bio' => 'Wahid has guided across all 34 provinces.',
+            'email' => 'wahid@journey-to-afghanistan.com',
+            'whatsapp' => '+93 70 123 4567',
+            'whatsapp_href' => 'https://wa.me/93701234567',
+            'avatar_media' => null,
+            'sort_order' => 1,
+        ]);
     }
 
     private function createArticleRecord(): Article
@@ -163,8 +188,9 @@ class ArticlesTest extends TestCase
             'category' => 'Travel tips',
             'content' => '<p>Existing article.</p>',
             'reading_time_minutes' => 3,
-            'author_name' => 'Sara Ahmad',
-            'author_role' => 'Lead travel editor',
+            'team_member_id' => $this->teamMember->id,
+            'author_name' => 'Wahid Rahimi',
+            'author_role' => 'Founder & lead guide',
             'author_avatar' => null,
             'is_featured' => false,
             'related_tour_slugs' => [],

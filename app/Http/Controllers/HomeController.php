@@ -8,6 +8,7 @@ use App\Support\Destinations\DestinationPresenter;
 use App\Support\Faq\FaqItemPresenter;
 use App\Support\Gallery\GalleryPhotoPresenter;
 use App\Support\HeroSectionPresenter;
+use App\Support\Testimonials\TestimonialPresenter;
 use App\Support\Tours\TourPresenter;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -27,6 +28,7 @@ class HomeController extends Controller
             'galleryPreview' => Inertia::defer(fn () => GalleryPhotoPresenter::forPublicHomePreview(6)),
             'latestArticles' => Inertia::defer(fn () => ArticlePresenter::forPublicHomePreview(3)),
             'faqItems' => Inertia::defer(fn () => FaqItemPresenter::forPublicHomePreview()),
+            'testimonials' => Inertia::defer(fn () => TestimonialPresenter::forPublicHome()),
         ]);
     }
 }

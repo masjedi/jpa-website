@@ -5,6 +5,7 @@ import { Suspense, lazy, useState } from 'react';
 import {
     buildArticleFormData,
     type ArticleFormSubmitPayload,
+    type ArticleTeamMemberOption,
 } from '@/components/admin/articleForm';
 import {
     buildArticleViewModel,
@@ -44,6 +45,7 @@ interface ArticleRow {
 
 interface ArticlesPageProps {
     articles: ManagedArticle[];
+    teamMembers: ArticleTeamMemberOption[];
 }
 
 function buildArticleRow(article: ManagedArticle): ArticleRow {
@@ -122,7 +124,7 @@ function submitArticleForm(
     });
 }
 
-export default function Articles({ articles }: ArticlesPageProps) {
+export default function Articles({ articles, teamMembers }: ArticlesPageProps) {
     const { flash } = usePage().props;
     const [formOpen, setFormOpen] = useState(false);
     const [viewOpen, setViewOpen] = useState(false);
@@ -256,6 +258,7 @@ export default function Articles({ articles }: ArticlesPageProps) {
                         open={formOpen}
                         mode={editingArticleId ? 'edit' : 'create'}
                         resetKey={editingArticleId ? String(editingArticleId) : 'create'}
+                        teamMembers={teamMembers}
                         initialValues={
                             editingArticle
                                 ? managedArticleToFormValues(editingArticle)

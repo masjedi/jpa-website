@@ -187,6 +187,8 @@ export function TourInquiryModal({
                                     value={data.tourTitle}
                                     onChange={(e) => setData('tourTitle', e.target.value)}
                                     required
+                                    minLength={2}
+                                    maxLength={200}
                                     className={fieldClass}
                                 />
                                 {errors.tourTitle ? (
@@ -206,6 +208,7 @@ export function TourInquiryModal({
                                         type="text"
                                         value={data.preferredDate}
                                         onChange={(e) => setData('preferredDate', e.target.value)}
+                                        maxLength={120}
                                         className={fieldClass}
                                     />
                                 </div>
@@ -240,6 +243,8 @@ export function TourInquiryModal({
                                         value={data.fullName}
                                         onChange={(e) => setData('fullName', e.target.value)}
                                         required
+                                        minLength={2}
+                                        maxLength={120}
                                         className={fieldClass}
                                     />
                                     {errors.fullName ? (
@@ -259,6 +264,8 @@ export function TourInquiryModal({
                                         value={data.email}
                                         onChange={(e) => setData('email', e.target.value)}
                                         required
+                                        minLength={5}
+                                        maxLength={255}
                                         className={fieldClass}
                                     />
                                     {errors.email ? (
@@ -280,6 +287,7 @@ export function TourInquiryModal({
                                         autoComplete="country-name"
                                         value={data.nationality}
                                         onChange={(e) => setData('nationality', e.target.value)}
+                                        maxLength={120}
                                         className={fieldClass}
                                     />
                                 </div>
@@ -293,6 +301,8 @@ export function TourInquiryModal({
                                         autoComplete="tel"
                                         value={data.whatsappOrPhone}
                                         onChange={(e) => setData('whatsappOrPhone', e.target.value)}
+                                        minLength={7}
+                                        maxLength={60}
                                         className={fieldClass}
                                     />
                                 </div>
@@ -307,6 +317,7 @@ export function TourInquiryModal({
                                     rows={3}
                                     value={data.notes}
                                     onChange={(e) => setData('notes', e.target.value)}
+                                    maxLength={5000}
                                     className={`${fieldClass} resize-y`}
                                 />
                             </div>

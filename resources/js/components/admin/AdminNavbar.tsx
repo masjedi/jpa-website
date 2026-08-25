@@ -3,6 +3,7 @@ import { Bell, LogOut, Menu, MessageSquare, UserRound } from 'lucide-react';
 import { useState } from 'react';
 
 import { AdminNavbarDropdown } from '@/components/admin/AdminNavbarDropdown';
+import { ThemeToggle } from '@/components/public/ThemeToggle';
 import { useSiteSettings } from '@/hooks/use-site-settings';
 import { cn } from '@/lib/utils';
 import type { AdminFeed, SharedPageProps } from '@/types/inertia';
@@ -82,7 +83,7 @@ export function AdminNavbar({ title, onMenuToggle }: AdminNavbarProps) {
     };
 
     return (
-        <header className="sticky top-0 z-30 overflow-visible border-b border-border bg-surface/95 backdrop-blur-md">
+        <header className="z-30 shrink-0 overflow-visible border-b border-border bg-surface/95 backdrop-blur-md">
             <div className="flex items-center justify-between gap-4 overflow-visible px-4 py-3 sm:px-6">
                 <div className="flex min-w-0 items-center gap-3">
                     <button
@@ -140,6 +141,8 @@ export function AdminNavbar({ title, onMenuToggle }: AdminNavbarProps) {
                     >
                         <UserRound className="size-4" aria-hidden />
                     </Link>
+
+                    <ThemeToggle />
 
                     <Link
                         href="/admin/logout"

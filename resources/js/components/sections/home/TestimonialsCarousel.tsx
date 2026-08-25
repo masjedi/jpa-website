@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface Testimonial {
+    id: number;
     name: string;
     journey: string;
     text: string;
@@ -116,7 +117,7 @@ export function TestimonialsCarousel({ items }: TestimonialsCarouselProps) {
                 <div className="grid min-h-[14rem] place-items-center sm:min-h-[15rem]">
                     <AnimatePresence mode="wait" custom={direction} initial={false}>
                         <motion.figure
-                            key={activeItem.name}
+                            key={activeItem.id}
                             custom={direction}
                             initial={
                                 reducedMotion
@@ -178,7 +179,7 @@ export function TestimonialsCarousel({ items }: TestimonialsCarouselProps) {
                     >
                         {items.map((item, index) => (
                             <button
-                                key={item.name}
+                                key={item.id}
                                 type="button"
                                 onClick={() =>
                                     goTo(index, index > activeIndex ? 1 : -1)

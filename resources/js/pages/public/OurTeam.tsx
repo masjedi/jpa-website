@@ -3,8 +3,13 @@ import { setLayoutProps } from '@inertiajs/react';
 import { PageMeta } from '@/components/public/PageMeta';
 import { AboutTeamSection } from '@/components/sections/about/AboutTeamSection';
 import { PublicLayout } from '@/layouts/PublicLayout';
+import type { PublicTeamMember } from '@/types/team';
 
-export default function OurTeam() {
+interface OurTeamPageProps {
+    members: PublicTeamMember[];
+}
+
+export default function OurTeam({ members }: OurTeamPageProps) {
     setLayoutProps({ transparentHeader: true });
 
     return (
@@ -13,7 +18,7 @@ export default function OurTeam() {
                 title="Our Team"
                 description="Meet the JPA team — Afghan guides, planners and coordinators who design and lead every journey with local expertise and cultural respect."
             />
-            <AboutTeamSection />
+            <AboutTeamSection members={members} />
         </>
     );
 }

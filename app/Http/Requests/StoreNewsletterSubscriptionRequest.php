@@ -3,14 +3,24 @@
 namespace App\Http\Requests;
 
 use App\Enums\NewsletterSubscriptionSource;
+use App\Http\Requests\Concerns\ProhibitsMassAssignmentFields;
+use App\Http\Requests\Concerns\TrimsStringInput;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreNewsletterSubscriptionRequest extends FormRequest
 {
+    use ProhibitsMassAssignmentFields;
+    use TrimsStringInput;
+
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->trimStringInput(['email', 'source']);
     }
 
     /**
@@ -19,7 +29,8 @@ class StoreNewsletterSubscriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email', 'max:255'],
+            ...$this->prohibitedMassAssignmentRules(),
+            'email' => ['required', 'string', 'email:filter', 'min:5', 'max:255'],
             'source' => [
                 'sometimes',
                 'string',

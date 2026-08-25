@@ -8,6 +8,7 @@ import {
     type ArticleFormErrors,
     type ArticleFormSubmitPayload,
     type ArticleFormValues,
+    type ArticleTeamMemberOption,
     validateArticleFormValues,
 } from '@/components/admin/articleForm';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
@@ -20,6 +21,7 @@ import { cn } from '@/lib/utils';
 interface ArticleEntityFormProps {
     formId: string;
     mode: 'create' | 'edit';
+    teamMembers: readonly ArticleTeamMemberOption[];
     initialValues?: ArticleFormValues;
     onCancel: () => void;
     onSubmit: (payload: ArticleFormSubmitPayload) => void | Promise<void>;
@@ -28,6 +30,7 @@ interface ArticleEntityFormProps {
 export function ArticleEntityForm({
     formId,
     mode,
+    teamMembers,
     initialValues,
     onCancel,
     onSubmit,
@@ -35,13 +38,14 @@ export function ArticleEntityForm({
     const categoryFieldId = useId();
     const statusFieldId = useId();
     const featuredFieldId = useId();
+    const authorFieldId = useId();
     const titleFieldId = useId();
     const summaryFieldId = useId();
     const imageFieldId = useId();
     const contentFieldId = useId();
 
     const [values, setValues] = useState<ArticleFormValues>(
-        () => initialValues ?? createEmptyArticleFormValues(),
+        () => initialValues ?? createEmptyArticleFormValues(teamMembers),
     );
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(
@@ -140,6 +144,44 @@ export function ArticleEntityForm({
                             >
                                 <option value="Draft">Draft</option>
                                 <option value="Published">Published</option>
+                            </select>
+                        </AdminFormField>
+
+                        <AdminFormField
+                            id={authorFieldId}
+                            label="Author"
+                            required
+                            error={errors.teamMemberId}
+                        >
+                            <select
+                                id={authorFieldId}
+                                value={values.teamMemberId}
+                                disabled={submitting || teamMembers.length === 0}
+                                onChange={(event) => {
+                                    const nextValue = event.target.value;
+
+                                    setValues((current) => ({
+                                        ...current,
+                                        teamMemberId: nextValue === '' ? '' : Number(nextValue),
+                                    }));
+                                    setErrors((current) => ({ ...current, teamMemberId: undefined }));
+                                }}
+                                aria-invalid={Boolean(errors.teamMemberId)}
+                                aria-describedby={adminFieldDescribedBy(
+                                    authorFieldId,
+                                    errors.teamMemberId,
+                                )}
+                                className={cn(
+                                    adminFieldClass,
+                                    errors.teamMemberId && adminFieldErrorClass,
+                                )}
+                            >
+                                <option value="">Select team member</option>
+                                {teamMembers.map((member) => (
+                                    <option key={member.id} value={member.id}>
+                                        {member.name} · {member.role}
+                                    </option>
+                                ))}
                             </select>
                         </AdminFormField>
 

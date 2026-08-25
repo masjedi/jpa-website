@@ -9,6 +9,7 @@ export interface ArticleFormValues {
     category: ArticleCategory;
     image: string;
     content: string;
+    teamMemberId: number | '';
     isFeatured: boolean;
     status: ArticleFormStatus;
 }
@@ -22,22 +23,25 @@ export const articleCategoryOptions: readonly ArticleCategory[] = [
     'Photography',
 ] as const;
 
-export const defaultArticleAuthor = {
-    name: 'Sara Ahmad',
-    role: 'Lead travel editor',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
-} as const;
-
-export function createEmptyArticleFormValues(): ArticleFormValues {
+export function createEmptyArticleFormValues(
+    teamMembers: readonly ArticleTeamMemberOption[] = [],
+): ArticleFormValues {
     return {
         title: '',
         summary: '',
         category: 'Travel tips',
         image: '',
         content: '',
+        teamMemberId: teamMembers[0]?.id ?? '',
         isFeatured: false,
         status: 'Draft',
     };
+}
+
+export interface ArticleTeamMemberOption {
+    id: number;
+    name: string;
+    role: string;
 }
 
 export function slugifyArticleTitle(value: string): string {
@@ -82,7 +86,7 @@ export function resolveArticleContent(article: ArticleDetail): string {
 }
 
 export function articleToFormValues(
-    article: ArticleDetail & { isFeatured?: boolean },
+    article: ArticleDetail & { teamMemberId?: number | null; isFeatured?: boolean },
     status: ArticleFormStatus,
 ): ArticleFormValues {
     return {
@@ -91,6 +95,7 @@ export function articleToFormValues(
         category: article.category,
         image: article.image,
         content: resolveArticleContent(article),
+        teamMemberId: article.teamMemberId ?? '',
         isFeatured: article.isFeatured ?? false,
         status,
     };
@@ -110,7 +115,7 @@ export function formatArticleDate(date: Date = new Date()): string {
     });
 }
 
-export type ArticleFormField = 'title' | 'summary' | 'image' | 'content';
+export type ArticleFormField = 'title' | 'summary' | 'image' | 'content' | 'teamMemberId';
 
 export type ArticleFormErrors = Partial<Record<ArticleFormField, string>>;
 
@@ -124,6 +129,7 @@ const serverFieldMap: Record<string, ArticleFormField> = {
     summary: 'summary',
     cover_image: 'image',
     content: 'content',
+    team_member_id: 'teamMemberId',
 };
 
 export function mapServerArticleFormErrors(
@@ -154,6 +160,7 @@ export function buildArticleFormData({
     formData.append('summary', values.summary);
     formData.append('category', values.category);
     formData.append('content', values.content);
+    formData.append('team_member_id', values.teamMemberId === '' ? '' : String(values.teamMemberId));
     formData.append('is_featured', values.isFeatured ? '1' : '0');
     formData.append('status', values.status);
 
@@ -188,6 +195,10 @@ export function validateArticleFormValues(
 
     if (isArticleContentEmpty(values.content)) {
         errors.content = 'Required';
+    }
+
+    if (values.teamMemberId === '') {
+        errors.teamMemberId = 'Required';
     }
 
     return errors;

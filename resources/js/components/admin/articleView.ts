@@ -10,6 +10,7 @@ import type { ArticleDetail } from '@/types/articles';
 export type ManagedArticle = ArticleDetail & {
     id: number;
     status: ArticleFormStatus;
+    teamMemberId: number | null;
     isFeatured?: boolean;
     relatedTourSlugs?: readonly string[];
 };
@@ -44,7 +45,7 @@ export function buildArticleViewModel({
                 label: 'Reading time',
                 value: `${article.readingTimeMinutes} min`,
             },
-            { id: 'author', label: 'Author', value: article.author.name },
+            { id: 'author', label: 'Author', value: `${article.author.name} · ${article.author.role}` },
             {
                 id: 'featured',
                 label: 'Featured',

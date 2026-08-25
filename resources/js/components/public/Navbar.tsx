@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ChevronDown, Menu, X } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import { planTripHref, primaryLinks, isNavDropdown, type PrimaryNavItem, type PublicNavLink } from '@/components/public/navigation';
 import { BrandLogo, brandLogoVariantForTheme } from '@/components/public/BrandLogo';
@@ -86,6 +86,38 @@ function NavDropdown({
 }) {
     const [open, setOpen] = useState(false);
     const dropdownId = useId();
+    const rootRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!open || mobile) {
+            return;
+        }
+
+        const handlePointerDown = (event: MouseEvent | PointerEvent) => {
+            if (!rootRef.current?.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        };
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener('pointerdown', handlePointerDown);
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('pointerdown', handlePointerDown);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [open, mobile]);
+
+    const closeAndNavigate = () => {
+        setOpen(false);
+        onNavigate?.();
+    };
 
     const triggerClassName = cn(
         'inline-flex items-center gap-1 rounded-full px-3.5 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus lg:px-4',
@@ -135,7 +167,7 @@ function NavDropdown({
                                 overlayHeader={overlayHeader}
                                 block
                                 nested
-                                onNavigate={onNavigate}
+                                onNavigate={closeAndNavigate}
                             />
                         ))}
                     </div>
@@ -145,11 +177,7 @@ function NavDropdown({
     }
 
     return (
-        <div
-            className="group relative"
-            onMouseEnter={() => setOpen(true)}
-            onMouseLeave={() => setOpen(false)}
-        >
+        <div ref={rootRef} className="relative">
             <button
                 type="button"
                 className={triggerClassName}
@@ -160,11 +188,7 @@ function NavDropdown({
             >
                 <span>{item.label}</span>
                 <ChevronDown
-                    className={cn(
-                        'size-3.5 transition-transform',
-                        open && 'rotate-180',
-                        'group-hover:rotate-180',
-                    )}
+                    className={cn('size-3.5 transition-transform', open && 'rotate-180')}
                     aria-hidden
                 />
             </button>
@@ -174,9 +198,7 @@ function NavDropdown({
                 className={cn(
                     panelClassName,
                     'pointer-events-none invisible opacity-0 transition-[opacity,visibility] duration-150',
-                    open
-                        ? 'pointer-events-auto visible opacity-100'
-                        : 'group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100',
+                    open && 'pointer-events-auto visible opacity-100',
                 )}
             >
                 {item.children.map((child) => (
@@ -186,7 +208,7 @@ function NavDropdown({
                         active={isActive(child.href)}
                         overlayHeader={overlayHeader}
                         nested
-                        onNavigate={onNavigate}
+                        onNavigate={closeAndNavigate}
                     />
                 ))}
             </div>

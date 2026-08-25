@@ -3,20 +3,29 @@
 namespace App\Support\Articles;
 
 use App\Models\Article;
+use App\Models\TeamMember;
 use App\Models\Tour;
+use App\Support\Team\TeamMemberPresenter;
 
 class ArticlePresenter
 {
     /**
-     * @return array{articles: list<array<string, mixed>>}
+     * @return array{articles: list<array<string, mixed>>, teamMembers: list<array{id: int, name: string, role: string}>}
      */
     public static function forAdminIndex(): array
     {
         return [
             'articles' => Article::query()
+                ->with('teamMember')
                 ->latestFirst()
                 ->get()
                 ->map(fn (Article $article): array => self::adminPayload($article))
+                ->values()
+                ->all(),
+            'teamMembers' => TeamMember::query()
+                ->ordered()
+                ->get()
+                ->map(fn (TeamMember $member): array => self::teamMemberOptionPayload($member))
                 ->values()
                 ->all(),
         ];
@@ -30,6 +39,7 @@ class ArticlePresenter
         return [
             'articles' => Article::query()
                 ->published()
+                ->with('teamMember')
                 ->featuredFirst()
                 ->get()
                 ->map(fn (Article $article): array => self::publicCardPayload($article))
@@ -45,6 +55,7 @@ class ArticlePresenter
     {
         return Article::query()
             ->published()
+            ->with('teamMember')
             ->latestFirst()
             ->limit($limit)
             ->get()
@@ -85,6 +96,7 @@ class ArticlePresenter
             'content' => (string) $article->content,
             'date' => self::displayDate($article),
             'readingTimeMinutes' => (int) $article->reading_time_minutes,
+            'teamMemberId' => $article->team_member_id,
             'author' => self::authorPayload($article),
             'isFeatured' => (bool) $article->is_featured,
             'relatedTourSlugs' => $article->related_tour_slugs ?? [],
@@ -141,6 +153,7 @@ class ArticlePresenter
     {
         $candidates = Article::query()
             ->published()
+            ->with('teamMember')
             ->where('slug', '!=', $current->slug)
             ->featuredFirst()
             ->get();
@@ -196,6 +209,10 @@ class ArticlePresenter
      */
     private static function authorPayload(Article $article): array
     {
+        if ($article->teamMember !== null) {
+            return TeamMemberPresenter::authorPayload($article->teamMember);
+        }
+
         $payload = [
             'name' => (string) $article->author_name,
             'role' => (string) $article->author_role,
@@ -206,6 +223,18 @@ class ArticlePresenter
         }
 
         return $payload;
+    }
+
+    /**
+     * @return array{id: int, name: string, role: string}
+     */
+    private static function teamMemberOptionPayload(TeamMember $member): array
+    {
+        return [
+            'id' => $member->id,
+            'name' => (string) $member->name,
+            'role' => (string) $member->role,
+        ];
     }
 
     private static function displayDate(Article $article): string

@@ -1,8 +1,11 @@
-import { Mail, Phone } from 'lucide-react';
+import { Mail, MessageCircle } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 import { FadeIn } from '@/components/motion/FadeIn';
-import { aboutTeam, teamMembers } from '@/data/aboutData';
-import type { TeamMember } from '@/types/about';
+import { teamPageCopy } from '@/data/teamPageCopy';
+import { buildWebMailComposeHref } from '@/lib/mailto';
+import { cn } from '@/lib/utils';
+import type { PublicTeamMember } from '@/types/team';
 
 const ARC_LAYOUT = [
     { rotate: -26, translateY: 28 },
@@ -13,25 +16,91 @@ const ARC_LAYOUT = [
     { rotate: 26, translateY: 28 },
 ] as const;
 
-function TeamContactDetails({ member }: { member: TeamMember }) {
+function TeamContactLink({
+    href,
+    label,
+    icon: Icon,
+    external = false,
+    iconClassName,
+}: {
+    href: string;
+    label: string;
+    icon: LucideIcon;
+    external?: boolean;
+    iconClassName: string;
+}) {
     return (
-        <div className="mt-4 space-y-2">
-            <a
-                href={`mailto:${member.email}`}
-                className="flex items-center gap-2 text-sm text-brand-on-surface/65 transition-colors hover:text-brand-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        <a
+            href={href}
+            target={external ? '_blank' : undefined}
+            rel={external ? 'noopener noreferrer' : undefined}
+            className="group flex items-start gap-3 rounded-xl py-1 text-sm text-brand-on-surface/75 transition-colors hover:text-brand-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        >
+            <span
+                className={cn(
+                    'mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/12 bg-white/10 text-brand-on-surface/80 shadow-[0_4px_14px_rgba(0,0,0,0.16)] backdrop-blur-sm',
+                    'transition-[transform,background-color,border-color,color,box-shadow] duration-300',
+                    'motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:scale-105 motion-safe:group-hover:shadow-[0_8px_20px_rgba(0,0,0,0.22)]',
+                    iconClassName,
+                )}
             >
-                <Mail className="size-4 shrink-0 text-brand-on-surface/45" aria-hidden />
-                <span className="break-all">{member.email}</span>
-            </a>
-            <a
+                <Icon
+                    className="size-[1.125rem] motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-110"
+                    strokeWidth={2.25}
+                    aria-hidden
+                />
+            </span>
+            <span className="min-w-0 flex-1 pt-2 leading-snug break-words">{label}</span>
+        </a>
+    );
+}
+
+function TeamContactDetails({ member }: { member: PublicTeamMember }) {
+    return (
+        <div className="mt-5 space-y-3">
+            <TeamContactLink
+                href={buildWebMailComposeHref(member.email)}
+                label={member.email}
+                icon={Mail}
+                external
+                iconClassName="motion-safe:group-hover:border-sky-300/35 motion-safe:group-hover:bg-sky-400/15 motion-safe:group-hover:text-sky-300"
+            />
+            <TeamContactLink
                 href={member.whatsappHref}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="flex items-center gap-2 text-sm text-brand-on-surface/65 transition-colors hover:text-brand-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-            >
-                <Phone className="size-4 shrink-0 text-brand-on-surface/45" aria-hidden />
-                <span>{member.whatsapp}</span>
-            </a>
+                label={member.whatsapp}
+                icon={MessageCircle}
+                external
+                iconClassName="motion-safe:group-hover:border-secondary/40 motion-safe:group-hover:bg-secondary/18 motion-safe:group-hover:text-secondary"
+            />
+        </div>
+    );
+}
+
+function TeamPortrait({
+    src,
+    alt,
+    className,
+    frameClassName,
+}: {
+    src: string;
+    alt: string;
+    className?: string;
+    frameClassName?: string;
+}) {
+    return (
+        <div
+            className={cn(
+                'relative overflow-hidden bg-surface-muted/80',
+                frameClassName ?? 'aspect-[4/5] w-full rounded-2xl',
+                className,
+            )}
+        >
+            <img
+                src={src}
+                alt={alt}
+                className="absolute inset-0 size-full object-contain object-center"
+                loading="lazy"
+            />
         </div>
     );
 }
@@ -40,20 +109,16 @@ function TeamGridCard({
     member,
     delay = 0,
 }: {
-    member: TeamMember;
+    member: PublicTeamMember;
     delay?: number;
 }) {
     return (
         <FadeIn delay={delay}>
             <article className="text-start">
-                <div className="overflow-hidden rounded-2xl bg-surface-muted">
-                    <img
-                        src={member.image}
-                        alt={`Portrait of ${member.name}`}
-                        className="aspect-square w-full object-cover"
-                        loading="lazy"
-                    />
-                </div>
+                <TeamPortrait
+                    src={member.image}
+                    alt={`Portrait of ${member.name}`}
+                />
 
                 <h3 className="font-heading mt-5 text-lg font-semibold text-brand-on-surface">
                     {member.name}
@@ -74,7 +139,7 @@ function TeamArcPhoto({
     rotate,
     translateY,
 }: {
-    member: TeamMember;
+    member: PublicTeamMember;
     rotate: number;
     translateY: number;
 }) {
@@ -85,12 +150,12 @@ function TeamArcPhoto({
                 transform: `rotate(${rotate}deg) translateY(${translateY}px)`,
             }}
         >
-            <div className="size-20 overflow-hidden rounded-2xl border border-white/10 bg-surface-muted shadow-lg shadow-black/30 sm:size-24">
+            <div className="size-20 overflow-hidden rounded-2xl border border-white/10 bg-surface-muted/80 shadow-lg shadow-black/30 sm:size-24">
                 <img
                     src={member.image}
                     alt=""
                     aria-hidden
-                    className="size-full object-cover"
+                    className="size-full object-contain object-center"
                     loading="lazy"
                 />
             </div>
@@ -98,8 +163,8 @@ function TeamArcPhoto({
     );
 }
 
-export function AboutTeamSection() {
-    const arcMembers = teamMembers.slice(0, ARC_LAYOUT.length);
+export function AboutTeamSection({ members }: { members: PublicTeamMember[] }) {
+    const arcMembers = members.slice(0, ARC_LAYOUT.length);
 
     return (
         <section id="leadership" className="bg-brand-deep text-brand-on-surface">
@@ -112,10 +177,10 @@ export function AboutTeamSection() {
                 <div className="relative z-10 mx-auto max-w-3xl px-4 text-center sm:px-6">
                     <FadeIn>
                         <h2 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-                            {aboutTeam.hero.title}
+                            {teamPageCopy.hero.title}
                         </h2>
                         <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-brand-on-surface/70 sm:text-base">
-                            {aboutTeam.hero.description}
+                            {teamPageCopy.hero.description}
                         </p>
                     </FadeIn>
                 </div>
@@ -140,16 +205,16 @@ export function AboutTeamSection() {
                     <FadeIn>
                         <div className="mx-auto max-w-3xl text-center">
                             <h3 className="font-heading text-2xl font-semibold sm:text-3xl">
-                                {aboutTeam.grid.title}
+                                {teamPageCopy.grid.title}
                             </h3>
                             <p className="mt-4 text-sm leading-relaxed text-brand-on-surface/70 sm:text-base">
-                                {aboutTeam.grid.description}
+                                {teamPageCopy.grid.description}
                             </p>
                         </div>
                     </FadeIn>
 
                     <div className="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-                        {teamMembers.map((member, index) => (
+                        {members.map((member, index) => (
                             <TeamGridCard
                                 key={member.id}
                                 member={member}

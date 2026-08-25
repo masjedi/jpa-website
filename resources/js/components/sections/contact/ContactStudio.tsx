@@ -28,10 +28,10 @@ const topics = [
 type Topic = (typeof topics)[number];
 
 const fieldClass =
-    'peer w-full border-0 border-b border-border/80 bg-transparent py-3.5 text-sm text-foreground placeholder-transparent transition-colors focus:border-secondary focus:outline-none';
+    'peer w-full border-0 border-b border-border/80 bg-transparent py-3.5 text-sm text-foreground placeholder-transparent transition-colors focus:border-secondary focus:outline-none [&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_var(--surface)] [&:-webkit-autofill]:[-webkit-text-fill-color:var(--foreground)] [&:-webkit-autofill:hover]:shadow-[inset_0_0_0_1000px_var(--surface)] [&:-webkit-autofill:focus]:shadow-[inset_0_0_0_1000px_var(--surface)]';
 
 const labelClass =
-    'pointer-events-none absolute start-0 top-3.5 text-sm text-muted-foreground transition-all duration-200 peer-focus:-top-0.5 peer-focus:text-[11px] peer-focus:font-medium peer-focus:text-secondary peer-[:not(:placeholder-shown)]:-top-0.5 peer-[:not(:placeholder-shown)]:text-[11px] peer-[:not(:placeholder-shown)]:font-medium peer-[:not(:placeholder-shown)]:text-secondary';
+    'pointer-events-none absolute start-0 top-3.5 text-sm text-muted-foreground transition-all duration-200 peer-focus:-top-0.5 peer-focus:text-[11px] peer-focus:font-medium peer-focus:text-secondary peer-[:not(:placeholder-shown)]:-top-0.5 peer-[:not(:placeholder-shown)]:text-[11px] peer-[:not(:placeholder-shown)]:font-medium peer-[:not(:placeholder-shown)]:text-secondary peer-[:autofill]:-top-0.5 peer-[:autofill]:text-[11px] peer-[:autofill]:font-medium peer-[:autofill]:text-secondary peer-[-webkit-autofill]:-top-0.5 peer-[-webkit-autofill]:text-[11px] peer-[-webkit-autofill]:font-medium peer-[-webkit-autofill]:text-secondary';
 
 export function ContactStudio() {
     const reducedMotion = useReducedMotion();
@@ -243,6 +243,8 @@ export function ContactStudio() {
                                                             name="name"
                                                             type="text"
                                                             required
+                                                            minLength={2}
+                                                            maxLength={120}
                                                             value={data.name}
                                                             onChange={(event) =>
                                                                 setData('name', event.target.value)
@@ -270,6 +272,8 @@ export function ContactStudio() {
                                                             name="email"
                                                             type="email"
                                                             required
+                                                            minLength={5}
+                                                            maxLength={255}
                                                             value={data.email}
                                                             onChange={(event) =>
                                                                 setData('email', event.target.value)
@@ -328,6 +332,8 @@ export function ContactStudio() {
                                                         id="contact-message"
                                                         name="message"
                                                         required
+                                                        minLength={10}
+                                                        maxLength={5000}
                                                         rows={4}
                                                         value={data.message}
                                                         onChange={(event) =>

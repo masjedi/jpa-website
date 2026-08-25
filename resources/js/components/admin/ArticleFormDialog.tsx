@@ -5,6 +5,7 @@ import {
     createEmptyArticleFormValues,
     type ArticleFormSubmitPayload,
     type ArticleFormValues,
+    type ArticleTeamMemberOption,
 } from '@/components/admin/articleForm';
 import { DataTableDialog } from '@/components/admin/DataTableDialog';
 
@@ -12,6 +13,7 @@ interface ArticleFormDialogProps {
     open: boolean;
     mode: 'create' | 'edit';
     resetKey: string;
+    teamMembers: readonly ArticleTeamMemberOption[];
     initialValues?: ArticleFormValues;
     onClose: () => void;
     onSubmit: (payload: ArticleFormSubmitPayload) => void | Promise<void>;
@@ -21,6 +23,7 @@ export function ArticleFormDialog({
     open,
     mode,
     resetKey,
+    teamMembers,
     initialValues,
     onClose,
     onSubmit,
@@ -50,7 +53,8 @@ export function ArticleFormDialog({
                     key={resetKey}
                     formId={formId}
                     mode={mode}
-                    initialValues={initialValues ?? createEmptyArticleFormValues()}
+                    teamMembers={teamMembers}
+                    initialValues={initialValues ?? createEmptyArticleFormValues(teamMembers)}
                     onCancel={onClose}
                     onSubmit={handleSubmit}
                 />

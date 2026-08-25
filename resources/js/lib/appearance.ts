@@ -41,6 +41,7 @@ export function applyAppearance(preference: AppearancePreference): ResolvedAppea
 
     if (typeof document !== 'undefined') {
         document.documentElement.classList.toggle('dark', resolved === 'dark');
+        document.documentElement.style.colorScheme = resolved === 'dark' ? 'dark' : 'light';
     }
 
     return resolved;

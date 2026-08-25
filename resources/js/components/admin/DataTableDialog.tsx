@@ -10,12 +10,13 @@ interface DataTableDialogProps {
     description?: string;
     children: ReactNode;
     onClose: () => void;
-    size?: 'sm' | 'md' | 'xl';
+    size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 const dialogSizes = {
     sm: 'max-w-sm',
     md: 'max-w-lg',
+    lg: 'max-w-2xl',
     xl: 'max-w-[min(96vw,90rem)]',
 } as const;
 

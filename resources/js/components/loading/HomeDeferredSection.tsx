@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { SkeletonCard } from '@/components/ui/skeleton';
 
 interface HomeDeferredSectionProps {
-    data: 'featuredTours' | 'featuredDestinations' | 'galleryPreview' | 'latestArticles' | 'faqItems';
+    data: 'featuredTours' | 'featuredDestinations' | 'galleryPreview' | 'latestArticles' | 'faqItems' | 'testimonials';
     columns?: 1 | 3 | 4 | 6;
     children: ReactNode;
 }

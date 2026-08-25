@@ -5,11 +5,14 @@ import {
     FileText,
     Globe,
     Image,
+    Info,
     LayoutDashboard,
     Mail,
     Map,
+    MessageSquareQuote,
     MessageSquareText,
     Settings,
+    Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -40,9 +43,12 @@ export const adminNavEntries: AdminNavEntry[] = [
             { label: 'Hero section', href: '/admin/hero-section', icon: Image },
             { label: 'Tours', href: '/admin/tours', icon: Map },
             { label: 'Destinations', href: '/admin/destinations', icon: Compass },
+            { label: 'About page', href: '/admin/about', icon: Info },
             { label: 'Articles', href: '/admin/articles', icon: BookOpen },
             { label: 'Gallery', href: '/admin/gallery', icon: Image },
             { label: 'FAQ', href: '/admin/faq', icon: CircleHelp },
+            { label: 'Testimonials', href: '/admin/testimonials', icon: MessageSquareQuote },
+            { label: 'Teams', href: '/admin/teams', icon: Users },
             { label: 'Subscriptions', href: '/admin/subscriptions', icon: Mail },
             {
                 label: 'Inquiries',

@@ -24,6 +24,7 @@ class AdminSectionsTest extends TestCase
             'articles' => ['/admin/articles', 'admin/Articles'],
             'gallery' => ['/admin/gallery', 'admin/Gallery'],
             'faq' => ['/admin/faq', 'admin/Faq'],
+            'teams' => ['/admin/teams', 'admin/Teams'],
             'subscriptions' => ['/admin/subscriptions', 'admin/Subscriptions'],
             'inquiries' => ['/admin/inquiries', 'admin/Inquiries'],
             'invoices' => ['/admin/invoices', 'admin/Invoices'],

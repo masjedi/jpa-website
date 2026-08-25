@@ -21,12 +21,13 @@ import {
 } from "lucide-react";
 
 import type { PublicFaqItem } from '@/types/faq';
+import type { PublicTestimonial } from '@/types/testimonials';
 import { SpotlightCard } from "@/components/react-bits/SpotlightCard/SpotlightCard";
 import { FadeIn, FadeInOnMount, RevealItem, RevealStagger } from "@/components/motion/FadeIn";
 import { destinationShowHref, articleShowHref } from "@/components/public/navigation";
 import { DonateButton } from "@/components/public/DonateButton";
 import { HomeDeferredSection } from '@/components/loading/HomeDeferredSection';
-import { DeferredCommunityImpactSection, DeferredTestimonialsCarousel } from '@/components/sections/home/HomeDeferredSections';
+import { DeferredTestimonialsCarousel } from '@/components/sections/home/HomeDeferredSections';
 import { HeroScannerBackground } from "@/components/sections/home/HeroScannerBackground";
 import type { ArticleListItem } from '@/types/articles';
 import type { Destination } from '@/types/destinations';
@@ -53,13 +54,6 @@ interface Service {
     icon: LucideIcon;
     title: string;
     description: string;
-}
-
-interface Testimonial {
-    name: string;
-    journey: string;
-    text: string;
-    rating: number;
 }
 
 /* Finder options ----------------------------------------------------------- */
@@ -162,29 +156,6 @@ const servicesOverview: readonly Service[] = [
         title: "Accommodation coordination",
         description:
             "Guesthouses and hotels selected for comfort, location and character.",
-    },
-];
-
-/* Testimonials -------------------------------------------------------------- */
-
-const testimonials: readonly Testimonial[] = [
-    {
-        name: "Elena M.",
-        journey: "Bamiyan Heritage Circuit, 2025",
-        text: "The guide’s knowledge turned every site into a story. Logistics were seamless and the lakes were unforgettable.",
-        rating: 5,
-    },
-    {
-        name: "Marcus T.",
-        journey: "Kabul & Panjshir Discovery, 2025",
-        text: "Responsive planning, honest advice and a driver who felt like a friend. A trip I would happily repeat.",
-        rating: 5,
-    },
-    {
-        name: "Ayesha K.",
-        journey: "Herat Art & Architecture, 2024",
-        text: "Small group, thoughtful pacing and deep respect for local culture. I felt looked after from start to finish.",
-        rating: 4,
     },
 ];
 
@@ -375,6 +346,7 @@ export function HomeLanding({
     galleryPreview,
     latestArticles,
     faqItems,
+    testimonials,
 }: {
     hero: PublicHeroSection;
     featuredTours?: readonly Tour[];
@@ -382,6 +354,7 @@ export function HomeLanding({
     galleryPreview?: readonly GalleryPhoto[];
     latestArticles?: readonly ArticleListItem[];
     faqItems?: readonly PublicFaqItem[];
+    testimonials?: readonly PublicTestimonial[];
 }) {
     return (
         <>
@@ -718,8 +691,6 @@ export function HomeLanding({
                 </FadeIn>
             </section>
 
-            <DeferredCommunityImpactSection />
-
             {/* Gallery Preview ------------------------------------------------------ */}
             <section id="gallery" className="bg-surface-muted py-16 sm:py-20">
                 <FadeIn>
@@ -766,7 +737,9 @@ export function HomeLanding({
                         description="Real feedback from guests who explored Afghanistan with our team."
                         center
                     />
-                    <DeferredTestimonialsCarousel items={testimonials} />
+                    <HomeDeferredSection data="testimonials" columns={1}>
+                        <DeferredTestimonialsCarousel items={testimonials ?? []} />
+                    </HomeDeferredSection>
                 </div>
                 </FadeIn>
             </section>
@@ -845,26 +818,26 @@ export function HomeLanding({
                         description="Quick answers to common questions about planning a trip to Afghanistan."
                         center
                     />
-                    <RevealStagger className="mt-10 space-y-3" stagger={0.06}>
-                        <HomeDeferredSection data="faqItems" columns={1}>
-                        {(faqItems ?? []).map((faq) => (
-                            <RevealItem key={faq.id}>
-                                <details className="group rounded-2xl border border-border bg-surface shadow-sm open:bg-surface-muted">
-                                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4 text-start font-heading text-base font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
-                                        {faq.question}
-                                        <ArrowRight
-                                            className="size-4 shrink-0 text-secondary transition-transform group-open:rotate-90"
-                                            aria-hidden
-                                        />
-                                    </summary>
-                                    <div className="px-6 pb-5 pt-0 text-sm leading-relaxed text-muted-foreground">
-                                        {faq.answer}
-                                    </div>
-                                </details>
-                            </RevealItem>
-                        ))}
-                        </HomeDeferredSection>
-                    </RevealStagger>
+                    <HomeDeferredSection data="faqItems" columns={1}>
+                        <RevealStagger className="mt-10 space-y-3" stagger={0.06}>
+                            {(faqItems ?? []).map((faq) => (
+                                <RevealItem key={faq.id}>
+                                    <details className="group rounded-2xl border border-border bg-surface shadow-sm open:bg-surface-muted">
+                                        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4 text-start font-heading text-base font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
+                                            {faq.question}
+                                            <ArrowRight
+                                                className="size-4 shrink-0 text-secondary transition-transform group-open:rotate-90"
+                                                aria-hidden
+                                            />
+                                        </summary>
+                                        <div className="px-6 pb-5 pt-0 text-sm leading-relaxed text-muted-foreground">
+                                            {faq.answer}
+                                        </div>
+                                    </details>
+                                </RevealItem>
+                            ))}
+                        </RevealStagger>
+                    </HomeDeferredSection>
                 </div>
                 </FadeIn>
             </section>

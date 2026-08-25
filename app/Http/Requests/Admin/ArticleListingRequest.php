@@ -39,6 +39,7 @@ abstract class ArticleListingRequest extends FormRequest
             'content' => ['required', 'string', 'max:65000'],
             'is_featured' => ['sometimes', 'boolean'],
             'status' => ['required', 'string', Rule::in(['Published', 'Draft'])],
+            'team_member_id' => ['required', 'integer', 'exists:team_members,id'],
             'cover_image' => $this->coverImageRules(),
         ];
     }
