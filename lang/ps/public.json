@@ -1,0 +1,481 @@
+{
+    "nav": {
+        "home": "کور پاڼه",
+        "tours": "سفرونه",
+        "destinations": "موخې",
+        "services": "خدمتونه",
+        "articles": "مقالې",
+        "gallery": "انخورونه",
+        "about": "زموږ په اړه",
+        "ourTeam": "زموږ ټیم",
+        "contact": "اړیکه",
+        "toursAndPackages": "سفرونه او کڅوړې",
+        "bookingProcess": "د بکینګ بهیر",
+        "customTourRequest": "د ځانګړي سفر غوښتنه",
+        "travelInformation": "د سفر معلومات",
+        "donation": "مرسته",
+        "privacyPolicy": "د محرمیت تګلاره",
+        "termsConditions": "شرایط او مقررات",
+        "primary": "اصلي",
+        "mobilePrimary": "موبایل اصلي"
+    },
+    "footer": {
+        "tagline": "په افغانستان کې د محلي تجربې، کلتوري درناوي او په دقت سره پلان شوي سفرونه.",
+        "explore": "وپلټئ",
+        "company": "شرکت",
+        "travelHelp": "د سفر مرسته",
+        "allRightsReserved": "ټول حقونه خوندي دي.",
+        "followOn": "موږ په :label کې تعقیب کړئ",
+        "newsletterTitle": "د سفر یادښتونه او الهام",
+        "newsletterDescription": "د پروګرامونو، موسمي برخو او عملي مشورو په اړه لنډې تازه معلومات.",
+        "newsletterSuccess": "مننه. کله چې نوي لارښودونه او تازه معلومات خپاره شي، د سفر یادښتونه به واستوو.",
+        "emailAddress": "برېښنالیک پته",
+        "emailPlaceholder": "info@journey-to-afghanistan.com",
+        "subscribe": "ګډون",
+        "subscribing": "ګډون کېږي…"
+    },
+    "language": {
+        "label": "ژبه",
+        "choose": "ژبه وټاکئ",
+        "current": "اوسنۍ ژبه: :language",
+        "english": "انګلیسي",
+        "dari": "دری",
+        "pashto": "پښتو"
+    },
+    "buttons": {
+        "bookNow": "اوس بک کړئ",
+        "donate": "مرسته وکړئ",
+        "back": "شاته",
+        "continue": "دوام",
+        "close": "بندول",
+        "explore": "وپلټئ",
+        "viewAll": "ټول وګورئ",
+        "viewAllTours": "ټول سفرونه وګورئ",
+        "exploreAllDestinations": "ټولې موخې وپلټئ",
+        "exploreTours": "سفرونه وپلټئ",
+        "sendInquiry": "غوښتنه واستوئ",
+        "requestThisTour": "دا سفر غوښتنه کړئ",
+        "priceOnRequest": "قیمت د غوښتنې پر اساس",
+        "sendBookingRequest": "د بکینګ غوښتنه واستوئ",
+        "sendTripInquiry": "د سفر غوښتنه واستوئ",
+        "sendInquiryShort": "غوښتنه واستوئ",
+        "sending": "لیږل کېږي…",
+        "sendingRequest": "غوښتنه لیږل کېږي…",
+        "requestMyCustomTour": "زما ځانګړی سفر غوښتنه کړئ",
+        "backToHome": "کور ته بیرته",
+        "backToWebsite": "ویب پاڼې ته بیرته",
+        "contactOurTeam": "زموږ ټیم سره اړیکه",
+        "exploreServices": "خدمتونه وپلټئ",
+        "continueReading": "لوستل دوام ومومي",
+        "sendMessage": "پیغام واستوئ",
+        "request": "غوښتنه",
+        "seeAllServices": "ټول خدمتونه وګورئ",
+        "viewFullGallery": "بشپړه ګالري وګورئ",
+        "readAllArticles": "ټول مقالې ولولئ",
+        "readArticle": "مقاله ولولئ",
+        "findTours": "سفرونه ومومئ",
+        "view": "وګورئ",
+        "browseRegions": "سیمې وپلټئ",
+        "viewTours": "سفرونه وګورئ",
+        "viewPackages": "کڅوړې وګورئ",
+        "browseTours": "سفرونه وپلټئ",
+        "customTrip": "ځانګړی سفر",
+        "browseArticles": "مقالې وپلټئ",
+        "getUpdates": "تازه معلومات ترلاسه کړئ",
+        "loadMoreArticles": "نورې مقالې پورته کړئ",
+        "viewDestination": "موخه وګورئ",
+        "openInGoogleMaps": "په ګوګل نقشه کې پرانیزئ"
+    },
+    "common": {
+        "skipToContent": "منځپانګې ته لاړ شئ",
+        "theme": "بڼه",
+        "openMenu": "مینو پرانیزئ",
+        "closeMenu": "مینو بند کړئ",
+        "switchToLightTheme": "روښانه بڼې ته واړوئ",
+        "switchToDarkTheme": "تیاره بڼې ته واړوئ",
+        "home": " کور پاڼه",
+        "breadcrumb": "لاره",
+        "clear": "پاکول",
+        "resetFilters": "فلټرونه بیا تنظیم کړئ",
+        "region": "سیمه",
+        "difficulty": "ستونزه",
+        "duration": "موده",
+        "topic": "موضوع",
+        "of": ":current له :total",
+        "minRead": ":minutes دقیقې لوستل",
+        "minShort": ":minutes دقیقې",
+        "by": "لیکوال",
+        "article": "مقاله",
+        "articles": "مقالې",
+        "destination": "موخه",
+        "destinations": "موخې"
+    },
+    "bookNowDialog": {
+        "title": "تاسو څنګه بک کول غواړئ؟",
+        "description": "دا یوه غوښتنه ده. څوکۍ نه ساتل کېږي او سفر نه تاییدېږي.",
+        "customTitle": "ځانګړی",
+        "customDescription": "د افغانستان د خپل سفر پروګرام زموږ ټیم سره جوړ کړئ.",
+        "fixedTitle": "ثابت",
+        "fixedDescription": "د غوښتنې لپاره چمتو سفر کڅوړه وټاکئ."
+    },
+    "whatsapp": {
+        "chat": "په واتساپ کې خبرې اترې وکړئ: :number"
+    },
+    "contact": {
+        "sendMessage": "پیغام واستوئ",
+        "email": "برېښنالیک",
+        "whatsapp": "واتساپ",
+        "location": "موقعیت",
+        "topicGeneral": "عمومي پوښتنه",
+        "topicCustomTrip": "ځانګړی سفر پلان کړئ",
+        "topicGroupTour": "ګروپي سفر ته ګډون",
+        "topicPress": "مطبوعات او همکارۍ",
+        "successMessage": "ستاسو د پیغام مننه. به ژر تر ژره له تاسو سره اړیکه ونیسو.",
+        "eyebrow": "اړیکه ونیسئ",
+        "title": "خپل سفر زموږ سره پلان کړئ",
+        "intro": "هر پیغام په شخصي توګه کتنه کېږي. د فورم لیږل څوکۍ نه ساتي او سفر نه تاییدوي.",
+        "replyTime": "معمولاً په ۲۴–۴۸ ساعتونو کې ځواب",
+        "formTitle": "پیغام واستوئ",
+        "yourName": "ستاسو نوم",
+        "emailAddress": "برېښنالیک پته",
+        "howCanWeHelp": "موږ څنګه مرسته کولی شو؟",
+        "submitDisclaimer": "د دې پیغام لیږل څوکۍ نه ساتي او سفر نه تاییدوي.",
+        "messageSent": "پیغام واستول شو",
+        "findUs": "موږ ومومئ",
+        "officeLocation": "د دفتر موقعیت",
+        "mapsTitle": "ګوګل نقشه — :location"
+    },
+    "tours": {
+        "requestThisTour": "دا سفر غوښتنه کړئ",
+        "inquiryReceived": "غوښتنه ترلاسه شوه"
+    },
+    "toursPage": {
+        "hero": {
+            "eyebrow": "په افغانستان کې لارښود شوي سفرونه",
+            "title": "سفرونه او کڅوړې",
+            "description": "ټاکل شوي پروګرامونه او انعطاف منونکي کڅوړې — د محلي لارښودانو، روښانه جوازونو او صادقانه مشورې سره."
+        },
+        "packages": {
+            "eyebrow": "د سفر کڅوړې",
+            "title": "د غوښتنې لپاره چمتو کڅوړې",
+            "description": "بشپړ کڅوړې — یوازې غوښتنه، فوري بکینګ نشته."
+        },
+        "catalog": {
+            "eyebrow": "سفرونه",
+            "title": "پروګرامونه وپلټئ",
+            "countNote": ":shown له :total سفرونو. هر سفر شخصي یا کوچنی ګروپ کیدی شي.",
+            "searchPlaceholder": "سفرونه، ځایونه یا موضوعات ولټوئ…",
+            "searchAria": "سفرونه ولټوئ",
+            "travelStyle": "د سفر بڼه",
+            "allRegions": "ټولې سیمې",
+            "allStyles": "ټولې بڼې",
+            "allDifficulties": "ټولې ستونزې",
+            "anyLength": "هره موده",
+            "upTo5Days": "تر ۵ ورځو پورې",
+            "days6to8": "۶–۸ ورځې",
+            "days9Plus": "۹+ ورځې",
+            "noResultsTitle": "سمون خورا سفر ونه موندل شو",
+            "noResultsDescription": "بل لټون هڅه وکړئ یا فلټرونه پاک کړئ."
+        }
+    },
+    "destinationsPage": {
+        "hero": {
+            "eyebrow": "افغانستان وپلټئ",
+            "title": "موخې",
+            "description": "له لوړو لوښو څخه تر ابریشم لارې ښارونو پورې — هر سیمه د هېواد بل اړخ د محلي تجربې سره ښیي."
+        },
+        "grid": {
+            "eyebrow": "سیمې",
+            "title": "چیرته چې موږ لارښودي کوو",
+            "countNote": ":shown له :total موخو",
+            "searchPlaceholder": "موخې ولټوئ…",
+            "searchAria": "موخې ولټوئ",
+            "allRegions": "ټولې سیمې",
+            "relatedTour": "اړوند سفر",
+            "relatedTours": "اړوند سفرونه",
+            "noResultsTitle": "موخه ونه موندل شوه",
+            "noResultsFilter": "بل لټون هڅه وکړئ یا فلټرونه پاک کړئ.",
+            "noResultsEmpty": "لا خپورې موخې نشته. په ادمین → موخې کې یې خپورې کړئ."
+        }
+    },
+    "servicesPage": {
+        "hero": {
+            "eyebrow": "موږ ستاسو سفر څنګه ملاتړ کوو",
+            "title": "د سفر خدمتونه",
+            "description": "له لارښود شویو سفرونو څخه تر ویزې لیکونو او ځمکني لجستیک پورې — جزئیات همغږي کوو ترڅو تاسو تجربې ته تمرکز وکړئ."
+        },
+        "featured": {
+            "eyebrow": "اصلي خدمتونه",
+            "title": "چیرته چې ډېر سفرونه پیلېږي"
+        },
+        "catalogue": {
+            "eyebrow": "بشپړ فهرست",
+            "title": "هر هغه څه چې همغږي کوو",
+            "allServices": "ټول خدمتونه",
+            "emptyCategory": "په دې کټګورۍ کې لا خدمت نشته."
+        },
+        "process": {
+            "eyebrow": "څنګه کار کوي",
+            "title": "د غوښتنې پر اساس پلان",
+            "description": "هر خدمت له خبرو اترو پیلېږي — نه فوري پیسې ورکول. موږ جزئیات، جوازونه او قیمت د سفر دمخه تاییدوو.",
+            "steps": {
+                "inquiry": {
+                    "title": "غوښتنه واستوئ",
+                    "description": "خپلې نیټې، علاقې او د ګروپ اندازه ووایئ. تادیه یا فوري بکینګ اړین نه دی."
+                },
+                "proposal": {
+                    "title": "وړاندیز ترلاسه کړئ",
+                    "description": "زموږ ټیم په ۲۴ ساعتونو کې د ځانګړي پروګرام، اټکل او جواز لارښود سره ځواب ورکوي."
+                },
+                "refine": {
+                    "title": "په ګډه سمول",
+                    "description": "لارې، سرعت او استوګنځي تر هغه چې پلان ستاسو ګروپ ته مناسب شي."
+                },
+                "travel": {
+                    "title": "د ملاتړ سره سفر",
+                    "description": "لارښودان، وسایط او لجستیک په ځای همغږي کېږي — موږ په ټوله لاره کې شتون لرو."
+                }
+            }
+        },
+        "impact": {
+            "eyebrow": "زموږ لاره",
+            "title": "سفر چې بیرته ورکوي",
+            "locallyOwned": {
+                "title": "محلي مالکیت",
+                "description": "د سیاحت عاید د افغان مېلمستونونو، چلوونکو او هنرمندانو سره پاتې کېږي."
+            },
+            "culturalRespect": {
+                "title": "کلتوري درناوی",
+                "description": "لارښودان دودونه او آداب شریکوي ترڅو لیدنې ښه راغلاست وي."
+            },
+            "communityMinded": {
+                "title": "ټولنې ته متوجه",
+                "description": "کوچني ګروپونه او عادلانه قیمتونه د هغو خلکو او ځایونو لپاره چې لیدو."
+            },
+            "responsibleTravel": {
+                "title": "مسؤلانه سفر",
+                "description": "بې نښې پریښودل او د عکاسۍ رضایت په هرې لارې کې."
+            }
+        }
+    },
+    "articlesPage": {
+        "hero": {
+            "eyebrow": "د سفر مجله",
+            "title": "مقالې او لارښودونه",
+            "description": "عملي مشوره، کلتوري پوهه او د پروګرام مفکورې زموږ له ټیم څخه په افغانستان کې."
+        },
+        "featured": {
+            "eyebrow": "د سردبیر ټاکل",
+            "title": "برجسته کیسه"
+        },
+        "grid": {
+            "eyebrow": "کتابتون",
+            "title": "وروستي له زموږ ټیم څخه",
+            "allTopics": "ټول موضوعات",
+            "searchPlaceholder": "مقالې ولټوئ…",
+            "searchAria": "مقالې ولټوئ",
+            "noPublishedTitle": "لا خپورې مقالې نشته",
+            "noPublishedDescription": "مقالې له ادمین ډشبورډ څخه خپورې کړئ.",
+            "noResultsTitle": "مقاله ونه موندل شوه",
+            "noResultsDescription": "بل لټون یا فلټرونه هڅه وکړئ."
+        }
+    },
+    "galleryPage": {
+        "hero": {
+            "eyebrow": "د سفر عکاسي",
+            "title": "ګالري",
+            "description": "منظرې، ښارونه او ورځني شیبې له افغانستان سفرونو — لاندې ګنبد وپلټئ او هر انځور لوی کړئ."
+        },
+        "dome": {
+            "ariaLabel": "تعاملي عکس ګالري",
+            "instructions": "د پلټنې لپاره کش کړئ · د لویولو لپاره کلیک یا لمس · د تړلو لپاره Escape",
+            "empty": "لا خپور عکسونه نشته. له ادمین ډشبورډ څخه پورته او خپور کړئ.",
+            "footnote": "انځورونه زموږ لارښود شویو سیمو او تجربو استازیتوب کوي. توضیحات او بشپړ کیفیت ټولګې د هر سفر لپاره چمتو کېږي."
+        }
+    },
+    "aboutPage": {
+        "journeyPathHeading": "زموږ د لارښودۍ کار څنګه وده کړې"
+    },
+    "teamPage": {
+        "meta": {
+            "title": "زموږ ټیم",
+            "description": "د JPA ټیم وپیژنئ — افغان لارښودان، پلان جوونکي او همغږونکي چې هر سفر د محلي تجربې او کلتوري درناوي سره ډیزاین او لارښودي کوي."
+        },
+        "hero": {
+            "eyebrow": "زموږ خلک",
+            "title": "ټیم وپیژنئ",
+            "description": "متنوع ټیم د هڅاندو مسلکي کسانو چې په هر سفر کې نوښت او برتری راوړي."
+        },
+        "emptyState": "د ټیم پروفایلونه به دلته ښکاره شي کله چې خپور شي.",
+        "portraitAlt": "د :name انځور",
+        "emailAria": "برېښنالیک :name",
+        "whatsappAria": "واتساپ :name"
+    },
+    "home": {
+        "hero": {
+            "emptySlides": "دلته سرلیک ښودلو لپاره په ادمین ډشبورډ کې د قهرمان سلايد خپور کړئ.",
+            "carouselLabel": "د سفر برجسته پیغامونه",
+            "chooseMessage": "پیغام وټاکئ",
+            "showMessage": "پیغام :current له :total ښکاره کړئ"
+        },
+        "finder": {
+            "destination": "موخه",
+            "travelStyle": "د سفر بڼه",
+            "preferredSeason": "غوره موسم",
+            "groupType": "د ګروپ ډول",
+            "allDestinations": "ټولې موخې",
+            "anyTravelStyle": "هره د سفر بڼه",
+            "anySeason": "هر موسم",
+            "anyGroupType": "هر ډول ګروپ"
+        },
+        "trust": {
+            "localExpertise": {
+                "title": "محلي تجربه",
+                "description": "تجربه لرونکي افغان لارښودان چې دلته د سفر لارې، کلتور او عملي حقیقتونه پېژني."
+            },
+            "tailoredPlanning": {
+                "title": "ځانګړی پلان",
+                "description": "هر سفر ستاسو د علاقو، سرعت او د سفر بڼې پر اساس جوړېږي — نه ثابت نمونه."
+            },
+            "responsibleTourism": {
+                "title": "مسؤلانه سیاحت",
+                "description": "موږ درناوي لرونکي اړیکې، روښانه اړیکه او ټولنې ته متوجه سیاحت ته لومړیتوب ورکوو."
+            },
+            "humanSupport": {
+                "title": "انساني ملاتړ",
+                "description": "ریښتیني خلک هر غوښتنه کتنه کوي او د سفر دمخه او په جریان کې شتون لري."
+            }
+        },
+        "featuredTours": {
+            "eyebrow": "برجسته سفرونه",
+            "title": "سفرونه چې موږ یې لارښودي کول خوښوو",
+            "description": "زموږ څو تر ټولو غوښتل شوي لارې، هر یوه د محلي پوهې او انعطاف منونکي سرعت پر اساس."
+        },
+        "destinations": {
+            "eyebrow": "موخې",
+            "title": "چیرته چې موږ تاسو وړلی شو",
+            "description": "له لوړو لوښو څخه تر پخوانیو ښارونو پورې، هر موخه د افغانستان بل اړخ ښیي.",
+            "relatedTour": "اړوند سفر",
+            "relatedTours": "اړوند سفرونه"
+        },
+        "services": {
+            "eyebrow": "خدمتونه",
+            "title": "موږ ستاسو سفر څنګه ملاتړ کوو",
+            "description": "له یوې ورځې د محلي لارښود سره څخه تر بشپړ ځانګړي پروګرام پورې، عملي جزئیات همغږي کوو ترڅو تاسو تجربې ته تمرکز وکړئ."
+        },
+        "gallery": {
+            "eyebrow": "ګالري",
+            "title": "له لارې څخه شیبې",
+            "description": "د منظرې، ښارونو او ورځني ژوند یوه لنډه کتنه چې زموږ مسافرین یې تجربه کوي."
+        },
+        "testimonials": {
+            "eyebrow": "شهادتونه",
+            "title": "مسافرین څه وايي",
+            "description": "ریښتیني نظرونه له هغو میلمنو څخه چې افغانستان زموږ ټیم سره وپلټل."
+        },
+        "articles": {
+            "eyebrow": "د سفر بلاګ",
+            "title": "وروستي مقالې او لارښودونه",
+            "description": "عملي مشوره، کلتوري پوهه او د پروګرام مفکورې زموږ له ټیم څخه."
+        },
+        "faq": {
+            "eyebrow": "د سفر معلومات",
+            "title": "پرله پسې پوښتنې",
+            "description": "د افغانستان سفر پلان کولو په اړه د عامو پوښتنو چټک ځوابونه."
+        }
+    },
+    "booking": {
+        "stepOf": "ګام :current له :total",
+        "stepsLabel": "د بکینګ غوښتنې ګامونه",
+        "submitHint": "د دې تڼۍ فعالولو لپاره درې اړینې تاییدۍ نښه کړئ.",
+        "reviewSubmitHint": "زما ځانګړی سفر غوښتنه تر هغه چې پورته درې تاییدۍ نه وي نښه شوي، غیرفعاله ده.",
+        "steps": {
+            "trip": { "title": "د سفر غوره توبونه", "short": "سفر" },
+            "travelers": { "title": "مسافرین", "short": "مسافرین" },
+            "services": { "title": "خدمتونه", "short": "خدمتونه" },
+            "documents": { "title": "د سفر اسناد", "short": "اسناد" },
+            "requirements": { "title": "اړتیاوې او اړیکه", "short": "اړتیاوې" },
+            "review": { "title": "بیاکتنه او غوښتنه", "short": "بیاکتنه" }
+        },
+        "options": {
+            "exactDate": "دقیقه نیټه",
+            "flex3Days": "انعطاف ±۳ ورځې",
+            "flexWeek": "انعطاف ±۱ اونۍ",
+            "flexMonth": "انعطاف په میاشت کې",
+            "unsure": "لا نه پوهېږم",
+            "culture": "کلتور او تاریخ",
+            "nature": "طبیعت او منظرې",
+            "adventure": "ماجراجويي",
+            "photography": "عکاسي",
+            "communities": "محلي ټولنې",
+            "food": "خواړه او دودونه",
+            "routeKnow": "زه خپلې موخې پېژوم",
+            "routeKnowDesc": "موږ به ستاسو د ټاکلو ځایونو پر اساس پلان جوړ کړو.",
+            "routeRecommend": "غوره لاره وړاندیز کړئ",
+            "routeRecommendDesc": "زموږ ټیم به موخې او د سفر ترتیب وړاندیز کړي.",
+            "routeMix": "زما ټاکل شوي موخې ستاسو وړاندیزونو سره مخلوط کړئ",
+            "routeMixDesc": "ستاسو ټاکل به وساتو او پاتې برخې به ډکې کړو.",
+            "solo": "یوازې",
+            "couple": "جوړه",
+            "family": "کورنۍ",
+            "friends": "ملګري",
+            "privateGroup": "شخصي ګروپ",
+            "guide": "د سفر لارښود",
+            "guideDesc": "ستاسو د پروګرام لپاره محلي لارښود.",
+            "transportation": "ترانسپورت",
+            "transportationDesc": "موټر د مسلکي چلوونکي سره.",
+            "accommodation": "استوګنه",
+            "accommodationDesc": "په لاره کې استوګنه ترتیب شوې.",
+            "airport": "د هوايي ډګر لېږد",
+            "airportDesc": "د راتلو او تلو مرسته.",
+            "domestic": "د کورنۍ سفر ترتیبات",
+            "domesticDesc": "سړک یا کورنۍ الوتنې.",
+            "male": "نارینه",
+            "female": "ښځینه",
+            "english": "انګلیسي",
+            "dari": "دری",
+            "pashto": "پښتو",
+            "german": "الماني",
+            "other": "بل",
+            "recommendSeason": "غوره وخت وړاندیز کړئ",
+            "standardCar": "معمولي موټر",
+            "suv": "SUV / 4×4",
+            "minivan": "مینی وین",
+            "largerVehicle": "لوی ګروپ موټر",
+            "recommendVehicle": "مناسب موټر وړاندیز کړئ",
+            "entireTrip": "ټول سفر",
+            "selectedDays": "ټاکل شوي موخې/ورځې",
+            "airportOnly": "یوازې د هوايي ډګر لېږد",
+            "standard": "معمولي",
+            "comfortable": "آرام",
+            "premium": "لوړ / غوره موجود",
+            "recommendAccommodation": "د موخې پر اساس وړاندیز کړئ",
+            "single": "یو نفره",
+            "double": "دوه نفره",
+            "twin": "دوه جلا بسترونه",
+            "familyRooms": "کورنۍ / ډیرې خونې",
+            "yes": "هو",
+            "no": "نه",
+            "flightNotYet": "د الوتنې جزئیات لا نشته",
+            "road": "سړک ترانسپورت",
+            "domesticFlight": "کورنۍ الوتنه که شتون ولري",
+            "recommendOption": "غوره اختیار وړاندیز کړئ",
+            "visaObtained": "لا دمخه ترلاسه شوی",
+            "visaApplying": "پخپله غوښتنه کوم",
+            "visaGuidance": "لارښوونه غواړم",
+            "visaNotStarted": "لا پیل نه دی",
+            "insuranceArranged": "لا دمخه ترتیب شوی",
+            "insuranceWillArrange": "د سفر دمخه به ترتیب کړم",
+            "insuranceGuidance": "عمومي لارښوونه غواړم",
+            "dietaryNone": "هیڅ",
+            "vegetarian": "سبزی خوار",
+            "vegan": "ویګن",
+            "halal": "حلال",
+            "glutenFree": "بې ګلوټن",
+            "allergy": "د خواړو حساسیت",
+            "email": "برېښنالیک",
+            "whatsapp": "واتساپ",
+            "phone": "تلیفون"
+        }
+    }
+}

@@ -1,0 +1,481 @@
+{
+    "nav": {
+        "home": "Home",
+        "tours": "Tours",
+        "destinations": "Destinations",
+        "services": "Services",
+        "articles": "Articles",
+        "gallery": "Gallery",
+        "about": "About",
+        "ourTeam": "Our Team",
+        "contact": "Contact",
+        "toursAndPackages": "Tours & Packages",
+        "bookingProcess": "Booking process",
+        "customTourRequest": "Custom tour request",
+        "travelInformation": "Travel Information",
+        "donation": "Donation",
+        "privacyPolicy": "Privacy Policy",
+        "termsConditions": "Terms & Conditions",
+        "primary": "Primary",
+        "mobilePrimary": "Mobile primary"
+    },
+    "footer": {
+        "tagline": "Guided journeys through Afghanistan with local expertise, cultural respect and carefully planned discovery.",
+        "explore": "Explore",
+        "company": "Company",
+        "travelHelp": "Travel help",
+        "allRightsReserved": "All rights reserved.",
+        "followOn": "Follow us on :label",
+        "newsletterTitle": "Travel notes & inspiration",
+        "newsletterDescription": "Occasional updates on itineraries, seasonal highlights and practical advice.",
+        "newsletterSuccess": "Thank you. We'll send travel notes when new guides and updates are published.",
+        "emailAddress": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "subscribe": "Subscribe",
+        "subscribing": "Subscribing…"
+    },
+    "language": {
+        "label": "Language",
+        "choose": "Choose language",
+        "current": "Current language: :language",
+        "english": "English",
+        "dari": "Dari",
+        "pashto": "Pashto"
+    },
+    "buttons": {
+        "bookNow": "Book Now",
+        "donate": "Donate",
+        "back": "Back",
+        "continue": "Continue",
+        "close": "Close",
+        "explore": "Explore",
+        "viewAll": "View all",
+        "viewAllTours": "View all tours",
+        "exploreAllDestinations": "Explore all destinations",
+        "exploreTours": "Explore Tours",
+        "sendInquiry": "Send your Inquiry",
+        "requestThisTour": "Request This Tour",
+        "priceOnRequest": "Price on Request",
+        "sendBookingRequest": "Send booking request",
+        "sendTripInquiry": "Send trip inquiry",
+        "sendInquiryShort": "Send inquiry",
+        "sending": "Sending…",
+        "sendingRequest": "Sending request…",
+        "requestMyCustomTour": "Request My Custom Tour",
+        "backToHome": "Back to home",
+        "backToWebsite": "Back to website",
+        "contactOurTeam": "Contact our team",
+        "exploreServices": "Explore services",
+        "continueReading": "Continue reading",
+        "sendMessage": "Send message",
+        "request": "Request",
+        "seeAllServices": "See all services",
+        "viewFullGallery": "View full gallery",
+        "readAllArticles": "Read all articles",
+        "readArticle": "Read Article",
+        "findTours": "Find Tours",
+        "view": "View",
+        "browseRegions": "Browse regions",
+        "viewTours": "View tours",
+        "viewPackages": "View packages",
+        "browseTours": "Browse tours",
+        "customTrip": "Custom trip",
+        "browseArticles": "Browse articles",
+        "getUpdates": "Get updates",
+        "loadMoreArticles": "Load more articles",
+        "viewDestination": "View destination",
+        "openInGoogleMaps": "Open in Google Maps"
+    },
+    "common": {
+        "skipToContent": "Skip to content",
+        "theme": "Theme",
+        "openMenu": "Open menu",
+        "closeMenu": "Close menu",
+        "switchToLightTheme": "Switch to light theme",
+        "switchToDarkTheme": "Switch to dark theme",
+        "home": "Home",
+        "breadcrumb": "Breadcrumb",
+        "clear": "Clear",
+        "resetFilters": "Reset filters",
+        "region": "Region",
+        "difficulty": "Difficulty",
+        "duration": "Duration",
+        "topic": "Topic",
+        "of": ":current of :total",
+        "minRead": ":minutes min read",
+        "minShort": ":minutes min",
+        "by": "By",
+        "article": "article",
+        "articles": "articles",
+        "destination": "destination",
+        "destinations": "destinations"
+    },
+    "bookNowDialog": {
+        "title": "How would you like to book?",
+        "description": "This sends a request. It does not reserve a seat or confirm a trip.",
+        "customTitle": "Custom",
+        "customDescription": "Plan your own Afghanistan itinerary with our team.",
+        "fixedTitle": "Fixed",
+        "fixedDescription": "Choose a ready-to-request tour package."
+    },
+    "whatsapp": {
+        "chat": "Chat on WhatsApp at :number"
+    },
+    "contact": {
+        "sendMessage": "Send a message",
+        "email": "Email",
+        "whatsapp": "WhatsApp",
+        "location": "Location",
+        "topicGeneral": "General question",
+        "topicCustomTrip": "Plan a custom trip",
+        "topicGroupTour": "Join a group tour",
+        "topicPress": "Press & partnerships",
+        "successMessage": "Thank you for your message. We will be in touch shortly.",
+        "eyebrow": "Get in touch",
+        "title": "Plan your journey with us",
+        "intro": "Every message is reviewed personally. Submitting a form does not reserve a seat or confirm a trip.",
+        "replyTime": "Typical reply within 24–48 hours",
+        "formTitle": "Send a message",
+        "yourName": "Your name",
+        "emailAddress": "Email address",
+        "howCanWeHelp": "How can we help?",
+        "submitDisclaimer": "Submitting this message does not reserve a seat or confirm a trip.",
+        "messageSent": "Message sent",
+        "findUs": "Find us",
+        "officeLocation": "Office location",
+        "mapsTitle": "Google Maps — :location"
+    },
+    "tours": {
+        "requestThisTour": "Request this tour",
+        "inquiryReceived": "Inquiry received"
+    },
+    "toursPage": {
+        "hero": {
+            "eyebrow": "Guided journeys in Afghanistan",
+            "title": "Tours & packages",
+            "description": "Curated itineraries and flexible packages — planned with local guides, clear permits, and honest advice."
+        },
+        "packages": {
+            "eyebrow": "Travel packages",
+            "title": "Ready-to-request packages",
+            "description": "All-inclusive bundles — inquiry only, no instant booking."
+        },
+        "catalog": {
+            "eyebrow": "Tours",
+            "title": "Browse itineraries",
+            "countNote": ":shown of :total journeys. Every tour can be private or small group.",
+            "searchPlaceholder": "Search tours, places, or themes…",
+            "searchAria": "Search tours",
+            "travelStyle": "Travel style",
+            "allRegions": "All regions",
+            "allStyles": "All styles",
+            "allDifficulties": "All difficulties",
+            "anyLength": "Any length",
+            "upTo5Days": "Up to 5 days",
+            "days6to8": "6–8 days",
+            "days9Plus": "9+ days",
+            "noResultsTitle": "No matching tours",
+            "noResultsDescription": "Try a different search or clear the filters."
+        }
+    },
+    "destinationsPage": {
+        "hero": {
+            "eyebrow": "Explore Afghanistan",
+            "title": "Destinations",
+            "description": "From highland lakes to Silk Road cities — each region offers a different face of the country, guided with local expertise."
+        },
+        "grid": {
+            "eyebrow": "Regions",
+            "title": "Where we guide",
+            "countNote": ":shown of :total destinations",
+            "searchPlaceholder": "Search destinations…",
+            "searchAria": "Search destinations",
+            "allRegions": "All regions",
+            "relatedTour": "related tour",
+            "relatedTours": "related tours",
+            "noResultsTitle": "No destinations found",
+            "noResultsFilter": "Try a different search or clear the filters.",
+            "noResultsEmpty": "No published destinations yet. Set a destination to Published in Admin → Destinations to show it here."
+        }
+    },
+    "servicesPage": {
+        "hero": {
+            "eyebrow": "How we support your journey",
+            "title": "Travel services",
+            "description": "From guided circuits to visa letters and ground logistics — we coordinate the details so you can focus on the experience."
+        },
+        "featured": {
+            "eyebrow": "Core services",
+            "title": "Where most journeys begin"
+        },
+        "catalogue": {
+            "eyebrow": "Full catalogue",
+            "title": "Everything we coordinate",
+            "allServices": "All services",
+            "emptyCategory": "No services in this category yet."
+        },
+        "process": {
+            "eyebrow": "How it works",
+            "title": "Inquiry-based planning",
+            "description": "Every service starts with a conversation — not an instant checkout. We confirm details, permits and pricing before you travel.",
+            "steps": {
+                "inquiry": {
+                    "title": "Send an inquiry",
+                    "description": "Tell us your dates, interests and group size. No payment or instant booking required."
+                },
+                "proposal": {
+                    "title": "Receive a proposal",
+                    "description": "Our team replies within 24 hours with a tailored itinerary, estimate and permit guidance."
+                },
+                "refine": {
+                    "title": "Refine together",
+                    "description": "Adjust routes, pacing and accommodation until the plan feels right for your group."
+                },
+                "travel": {
+                    "title": "Travel with support",
+                    "description": "Guides, vehicles and logistics are coordinated on the ground — with us available throughout."
+                }
+            }
+        },
+        "impact": {
+            "eyebrow": "Our approach",
+            "title": "Travel that gives back",
+            "locallyOwned": {
+                "title": "Locally owned",
+                "description": "Tourism income stays with Afghan guesthouses, drivers and artisans."
+            },
+            "culturalRespect": {
+                "title": "Cultural respect",
+                "description": "Guides share customs and etiquette so visits are welcomed."
+            },
+            "communityMinded": {
+                "title": "Community-minded",
+                "description": "Small groups and fair pricing for people and places we visit."
+            },
+            "responsibleTravel": {
+                "title": "Responsible travel",
+                "description": "Leave-no-trace practices and photography consent on every route."
+            }
+        }
+    },
+    "articlesPage": {
+        "hero": {
+            "eyebrow": "Travel journal",
+            "title": "Articles & guides",
+            "description": "Practical advice, cultural insight and itinerary ideas from our team on the ground in Afghanistan."
+        },
+        "featured": {
+            "eyebrow": "Editor's pick",
+            "title": "Featured story"
+        },
+        "grid": {
+            "eyebrow": "Library",
+            "title": "Latest from our team",
+            "allTopics": "All topics",
+            "searchPlaceholder": "Search articles…",
+            "searchAria": "Search articles",
+            "noPublishedTitle": "No published articles yet",
+            "noPublishedDescription": "Publish articles from the admin dashboard to populate this library.",
+            "noResultsTitle": "No articles found",
+            "noResultsDescription": "Try a different search term or clear the filters."
+        }
+    },
+    "galleryPage": {
+        "hero": {
+            "eyebrow": "Travel photography",
+            "title": "Gallery",
+            "description": "Landscapes, cities and everyday moments from journeys across Afghanistan — explore the dome below and tap any image to view it larger."
+        },
+        "dome": {
+            "ariaLabel": "Interactive photo gallery",
+            "instructions": "Drag to explore · Click or tap a tile to enlarge · Press Escape to close",
+            "empty": "No published gallery photos yet. Upload and publish images from the admin dashboard to populate this experience.",
+            "footnote": "Images shown are representative of regions and experiences we guide. Captions and full-resolution sets are curated for each journey."
+        }
+    },
+    "aboutPage": {
+        "journeyPathHeading": "How our guiding work has grown"
+    },
+    "teamPage": {
+        "meta": {
+            "title": "Our Team",
+            "description": "Meet the JPA team — Afghan guides, planners and coordinators who design and lead every journey with local expertise and cultural respect."
+        },
+        "hero": {
+            "eyebrow": "Our people",
+            "title": "Meet the Team",
+            "description": "A diverse team of passionate professionals with unique skills driving innovation and excellence in every journey."
+        },
+        "emptyState": "Team profiles will appear here once they are published.",
+        "portraitAlt": "Portrait of :name",
+        "emailAria": "Email :name",
+        "whatsappAria": "WhatsApp :name"
+    },
+    "home": {
+        "hero": {
+            "emptySlides": "Publish a hero slide in the admin dashboard to show your headline here.",
+            "carouselLabel": "Featured travel messages",
+            "chooseMessage": "Choose a message",
+            "showMessage": "Show message :current of :total"
+        },
+        "finder": {
+            "destination": "Destination",
+            "travelStyle": "Travel style",
+            "preferredSeason": "Preferred season",
+            "groupType": "Group type",
+            "allDestinations": "All destinations",
+            "anyTravelStyle": "Any travel style",
+            "anySeason": "Any season",
+            "anyGroupType": "Any group type"
+        },
+        "trust": {
+            "localExpertise": {
+                "title": "Local expertise",
+                "description": "Experienced Afghan guides who know the routes, culture and practical realities of travel here."
+            },
+            "tailoredPlanning": {
+                "title": "Tailored planning",
+                "description": "Every journey is shaped around your interests, pace and travel style — not a fixed template."
+            },
+            "responsibleTourism": {
+                "title": "Responsible tourism",
+                "description": "We prioritise respectful engagement, clear communication and community-minded tourism."
+            },
+            "humanSupport": {
+                "title": "Human support",
+                "description": "Real people review every inquiry and stay available before and during your journey."
+            }
+        },
+        "featuredTours": {
+            "eyebrow": "Featured tours",
+            "title": "Journeys we love to guide",
+            "description": "A few of our most requested routes, each built around local insight and flexible pacing."
+        },
+        "destinations": {
+            "eyebrow": "Destinations",
+            "title": "Where we can take you",
+            "description": "From high-altitude lakes to ancient cities, each destination offers a different side of Afghanistan.",
+            "relatedTour": "related tour",
+            "relatedTours": "related tours"
+        },
+        "services": {
+            "eyebrow": "Services",
+            "title": "How we support your journey",
+            "description": "From a single day with a local guide to a fully custom itinerary, we coordinate the practical details so you can focus on the experience."
+        },
+        "gallery": {
+            "eyebrow": "Gallery",
+            "title": "Moments from the road",
+            "description": "A glimpse of the landscapes, cities and everyday life our travellers experience."
+        },
+        "testimonials": {
+            "eyebrow": "Testimonials",
+            "title": "What travellers say",
+            "description": "Real feedback from guests who explored Afghanistan with our team."
+        },
+        "articles": {
+            "eyebrow": "Travel blog",
+            "title": "Latest articles & guides",
+            "description": "Practical advice, cultural insight and itinerary ideas from our team."
+        },
+        "faq": {
+            "eyebrow": "Travel information",
+            "title": "Frequently asked questions",
+            "description": "Quick answers to common questions about planning a trip to Afghanistan."
+        }
+    },
+    "booking": {
+        "stepOf": "Step :current of :total",
+        "stepsLabel": "Booking request steps",
+        "submitHint": "Tick the three required agreements to activate this button.",
+        "reviewSubmitHint": "Request My Custom Tour stays inactive until the three required confirmations above are ticked.",
+        "steps": {
+            "trip": { "title": "Trip Preferences", "short": "Trip" },
+            "travelers": { "title": "Travelers", "short": "Travelers" },
+            "services": { "title": "Services", "short": "Services" },
+            "documents": { "title": "Travel Documents", "short": "Documents" },
+            "requirements": { "title": "Requirements & Contact", "short": "Requirements" },
+            "review": { "title": "Review & Request", "short": "Review" }
+        },
+        "options": {
+            "exactDate": "Exact date",
+            "flex3Days": "Flexible ±3 days",
+            "flexWeek": "Flexible ±1 week",
+            "flexMonth": "Flexible within the month",
+            "unsure": "I am not sure yet",
+            "culture": "Culture & History",
+            "nature": "Nature & Landscapes",
+            "adventure": "Adventure",
+            "photography": "Photography",
+            "communities": "Local Communities",
+            "food": "Food & Traditions",
+            "routeKnow": "I know the destinations I want",
+            "routeKnowDesc": "We will plan around the places you select.",
+            "routeRecommend": "Recommend the best route",
+            "routeRecommendDesc": "Our team will suggest destinations and a sequence.",
+            "routeMix": "Mix my selected destinations with your recommendations",
+            "routeMixDesc": "We will keep your picks and fill the gaps.",
+            "solo": "Solo",
+            "couple": "Couple",
+            "family": "Family",
+            "friends": "Friends",
+            "privateGroup": "Private group",
+            "guide": "Tour guide",
+            "guideDesc": "A local guide for your itinerary.",
+            "transportation": "Transportation",
+            "transportationDesc": "Vehicle with a professional driver.",
+            "accommodation": "Accommodation",
+            "accommodationDesc": "Stays arranged along the route.",
+            "airport": "Airport pickup/drop-off",
+            "airportDesc": "Arrival and departure assistance.",
+            "domestic": "Domestic travel arrangements",
+            "domesticDesc": "Road or domestic flights between regions.",
+            "male": "Male",
+            "female": "Female",
+            "english": "English",
+            "dari": "Dari",
+            "pashto": "Pashto",
+            "german": "German",
+            "other": "Other",
+            "recommendSeason": "Recommend the best time",
+            "standardCar": "Standard car",
+            "suv": "SUV / 4×4",
+            "minivan": "Minivan",
+            "largerVehicle": "Larger group vehicle",
+            "recommendVehicle": "Recommend the most suitable vehicle",
+            "entireTrip": "Entire trip",
+            "selectedDays": "Selected destinations/days",
+            "airportOnly": "Airport transfers only",
+            "standard": "Standard",
+            "comfortable": "Comfortable",
+            "premium": "Premium / best available",
+            "recommendAccommodation": "Recommend based on destination",
+            "single": "Single",
+            "double": "Double",
+            "twin": "Twin",
+            "familyRooms": "Family / multiple rooms",
+            "yes": "Yes",
+            "no": "No",
+            "flightNotYet": "Flight details not available yet",
+            "road": "Road transportation",
+            "domesticFlight": "Domestic flight where available",
+            "recommendOption": "Recommend the best option",
+            "visaObtained": "Already obtained",
+            "visaApplying": "Applying independently",
+            "visaGuidance": "Need guidance",
+            "visaNotStarted": "Not started yet",
+            "insuranceArranged": "Already arranged",
+            "insuranceWillArrange": "Will arrange before travel",
+            "insuranceGuidance": "Need general guidance",
+            "dietaryNone": "None",
+            "vegetarian": "Vegetarian",
+            "vegan": "Vegan",
+            "halal": "Halal",
+            "glutenFree": "Gluten-free",
+            "allergy": "Food allergy",
+            "email": "Email",
+            "whatsapp": "WhatsApp",
+            "phone": "Phone"
+        }
+    }
+}

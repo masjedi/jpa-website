@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ArrowRight, BookOpen, Compass, LayoutDashboard, Map, MessageSquareText } from 'lucide-react';
 
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
@@ -40,8 +40,6 @@ export default function Dashboard() {
 
     return (
         <>
-            <Head title="Dashboard" />
-
             <div className="space-y-4">
                 <AdminSectionHeader
                     eyebrow="Overview"

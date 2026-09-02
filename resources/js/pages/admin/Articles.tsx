@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { BookOpen, Plus } from 'lucide-react';
 import { Suspense, lazy, useState } from 'react';
 
@@ -189,8 +189,6 @@ export default function Articles({ articles, teamMembers }: ArticlesPageProps) {
 
     return (
         <>
-            <Head title="Articles" />
-
             <div className="space-y-4">
                 {flash.success ? (
                     <div

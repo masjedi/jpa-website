@@ -50,6 +50,7 @@ export const companyLinks = [
 
 export const helpLinks = [
     { label: 'Booking process', href: '/#booking' },
+    { label: 'Custom tour request', href: '/booking' },
     { label: 'Travel Information', href: '/#faq' },
     { label: 'Donation', href: '/contact' },
     { label: 'Privacy Policy', href: '/privacy' },
@@ -57,6 +58,10 @@ export const helpLinks = [
 ] as const satisfies readonly PublicNavLink[];
 
 export const planTripHref = '/contact';
+
+export const customBookingHref = '/booking';
+
+export const tourPackagesHref = '/tours#packages';
 
 export const donateHref = '/contact';
 

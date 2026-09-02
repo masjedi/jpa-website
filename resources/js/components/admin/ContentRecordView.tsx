@@ -26,9 +26,10 @@ export function ContentRecordView({ model, className }: ContentRecordViewProps) 
     const shouldShowContentSection =
         model.showContentSection ??
         Boolean(usesRichBody || hasSections || model.bodyPlain || hasHighlights);
+    const isCompact = model.layout === 'compact';
 
     return (
-        <div className={cn('space-y-5', className)}>
+        <div className={cn(isCompact ? 'space-y-3' : 'space-y-5', className)}>
             {hasImage ? (
                 <div className="overflow-hidden rounded-xl border border-border bg-surface">
                     <div className="relative aspect-[16/10] bg-surface-muted sm:aspect-[21/9]">
@@ -69,6 +70,35 @@ export function ContentRecordView({ model, className }: ContentRecordViewProps) 
                         </div>
                     </div>
                 </div>
+            ) : isCompact ? (
+                <section
+                    aria-label="Record summary"
+                    className="flex flex-wrap items-start justify-between gap-2"
+                >
+                    <div className="min-w-0">
+                        <h3 className="font-heading text-base font-semibold text-foreground">
+                            {model.title}
+                        </h3>
+                        <p className="mt-0.5 text-sm text-muted-foreground">{model.subtitle}</p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        {model.badgeLabel ? (
+                            <span className="inline-flex rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-medium text-accent">
+                                {model.badgeLabel}
+                            </span>
+                        ) : null}
+                        {model.status ? (
+                            <span
+                                className={cn(
+                                    'inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium',
+                                    contentRecordStatusStyles[model.status],
+                                )}
+                            >
+                                {model.status}
+                            </span>
+                        ) : null}
+                    </div>
+                </section>
             ) : (
                 <section aria-label="Homepage preview">
                     <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
@@ -137,19 +167,37 @@ export function ContentRecordView({ model, className }: ContentRecordViewProps) 
 
             {model.metaFields.length > 0 ? (
                 <section aria-label="Record metadata">
-                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                        Details
-                    </p>
-                    <dl className="mt-2 divide-y divide-border rounded-xl border border-border bg-surface">
+                    {isCompact ? null : (
+                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                            Details
+                        </p>
+                    )}
+                    <dl
+                        className={cn(
+                            'rounded-xl border border-border bg-surface',
+                            isCompact
+                                ? 'grid grid-cols-1 gap-px overflow-hidden bg-border sm:grid-cols-2'
+                                : 'mt-2 divide-y divide-border',
+                        )}
+                    >
                         {model.metaFields.map((field) => (
                             <div
                                 key={field.id}
-                                className="grid gap-1 px-4 py-3 sm:grid-cols-[8.5rem_1fr] sm:gap-4"
+                                className={
+                                    isCompact
+                                        ? cn(
+                                              'bg-surface px-3 py-2.5',
+                                              field.span === 2 && 'sm:col-span-2',
+                                          )
+                                        : 'grid gap-1 px-4 py-3 sm:grid-cols-[8.5rem_1fr] sm:gap-4'
+                                }
                             >
-                                <dt className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                                <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                                     {field.label}
                                 </dt>
-                                <dd className="text-sm text-foreground">{field.value || '—'}</dd>
+                                <dd className={cn('text-sm text-foreground', isCompact && 'mt-0.5')}>
+                                    {field.value || '—'}
+                                </dd>
                             </div>
                         ))}
                     </dl>

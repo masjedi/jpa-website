@@ -1,17 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { TourInquiryModal } from '@/components/sections/tours/TourInquiryModal';
 import { TourPackagesSection } from '@/components/sections/tours/TourPackagesSection';
 import { ToursGridSection } from '@/components/sections/tours/ToursGridSection';
 import { ToursHero } from '@/components/sections/tours/ToursHero';
+import type { TourFilterFieldOptions } from '@/types/tourFilterOptions';
 import type { InquiryFormData, Tour, TourPackage } from '@/types/tours';
 
 interface ToursLandingProps {
     tours: Tour[];
     packages: TourPackage[];
+    filterOptions: TourFilterFieldOptions;
 }
 
-export function ToursLanding({ tours, packages }: ToursLandingProps) {
+export function ToursLanding({ tours, packages, filterOptions }: ToursLandingProps) {
     const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
     const [inquiryInitialData, setInquiryInitialData] = useState<InquiryFormData>({
         tourTitle: '',
@@ -19,19 +21,10 @@ export function ToursLanding({ tours, packages }: ToursLandingProps) {
         travelerCount: '2',
     });
 
-    const handleOpenCustomInquiry = () => {
-        setInquiryInitialData({
-            tourTitle: 'Custom Tailored Itinerary',
-            preferredDate: '',
-            travelerCount: '2',
-        });
-        setInquiryModalOpen(true);
-    };
-
     const handleSelectTour = (tour: Tour) => {
         setInquiryInitialData({
             tourTitle: tour.title,
-            preferredDate: tour.nextDeparture.date,
+            preferredDate: '',
             travelerCount: '2',
         });
         setInquiryModalOpen(true);
@@ -46,11 +39,23 @@ export function ToursLanding({ tours, packages }: ToursLandingProps) {
         setInquiryModalOpen(true);
     };
 
+    useEffect(() => {
+        if (window.location.hash !== '#packages') {
+            return;
+        }
+
+        document.getElementById('packages')?.scrollIntoView({ block: 'start' });
+    }, []);
+
     return (
         <div className="w-full">
-            <ToursHero onOpenCustomInquiry={handleOpenCustomInquiry} />
+            <ToursHero />
             <TourPackagesSection packages={packages} onSelectPackage={handleSelectPackage} />
-            <ToursGridSection tours={tours} onSelectTour={handleSelectTour} />
+            <ToursGridSection
+                tours={tours}
+                filterOptions={filterOptions}
+                onSelectTour={handleSelectTour}
+            />
             <TourInquiryModal
                 isOpen={inquiryModalOpen}
                 onClose={() => setInquiryModalOpen(false)}

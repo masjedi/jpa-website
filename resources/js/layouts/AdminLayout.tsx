@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { AdminNavbar } from '@/components/admin/AdminNavbar';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { SecureHead } from '@/components/admin/SecureHead';
 import '@/types/inertia';
 
 interface AdminLayoutProps {
@@ -21,6 +22,7 @@ export function AdminLayout({ children, title = 'Dashboard' }: AdminLayoutProps)
 
     return (
         <div className="h-dvh overflow-hidden bg-background text-foreground">
+            <SecureHead />
             <AdminSidebar
                 currentPath={url}
                 mobileOpen={mobileNavOpen}

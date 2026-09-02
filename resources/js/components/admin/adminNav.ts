@@ -1,8 +1,11 @@
 import {
     BookOpen,
+    Briefcase,
     CircleHelp,
+    ClipboardList,
     Compass,
     FileText,
+    Filter,
     Globe,
     Image,
     Info,
@@ -11,7 +14,10 @@ import {
     Map,
     MessageSquareQuote,
     MessageSquareText,
+    Phone,
+    Search,
     Settings,
+    SlidersHorizontal,
     Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -43,6 +49,7 @@ export const adminNavEntries: AdminNavEntry[] = [
             { label: 'Hero section', href: '/admin/hero-section', icon: Image },
             { label: 'Tours', href: '/admin/tours', icon: Map },
             { label: 'Destinations', href: '/admin/destinations', icon: Compass },
+            { label: 'Services', href: '/admin/services', icon: Briefcase },
             { label: 'About page', href: '/admin/about', icon: Info },
             { label: 'Articles', href: '/admin/articles', icon: BookOpen },
             { label: 'Gallery', href: '/admin/gallery', icon: Image },
@@ -56,9 +63,20 @@ export const adminNavEntries: AdminNavEntry[] = [
                 icon: MessageSquareText,
                 badge: '3',
             },
+            { label: 'Custom bookings', href: '/admin/bookings', icon: ClipboardList },
         ],
     },
     { type: 'item', label: 'Invoices', href: '/admin/invoices', icon: FileText },
+    {
+        type: 'group',
+        label: 'Configuration',
+        icon: SlidersHorizontal,
+        items: [
+            { label: 'Filter & Placement', href: '/admin/filter-placement', icon: Filter },
+            { label: 'Home finder', href: '/admin/home-finder', icon: Search },
+            { label: 'Emergency Contacts', href: '/admin/emergency-contacts', icon: Phone },
+        ],
+    },
     { type: 'item', label: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 

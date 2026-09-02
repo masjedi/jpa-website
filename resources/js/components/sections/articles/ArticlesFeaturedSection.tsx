@@ -4,6 +4,7 @@ import { ArrowRight, Clock } from 'lucide-react';
 import { FadeIn } from '@/components/motion/FadeIn';
 import { articleShowHref } from '@/components/public/navigation';
 import { BorderGlow } from '@/components/react-bits/BorderGlow/BorderGlow';
+import { useTranslations } from '@/hooks/use-translations';
 import type { ArticleListItem } from '@/types/articles';
 
 interface ArticlesFeaturedSectionProps {
@@ -11,6 +12,8 @@ interface ArticlesFeaturedSectionProps {
 }
 
 export function ArticlesFeaturedSection({ featured }: ArticlesFeaturedSectionProps) {
+    const { t } = useTranslations();
+
     if (!featured) {
         return null;
     }
@@ -21,10 +24,10 @@ export function ArticlesFeaturedSection({ featured }: ArticlesFeaturedSectionPro
                 <FadeIn>
                     <div className="text-start">
                         <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-                            Editor&apos;s pick
+                            {t('articlesPage.featured.eyebrow')}
                         </p>
                         <h2 className="font-heading mt-1.5 text-2xl font-semibold text-foreground sm:text-3xl">
-                            Featured story
+                            {t('articlesPage.featured.title')}
                         </h2>
                     </div>
                 </FadeIn>
@@ -62,7 +65,9 @@ export function ArticlesFeaturedSection({ featured }: ArticlesFeaturedSectionPro
                                     <span aria-hidden>·</span>
                                     <span className="inline-flex items-center gap-1">
                                         <Clock className="size-3.5 text-secondary" aria-hidden />
-                                        {featured.readingTimeMinutes} min read
+                                        {t('common.minRead', {
+                                            minutes: featured.readingTimeMinutes,
+                                        })}
                                     </span>
                                 </div>
 
@@ -80,7 +85,7 @@ export function ArticlesFeaturedSection({ featured }: ArticlesFeaturedSectionPro
                                 </p>
 
                                 <p className="mt-5 text-sm text-muted-foreground">
-                                    By{' '}
+                                    {t('common.by')}{' '}
                                     <span className="font-medium text-foreground">
                                         {featured.author.name}
                                     </span>
@@ -94,7 +99,7 @@ export function ArticlesFeaturedSection({ featured }: ArticlesFeaturedSectionPro
                                     href={articleShowHref(featured.slug)}
                                     className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                 >
-                                    Read article
+                                    {t('buttons.readArticle')}
                                     <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
                                 </Link>
                             </div>

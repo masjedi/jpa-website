@@ -45,12 +45,6 @@ export function buildTourViewModel({
             { id: 'duration', label: 'Duration', value: tour.duration },
             { id: 'style', label: 'Travel style', value: tour.travelStyle },
             { id: 'difficulty', label: 'Difficulty', value: tour.difficulty },
-            {
-                id: 'departure',
-                label: 'Next departure',
-                value: `${tour.nextDeparture.date} · ${tour.nextDeparture.status}`,
-            },
-            { id: 'price', label: 'Starting price', value: tour.estimatedStartingPrice },
             { id: 'status', label: 'Status', value: status },
         ],
         bodyHtml,

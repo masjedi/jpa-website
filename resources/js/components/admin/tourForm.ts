@@ -1,6 +1,6 @@
 import { normalizeRichHtml, stripHtml } from '@/lib/richText';
+import type { TourFilterFieldOptions } from '@/types/tourFilterOptions';
 import type {
-    DepartureStatus,
     Tour,
     TourDifficulty,
     TourPackage,
@@ -10,14 +10,7 @@ import type {
 export type TourFormStatus = 'Published' | 'Draft';
 export type TourListingType = 'tour' | 'package';
 
-export type TourRegion =
-    | 'Central Highlands'
-    | 'Eastern & Capital'
-    | 'Western Silk Road'
-    | 'Northern Region'
-    | 'Pamir & Badakhshan'
-    | 'Multiple Regions'
-    | 'Southern Plains';
+export type TourRegion = string;
 
 export interface TourFormValues {
     listingType: TourListingType;
@@ -35,79 +28,70 @@ export interface TourFormValues {
     highlightsText: string;
     keyDestinationsText: string;
     includedServicesText: string;
-    nextDepartureDate: string;
-    nextDepartureStatus: DepartureStatus;
-    estimatedStartingPrice: string;
     priceEstimate: string;
     idealFor: string;
     isPopular: boolean;
     status: TourFormStatus;
 }
 
-export const tourRegionOptions: readonly TourRegion[] = [
-    'Central Highlands',
-    'Eastern & Capital',
-    'Western Silk Road',
-    'Northern Region',
-    'Pamir & Badakhshan',
-    'Multiple Regions',
-    'Southern Plains',
-] as const;
+export const emptyTourFilterOptions: TourFilterFieldOptions = {
+    regions: [],
+    travelStyles: [],
+    difficulties: [],
+};
 
-export const tourTravelStyleOptions: readonly TourTravelStyle[] = [
-    'Cultural & Heritage',
-    'Adventure & Trekking',
-    'Photography Focus',
-    'Silk Road History',
-    'Small Group Expedition',
-] as const;
+export function firstTourFilterOption(
+    options: readonly string[],
+    preferred?: string,
+): string {
+    if (preferred && options.includes(preferred)) {
+        return preferred;
+    }
 
-export const tourDifficultyOptions: readonly TourDifficulty[] = [
-    'Easy',
-    'Moderate',
-    'Demanding',
-    'Expedition',
-] as const;
+    return options[0] ?? preferred ?? '';
+}
 
-export const departureStatusOptions: readonly DepartureStatus[] = [
-    'Guaranteed',
-    'Limited Availability',
-    'Open for Inquiries',
-    'Almost Full',
-    'On Request',
-] as const;
+export function withCurrentTourFilterOption(
+    options: readonly string[],
+    current: string,
+): string[] {
+    if (current && !options.includes(current)) {
+        return [current, ...options];
+    }
 
-export const tourListingTypeOptions: readonly { value: TourListingType; label: string }[] = [
-    { value: 'tour', label: 'Tour itinerary' },
-    { value: 'package', label: 'Travel package' },
-] as const;
+    return [...options];
+}
 
-export function createEmptyTourFormValues(): TourFormValues {
+export function createEmptyTourFormValues(
+    options: TourFilterFieldOptions = emptyTourFilterOptions,
+): TourFormValues {
     return {
         listingType: 'tour',
         title: '',
         tagline: '',
         summary: '',
         destination: '',
-        region: 'Central Highlands',
+        region: firstTourFilterOption(options.regions, 'Central Highlands'),
         durationDays: 7,
-        travelStyle: 'Cultural & Heritage',
-        difficulty: 'Moderate',
+        travelStyle: firstTourFilterOption(options.travelStyles, 'Cultural & Heritage'),
+        difficulty: firstTourFilterOption(options.difficulties, 'Moderate'),
         badge: '',
         image: '',
         content: '',
         highlightsText: '',
         keyDestinationsText: '',
         includedServicesText: '',
-        nextDepartureDate: 'On request',
-        nextDepartureStatus: 'Open for Inquiries',
-        estimatedStartingPrice: 'Custom inquiry basis',
         priceEstimate: 'Custom quotation',
         idealFor: '',
         isPopular: false,
         status: 'Draft',
     };
 }
+
+export const tourListingTypeOptions: readonly { value: TourListingType; label: string }[] = [
+    { value: 'tour', label: 'Tour itinerary' },
+    { value: 'package', label: 'Travel package' },
+] as const;
 
 export function slugifyTourTitle(value: string): string {
     return value
@@ -199,10 +183,7 @@ export function tourToFormValues(tour: Tour, status: TourFormStatus): TourFormVa
         highlightsText: linesToFormText(tour.highlights),
         keyDestinationsText: '',
         includedServicesText: linesToFormText(tour.inclusions),
-        nextDepartureDate: asFormText(tour.nextDeparture?.date) || 'On request',
-        nextDepartureStatus: tour.nextDeparture?.status ?? 'Open for Inquiries',
-        estimatedStartingPrice: asFormText(tour.estimatedStartingPrice) || 'Custom inquiry basis',
-        priceEstimate: asFormText(tour.estimatedStartingPrice) || 'Custom inquiry basis',
+        priceEstimate: '',
         idealFor: `${asFormText(tour.groupSize)} · ${asFormText(tour.difficulty)}`.trim(),
         isPopular: false,
         status,
@@ -229,9 +210,6 @@ export function packageToFormValues(
         highlightsText: linesToFormText(pkg.featuredPerks),
         keyDestinationsText: linesToFormText(pkg.keyDestinations),
         includedServicesText: linesToFormText(pkg.includedServices),
-        nextDepartureDate: 'On request',
-        nextDepartureStatus: 'Open for Inquiries',
-        estimatedStartingPrice: asFormText(pkg.priceEstimate),
         priceEstimate: asFormText(pkg.priceEstimate),
         idealFor: asFormText(pkg.idealFor),
         isPopular: pkg.isPopular ?? false,
@@ -310,9 +288,6 @@ export function buildTourFormData({ values, coverImage }: TourFormSubmitPayload)
     formData.append('highlights_text', values.highlightsText);
     formData.append('key_destinations_text', values.keyDestinationsText);
     formData.append('included_services_text', values.includedServicesText);
-    formData.append('next_departure_date', values.nextDepartureDate);
-    formData.append('next_departure_status', values.nextDepartureStatus);
-    formData.append('estimated_starting_price', values.estimatedStartingPrice);
     formData.append('price_estimate', values.priceEstimate);
     formData.append('ideal_for', values.idealFor);
     formData.append('is_popular', values.isPopular ? '1' : '0');

@@ -1,4 +1,5 @@
 import type { SiteSettings } from '@/components/public/brand';
+import type { CustomBookingSuccess } from '@/types/customBooking';
 
 export type TextDirection = 'ltr' | 'rtl';
 
@@ -27,6 +28,8 @@ export interface AdminFeed {
 export interface SharedPageProps {
     locale: string;
     direction: TextDirection;
+    locales: Record<string, { label: string; native: string }>;
+    translations: import('@/hooks/use-translations').TranslationTree;
     appName: string;
     appUrl: string;
     siteSettings: SiteSettings;
@@ -35,6 +38,8 @@ export interface SharedPageProps {
     };
     flash: {
         success: string | null;
+        error: string | null;
+        customBookingSuccess: CustomBookingSuccess | null;
     };
     adminFeed?: AdminFeed | null;
 }

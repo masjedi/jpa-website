@@ -2,9 +2,12 @@ import { useForm } from '@inertiajs/react';
 import { Mail } from 'lucide-react';
 import { type FormEvent, useId, useState } from 'react';
 
+import { useTranslations } from '@/hooks/use-translations';
+
 export function FooterNewsletter() {
     const emailId = useId();
     const [submitted, setSubmitted] = useState(false);
+    const { t } = useTranslations();
     const { data, setData, post, processing, errors, clearErrors } = useForm({
         email: '',
         source: 'footer',
@@ -41,10 +44,10 @@ export function FooterNewsletter() {
                         id="footer-newsletter-heading"
                         className="font-heading text-base font-semibold text-foreground sm:text-lg"
                     >
-                        Travel notes & inspiration
+                        {t('footer.newsletterTitle')}
                     </h2>
                     <p className="mt-1 max-w-md text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                        Occasional updates on itineraries, seasonal highlights and practical advice.
+                        {t('footer.newsletterDescription')}
                     </p>
                 </div>
             </div>
@@ -54,8 +57,7 @@ export function FooterNewsletter() {
                     role="status"
                     className="w-full shrink-0 rounded-full border border-border bg-background px-4 py-2.5 text-center text-sm text-foreground sm:max-w-sm sm:text-start"
                 >
-                    Thank you. We&apos;ll send travel notes when new guides and updates are
-                    published.
+                    {t('footer.newsletterSuccess')}
                 </p>
             ) : (
                 <form
@@ -65,7 +67,7 @@ export function FooterNewsletter() {
                 >
                     <div className="flex w-full flex-1 flex-col gap-1">
                         <label htmlFor={emailId} className="sr-only">
-                            Email address
+                            {t('footer.emailAddress')}
                         </label>
                         <input
                             id={emailId}
@@ -73,7 +75,7 @@ export function FooterNewsletter() {
                             name="email"
                             value={data.email}
                             onChange={(event) => setData('email', event.target.value)}
-                            placeholder="you@example.com"
+                            placeholder={t('footer.emailPlaceholder')}
                             required
                             minLength={5}
                             maxLength={255}
@@ -97,7 +99,7 @@ export function FooterNewsletter() {
                         disabled={processing}
                         className="inline-flex shrink-0 items-center justify-center rounded-full bg-secondary px-5 py-2.5 text-sm font-medium text-secondary-foreground transition-colors hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
                     >
-                        {processing ? 'Subscribing…' : 'Subscribe'}
+                        {processing ? t('footer.subscribing') : t('footer.subscribe')}
                     </button>
                 </form>
             )}

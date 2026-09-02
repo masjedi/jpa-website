@@ -1,20 +1,8 @@
-export type TourDifficulty = 'Easy' | 'Moderate' | 'Demanding' | 'Expedition';
+export type TourDifficulty = string;
 
-export type TourTravelStyle =
-    | 'Cultural & Heritage'
-    | 'Adventure & Trekking'
-    | 'Photography Focus'
-    | 'Silk Road History'
-    | 'Small Group Expedition';
+export type TourTravelStyle = string;
 
 export type TourSeason = 'Spring' | 'Summer' | 'Autumn' | 'Winter' | 'Year-round';
-
-export type DepartureStatus =
-    | 'Guaranteed'
-    | 'Limited Availability'
-    | 'Open for Inquiries'
-    | 'Almost Full'
-    | 'On Request';
 
 export interface TourItineraryDay {
     day: string;
@@ -42,11 +30,6 @@ export interface Tour {
     highlights: readonly string[];
     itineraryOverview: readonly TourItineraryDay[];
     inclusions: readonly string[];
-    estimatedStartingPrice: string;
-    nextDeparture: {
-        date: string;
-        status: DepartureStatus;
-    };
 }
 
 export interface TourPackage {

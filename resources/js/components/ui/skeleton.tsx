@@ -55,42 +55,6 @@ export function SkeletonCard({ className }: { className?: string }) {
     );
 }
 
-export function SkeletonTableRow({ columns = 5 }: { columns?: number }) {
-    return (
-        <div className="flex items-center gap-4 border-b border-border px-4 py-3" aria-hidden>
-            {Array.from({ length: columns }, (_, index) => (
-                <Skeleton
-                    key={index}
-                    className={cn('h-4', index === 0 ? 'w-32 flex-1' : 'w-20')}
-                />
-            ))}
-        </div>
-    );
-}
-
-export function SkeletonTable({ rows = 5, columns = 5 }: { rows?: number; columns?: number }) {
-    return (
-        <div className="overflow-hidden rounded-xl border border-border bg-surface" aria-hidden>
-            <div className="border-b border-border bg-surface-muted/40 px-4 py-3">
-                <Skeleton className="h-4 w-40" />
-            </div>
-            {Array.from({ length: rows }, (_, index) => (
-                <SkeletonTableRow key={index} columns={columns} />
-            ))}
-        </div>
-    );
-}
-
-export function SkeletonHero({ className }: { className?: string }) {
-    return (
-        <div className={cn('space-y-4', className)} aria-busy="true" aria-label="Loading content">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-10 w-2/3 max-w-lg" />
-            <SkeletonText lines={2} className="max-w-xl" />
-        </div>
-    );
-}
-
 export function SkeletonDomeGallery() {
     return (
         <div

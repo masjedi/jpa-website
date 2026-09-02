@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Info, Plus } from 'lucide-react';
 import { useState } from 'react';
 
@@ -177,8 +177,6 @@ export default function About({
 
     return (
         <>
-            <Head title="About page" />
-
             <div className="space-y-4">
                 {flash.success ? (
                     <div

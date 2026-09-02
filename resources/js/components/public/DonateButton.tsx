@@ -3,6 +3,7 @@ import { HandHeart } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 
 import { donateHref } from '@/components/public/navigation';
+import { useTranslations } from '@/hooks/use-translations';
 import { cn } from '@/lib/utils';
 
 interface DonateButtonProps {
@@ -15,6 +16,7 @@ export function DonateButton({
     className,
 }: DonateButtonProps) {
     const reducedMotion = useReducedMotion();
+    const { t } = useTranslations();
 
     return (
         <Link
@@ -47,7 +49,7 @@ export function DonateButton({
             >
                 <HandHeart className="size-4" />
             </motion.span>
-            <span>Donate</span>
+            <span>{t('buttons.donate')}</span>
             <motion.span
                 aria-hidden
                 className={cn(

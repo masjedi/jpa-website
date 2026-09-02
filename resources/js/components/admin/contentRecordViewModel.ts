@@ -10,6 +10,7 @@ export interface ContentRecordViewMetaField {
     id: string;
     label: string;
     value: string;
+    span?: 1 | 2;
 }
 
 export interface ContentRecordRelatedItem {
@@ -36,6 +37,7 @@ export interface ContentRecordViewModel {
     cardCtaLabel?: string;
     showCardPreview?: boolean;
     showContentSection?: boolean;
+    layout?: 'preview' | 'compact';
 }
 
 export const contentRecordStatusStyles: Record<ContentRecordStatus, string> = {

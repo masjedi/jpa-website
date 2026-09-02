@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Globe, Palette, Settings as SettingsIcon, Shield } from 'lucide-react';
 import { useState } from 'react';
 
@@ -51,8 +51,6 @@ export default function Settings({ settings, logoSpec }: SettingsPageProps) {
 
     return (
         <>
-            <Head title="Settings" />
-
             <div className="space-y-4">
                 {flash.success ? (
                     <div

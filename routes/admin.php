@@ -4,14 +4,19 @@ use App\Http\Controllers\Admin\AboutPageController as AdminAboutPageController;
 use App\Http\Controllers\Admin\AdminFeedController;
 use App\Http\Controllers\Admin\ArticlesController;
 use App\Http\Controllers\Admin\Auth\LoginController;
+use App\Http\Controllers\Admin\CustomBookingsController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DestinationsController;
+use App\Http\Controllers\Admin\EmergencyContactsController;
 use App\Http\Controllers\Admin\FaqController;
+use App\Http\Controllers\Admin\FilterPlacementController;
 use App\Http\Controllers\Admin\GalleryController as AdminGalleryController;
 use App\Http\Controllers\Admin\HeroSectionController;
+use App\Http\Controllers\Admin\HomeFinderController;
 use App\Http\Controllers\Admin\InquiriesController;
 use App\Http\Controllers\Admin\InvoicesController;
 use App\Http\Controllers\Admin\ProtectedMediaController;
+use App\Http\Controllers\Admin\ServicesController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SubscriptionsController;
 use App\Http\Controllers\Admin\TeamsController;
@@ -28,7 +33,9 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
 
     Route::middleware('guest')->group(function (): void {
         Route::get('login', [LoginController::class, 'create'])->name('login');
-        Route::post('login', [LoginController::class, 'store'])->name('login.store');
+        Route::post('login', [LoginController::class, 'store'])
+            ->middleware('throttle:5,1')
+            ->name('login.store');
     });
 
     Route::middleware('auth')->group(function (): void {
@@ -58,6 +65,19 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         Route::post('faq', [FaqController::class, 'store'])->name('faq.store');
         Route::patch('faq/{faqItem}', [FaqController::class, 'update'])->name('faq.update');
         Route::delete('faq/{faqItem}', [FaqController::class, 'destroy'])->name('faq.destroy');
+        Route::get('services', [ServicesController::class, 'index'])->name('services.index');
+        Route::post('services', [ServicesController::class, 'store'])->name('services.store');
+        Route::patch('services/{serviceOffering}', [ServicesController::class, 'update'])->name('services.update');
+        Route::delete('services/{serviceOffering}', [ServicesController::class, 'destroy'])->name('services.destroy');
+        Route::get('filter-placement', [FilterPlacementController::class, 'index'])->name('filter-placement.index');
+        Route::post('filter-placement', [FilterPlacementController::class, 'store'])->name('filter-placement.store');
+        Route::patch('filter-placement/{tourFilterOption}', [FilterPlacementController::class, 'update'])->name('filter-placement.update');
+        Route::delete('filter-placement/{tourFilterOption}', [FilterPlacementController::class, 'destroy'])->name('filter-placement.destroy');
+        Route::get('home-finder', [HomeFinderController::class, 'index'])->name('home-finder.index');
+        Route::get('emergency-contacts', [EmergencyContactsController::class, 'index'])->name('emergency-contacts.index');
+        Route::post('emergency-contacts', [EmergencyContactsController::class, 'store'])->name('emergency-contacts.store');
+        Route::patch('emergency-contacts/{emergencyContact}', [EmergencyContactsController::class, 'update'])->name('emergency-contacts.update');
+        Route::patch('emergency-contacts/{emergencyContact}/deactivate', [EmergencyContactsController::class, 'deactivate'])->name('emergency-contacts.deactivate');
         Route::get('about', [AdminAboutPageController::class, 'index'])->name('about.index');
         Route::patch('about', [AdminAboutPageController::class, 'update'])->name('about.update');
         Route::post('about/journey-steps', [AdminAboutPageController::class, 'storeJourneyStep'])->name('about.journey-steps.store');
@@ -81,6 +101,13 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         Route::post('invoices', [InvoicesController::class, 'store'])->name('invoices.store');
         Route::patch('invoices/{invoice}', [InvoicesController::class, 'update'])->name('invoices.update');
         Route::delete('invoices/{invoice}', [InvoicesController::class, 'destroy'])->name('invoices.destroy');
+        Route::get('bookings', [CustomBookingsController::class, 'index'])->name('bookings.index');
+        Route::get('bookings/{customBooking}', [CustomBookingsController::class, 'show'])->name('bookings.show');
+        Route::patch('bookings/{customBooking}/status', [CustomBookingsController::class, 'updateStatus'])->name('bookings.status');
+        Route::post('bookings/{customBooking}/attachments', [CustomBookingsController::class, 'storeAttachments'])->name('bookings.attachments.store');
+        Route::get('bookings/{customBooking}/attachments/{customBookingAttachment}/download', [CustomBookingsController::class, 'downloadAttachment'])->name('bookings.attachments.download');
+        Route::delete('bookings/{customBooking}/attachments/{customBookingAttachment}', [CustomBookingsController::class, 'destroyAttachment'])->name('bookings.attachments.destroy');
+        Route::delete('bookings/{customBooking}', [CustomBookingsController::class, 'destroy'])->name('bookings.destroy');
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::patch('settings', [SettingsController::class, 'update'])->name('settings.update');
         Route::get('media/{profile}/{id}', [ProtectedMediaController::class, 'show'])

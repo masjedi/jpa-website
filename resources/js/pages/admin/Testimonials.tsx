@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { MessageSquareQuote, Plus, Star } from 'lucide-react';
 import { useState } from 'react';
 
@@ -174,8 +174,6 @@ export default function Testimonials({ testimonials }: TestimonialsPageProps) {
 
     return (
         <>
-            <Head title="Testimonials" />
-
             <div className="space-y-4">
                 {flash.success ? (
                     <div

@@ -16,16 +16,17 @@ import { FadeInOnMount } from '@/components/motion/FadeIn';
 import { ContactOfficeMap } from '@/components/sections/contact/ContactOfficeMap';
 import { BorderGlow } from '@/components/react-bits/BorderGlow/BorderGlow';
 import { useSiteSettings } from '@/hooks/use-site-settings';
+import { useTranslations } from '@/hooks/use-translations';
 import { cn } from '@/lib/utils';
 
-const topics = [
-    'General question',
-    'Plan a custom trip',
-    'Join a group tour',
-    'Press & partnerships',
+const contactTopics = [
+    { value: 'General question', labelKey: 'contact.topicGeneral' },
+    { value: 'Plan a custom trip', labelKey: 'contact.topicCustomTrip' },
+    { value: 'Join a group tour', labelKey: 'contact.topicGroupTour' },
+    { value: 'Press & partnerships', labelKey: 'contact.topicPress' },
 ] as const;
 
-type Topic = (typeof topics)[number];
+type Topic = (typeof contactTopics)[number]['value'];
 
 const fieldClass =
     'peer w-full border-0 border-b border-border/80 bg-transparent py-3.5 text-sm text-foreground placeholder-transparent transition-colors focus:border-secondary focus:outline-none [&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_var(--surface)] [&:-webkit-autofill]:[-webkit-text-fill-color:var(--foreground)] [&:-webkit-autofill:hover]:shadow-[inset_0_0_0_1000px_var(--surface)] [&:-webkit-autofill:focus]:shadow-[inset_0_0_0_1000px_var(--surface)]';
@@ -36,6 +37,7 @@ const labelClass =
 export function ContactStudio() {
     const reducedMotion = useReducedMotion();
     const settings = useSiteSettings();
+    const { t } = useTranslations();
     const [submitted, setSubmitted] = useState(false);
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         name: '',
@@ -47,19 +49,20 @@ export function ContactStudio() {
     const channels = [
         {
             icon: Mail,
-            label: 'Email',
+            label: t('contact.email'),
             value: settings.contactEmail,
             href: settings.contactEmailHref,
         },
         {
             icon: Phone,
-            label: 'WhatsApp',
+            label: t('contact.whatsapp'),
             value: settings.whatsappDisplay,
             href: settings.whatsappHref,
+            ltrValue: true,
         },
         {
             icon: MapPin,
-            label: 'Location',
+            label: t('contact.location'),
             value: settings.officeLocation,
             href: settings.officeMapsHref,
             external: true,
@@ -117,35 +120,34 @@ export function ContactStudio() {
                             <aside className="flex flex-col justify-between bg-brand-surface p-8 text-brand-on-surface sm:p-10 lg:col-span-2">
                                 <div className="text-start">
                                     <nav
-                                        aria-label="Breadcrumb"
+                                        aria-label={t('common.breadcrumb')}
                                         className="flex items-center gap-2 text-xs font-medium text-brand-on-surface/60"
                                     >
                                         <Link
                                             href="/"
                                             className="transition-colors hover:text-brand-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                         >
-                                            Home
+                                            {t('common.home')}
                                         </Link>
                                         <ChevronRight className="size-3.5 opacity-50" aria-hidden />
                                         <span className="text-brand-on-surface" aria-current="page">
-                                            Contact
+                                            {t('nav.contact')}
                                         </span>
                                     </nav>
 
                                     <p className="mt-8 text-xs font-semibold uppercase tracking-[0.16em] text-brand-on-surface/55">
-                                        Get in touch
+                                        {t('contact.eyebrow')}
                                     </p>
                                     <h1 className="font-heading mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-                                        Plan your journey with us
+                                        {t('contact.title')}
                                     </h1>
                                     <p className="mt-4 text-sm leading-relaxed text-brand-on-surface/70">
-                                        Every message is reviewed personally. Submitting a form
-                                        does not reserve a seat or confirm a trip.
+                                        {t('contact.intro')}
                                     </p>
 
                                     <div className="mt-8 inline-flex items-center gap-2 rounded-full border border-brand-on-surface/15 bg-brand-on-surface/5 px-3.5 py-1.5 text-xs text-brand-on-surface/75">
                                         <Clock className="size-3.5 text-accent" aria-hidden />
-                                        Typical reply within 24–48 hours
+                                        {t('contact.replyTime')}
                                     </div>
                                 </div>
 
@@ -166,7 +168,19 @@ export function ContactStudio() {
                                                 <span className="block text-[11px] font-semibold uppercase tracking-wider text-brand-on-surface/55">
                                                     {channel.label}
                                                 </span>
-                                                <span className="mt-0.5 block truncate text-sm text-brand-on-surface">
+                                                <span
+                                                    className={cn(
+                                                        'mt-0.5 block truncate text-sm text-brand-on-surface',
+                                                        'ltrValue' in channel &&
+                                                            channel.ltrValue &&
+                                                            'text-left',
+                                                    )}
+                                                    dir={
+                                                        'ltrValue' in channel && channel.ltrValue
+                                                            ? 'ltr'
+                                                            : undefined
+                                                    }
+                                                >
                                                     {channel.value}
                                                 </span>
                                             </span>
@@ -203,11 +217,10 @@ export function ContactStudio() {
                                                 <Check className="size-7" aria-hidden />
                                             </div>
                                             <h2 className="font-heading mt-6 text-2xl font-semibold text-foreground">
-                                                Message sent
+                                                {t('contact.messageSent')}
                                             </h2>
                                             <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                                                Thank you for reaching out. We&apos;ll
-                                                be in touch shortly.
+                                                {t('contact.successMessage')}
                                             </p>
                                         </motion.div>
                                     ) : (
@@ -228,7 +241,7 @@ export function ContactStudio() {
                                             className="text-start"
                                         >
                                             <h2 className="font-heading text-xl font-semibold text-foreground">
-                                                Send a message
+                                                {t('contact.formTitle')}
                                             </h2>
 
                                             <form
@@ -258,7 +271,7 @@ export function ContactStudio() {
                                                             htmlFor="contact-name"
                                                             className={labelClass}
                                                         >
-                                                            Your name
+                                                            {t('contact.yourName')}
                                                         </label>
                                                         {errors.name ? (
                                                             <p className="mt-1 text-xs text-destructive" role="alert">
@@ -287,7 +300,7 @@ export function ContactStudio() {
                                                             htmlFor="contact-email"
                                                             className={labelClass}
                                                         >
-                                                            Email address
+                                                            {t('contact.emailAddress')}
                                                         </label>
                                                         {errors.email ? (
                                                             <p className="mt-1 text-xs text-destructive" role="alert">
@@ -299,24 +312,24 @@ export function ContactStudio() {
 
                                                 <fieldset>
                                                     <legend className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                                        Topic
+                                                        {t('common.topic')}
                                                     </legend>
                                                     <div className="mt-3 flex flex-wrap gap-2">
-                                                        {topics.map((item) => (
+                                                        {contactTopics.map((item) => (
                                                             <button
-                                                                key={item}
+                                                                key={item.value}
                                                                 type="button"
                                                                 onClick={() =>
-                                                                    setData('topic', item)
+                                                                    setData('topic', item.value)
                                                                 }
                                                                 className={cn(
                                                                     'rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
-                                                                    data.topic === item
+                                                                    data.topic === item.value
                                                                         ? 'bg-primary text-primary-foreground shadow-sm'
                                                                         : 'border border-border text-muted-foreground hover:border-secondary/40 hover:text-foreground',
                                                                 )}
                                                             >
-                                                                {item}
+                                                                {t(item.labelKey)}
                                                             </button>
                                                         ))}
                                                     </div>
@@ -347,7 +360,7 @@ export function ContactStudio() {
                                                         htmlFor="contact-message"
                                                         className={labelClass}
                                                     >
-                                                        How can we help?
+                                                        {t('contact.howCanWeHelp')}
                                                     </label>
                                                     {errors.message ? (
                                                         <p className="mt-1 text-xs text-destructive" role="alert">
@@ -358,9 +371,7 @@ export function ContactStudio() {
 
                                                 <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
                                                     <p className="text-xs text-muted-foreground">
-                                                        Submitting this message
-                                                        does not reserve a seat
-                                                        or confirm a trip.
+                                                        {t('contact.submitDisclaimer')}
                                                     </p>
                                                     <button
                                                         type="submit"
@@ -368,8 +379,8 @@ export function ContactStudio() {
                                                         className="group inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-accent px-7 py-3 text-sm font-semibold text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
                                                     >
                                                         {processing
-                                                            ? 'Sending…'
-                                                            : 'Send message'}
+                                                            ? t('buttons.sending')
+                                                            : t('buttons.sendMessage')}
                                                         <Send
                                                             className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                                                             aria-hidden

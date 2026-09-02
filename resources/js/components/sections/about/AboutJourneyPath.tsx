@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 
 import { FadeIn } from '@/components/motion/FadeIn';
 import { resolveAboutIcon } from '@/lib/aboutIcons';
+import { useTranslations } from '@/hooks/use-translations';
 import type { PublicAboutJourneyStep } from '@/types/aboutPage';
 import { cn } from '@/lib/utils';
 
@@ -66,6 +67,8 @@ interface AboutJourneyPathProps {
 }
 
 export function AboutJourneyPath({ steps }: AboutJourneyPathProps) {
+    const { t } = useTranslations();
+
     if (steps.length === 0) {
         return null;
     }
@@ -77,7 +80,7 @@ export function AboutJourneyPath({ steps }: AboutJourneyPathProps) {
             className="overflow-hidden bg-background pb-16 pt-4 sm:pb-20 sm:pt-8 lg:pb-24"
         >
             <h2 id="journey-path-heading" className="sr-only">
-                How our guiding work has grown
+                {t('aboutPage.journeyPathHeading')}
             </h2>
 
             <div className="relative isolate mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">

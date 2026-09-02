@@ -3,6 +3,7 @@ import { CheckCircle2, Send, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 
 import type { InquiryFormData } from '@/types/tours';
+import { useTranslations } from '@/hooks/use-translations';
 
 const labelClass = 'block text-sm font-medium text-foreground';
 const fieldClass =
@@ -32,6 +33,7 @@ export function TourInquiryModal({
     const [submitted, setSubmitted] = useState(false);
     const [submittedName, setSubmittedName] = useState('');
     const [submittedTour, setSubmittedTour] = useState('');
+    const { t } = useTranslations();
 
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         tourTitle: '',
@@ -127,13 +129,13 @@ export function TourInquiryModal({
                         id={titleId}
                         className="font-heading text-xl font-semibold text-foreground sm:text-2xl"
                     >
-                        {submitted ? 'Inquiry received' : 'Request this tour'}
+                        {submitted ? t('tours.inquiryReceived') : t('tours.requestThisTour')}
                     </h2>
                     <button
                         type="button"
                         onClick={onClose}
                         className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                        aria-label="Close dialog"
+                        aria-label={t('buttons.close')}
                     >
                         <X className="size-5" />
                     </button>
@@ -340,7 +342,7 @@ export function TourInquiryModal({
                                     className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
                                 >
                                     <Send className="size-4" aria-hidden />
-                                    {processing ? 'Sending…' : 'Send inquiry'}
+                                    {processing ? t('buttons.sending') : t('buttons.sendInquiryShort')}
                                 </button>
                             </div>
                         </form>

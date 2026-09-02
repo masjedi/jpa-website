@@ -2,10 +2,14 @@ import { Link, usePage } from '@inertiajs/react';
 import { ChevronDown, Menu, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 
-import { planTripHref, primaryLinks, isNavDropdown, type PrimaryNavItem, type PublicNavLink } from '@/components/public/navigation';
+import { BookNowChoiceDialog } from '@/components/public/BookNowChoiceDialog';
+import { LanguageSwitcher } from '@/components/public/LanguageSwitcher';
+import { isNavDropdown, type PrimaryNavItem, type PublicNavLink } from '@/components/public/navigation';
 import { BrandLogo, brandLogoVariantForTheme } from '@/components/public/BrandLogo';
 import { ThemeToggle } from '@/components/public/ThemeToggle';
 import { useAppearance } from '@/hooks/use-appearance';
+import { usePublicNavigation } from '@/hooks/use-public-navigation';
+import { useTranslations } from '@/hooks/use-translations';
 import { cn } from '@/lib/utils';
 
 interface NavbarProps {
@@ -259,7 +263,10 @@ export function Navbar({ transparent = false }: NavbarProps) {
     const menuId = useId();
     const { url } = usePage();
     const { resolved } = useAppearance();
+    const { t } = useTranslations();
+    const { primaryLinks } = usePublicNavigation();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [bookNowOpen, setBookNowOpen] = useState(false);
     const [currentHash, setCurrentHash] = useState(() =>
         typeof window === 'undefined' ? '' : window.location.hash,
     );
@@ -361,6 +368,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
           : 'border-border/70 bg-surface/95 text-foreground shadow-[0_12px_40px_rgba(22,59,92,0.08)]';
 
     return (
+        <>
         <header className="pointer-events-none fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-6 lg:px-8">
             <div className="pointer-events-auto mx-auto max-w-7xl">
                 <div
@@ -375,7 +383,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
                         imageClassName="max-w-[10.5rem] sm:max-w-[12.5rem] lg:max-w-[14rem]"
                     />
 
-                    <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 xl:flex" aria-label="Primary">
+                    <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 xl:flex" aria-label={t('nav.primary')}>
                         {primaryLinks.map((item) => (
                             <PrimaryNavItem
                                 key={isNavDropdown(item) ? item.label : item.href}
@@ -387,19 +395,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
                     </nav>
 
                     <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-                        {/* Language selector hidden until multilingual navigation is ready.
-                        <span
-                            className={cn(
-                                'hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium lg:inline-flex',
-                                overlayHeader
-                                    ? 'text-brand-on-surface/90'
-                                    : 'text-foreground/90',
-                            )}
-                            aria-label="Language: English. Additional languages coming soon."
-                        >
-                            <Globe className="size-4" aria-hidden />
-                            <span>English</span>
-                        </span>
+                        <LanguageSwitcher glass={overlayHeader} />
 
                         <div
                             className={cn(
@@ -408,16 +404,16 @@ export function Navbar({ transparent = false }: NavbarProps) {
                             )}
                             aria-hidden
                         />
-                        */}
 
                         <ThemeToggle glass={overlayHeader} />
 
-                        <Link
-                            href={planTripHref}
+                        <button
+                            type="button"
+                            onClick={() => setBookNowOpen(true)}
                             className="hidden rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:inline-flex"
                         >
-                            Book Now
-                        </Link>
+                            {t('buttons.bookNow')}
+                        </button>
 
                         <button
                             type="button"
@@ -427,7 +423,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
                                     ? 'text-brand-on-surface hover:bg-white/10'
                                     : 'text-foreground hover:bg-foreground/5',
                             )}
-                            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                            aria-label={mobileOpen ? t('common.closeMenu') : t('common.openMenu')}
                             aria-expanded={mobileOpen}
                             aria-controls={menuId}
                             onClick={() => setMobileOpen((open) => !open)}
@@ -450,7 +446,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
                                   ? 'border-white/10 bg-surface/95'
                                   : 'border-border/70 bg-surface/95',
                         )}
-                        aria-label="Mobile primary"
+                        aria-label={t('nav.mobilePrimary')}
                     >
                         <div className="mb-3 flex justify-center border-b border-border/60 pb-4 dark:border-white/10">
                             <BrandLogo
@@ -478,22 +474,36 @@ export function Navbar({ transparent = false }: NavbarProps) {
                                     overlayHeader ? 'text-brand-on-surface' : 'text-foreground',
                                 )}
                             >
-                                <span className="text-sm font-medium">Theme</span>
+                                <span className="text-sm font-medium">{t('common.theme')}</span>
                                 <ThemeToggle glass={overlayHeader} />
                             </li>
+                            <li
+                                className={cn(
+                                    'flex items-center justify-between rounded-full px-3.5 py-2',
+                                    overlayHeader ? 'text-brand-on-surface' : 'text-foreground',
+                                )}
+                            >
+                                <span className="text-sm font-medium">{t('language.label')}</span>
+                                <LanguageSwitcher glass={overlayHeader} />
+                            </li>
                             <li className="pt-1">
-                                <Link
-                                    href={planTripHref}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setMobileOpen(false);
+                                        setBookNowOpen(true);
+                                    }}
                                     className="inline-flex w-full justify-center rounded-full bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                                    onClick={() => setMobileOpen(false)}
                                 >
-                                    Book Now
-                                </Link>
+                                    {t('buttons.bookNow')}
+                                </button>
                             </li>
                         </ul>
                     </nav>
                 ) : null}
             </div>
         </header>
+            <BookNowChoiceDialog isOpen={bookNowOpen} onClose={() => setBookNowOpen(false)} />
+        </>
     );
 }

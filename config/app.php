@@ -86,6 +86,12 @@ return [
 
     'rtl_locales' => ['fa', 'fa_AF', 'ps', 'ps_AF', 'ar'],
 
+    'supported_locales' => [
+        'en' => ['label' => 'English', 'native' => 'English'],
+        'fa' => ['label' => 'Dari', 'native' => 'دری'],
+        'ps' => ['label' => 'Pashto', 'native' => 'پښتو'],
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Encryption Key

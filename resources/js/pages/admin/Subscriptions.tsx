@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Mail } from 'lucide-react';
 
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
@@ -66,8 +66,6 @@ export default function Subscriptions() {
 
     return (
         <>
-            <Head title="Subscriptions" />
-
             <div className="space-y-4">
                 {flash.success ? (
                     <div

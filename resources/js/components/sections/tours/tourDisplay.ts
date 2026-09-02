@@ -1,5 +1,3 @@
-import type { DepartureStatus } from '@/types/tours';
-
 export function formatShortDuration(
     durationDays: number,
     durationLabel?: string,
@@ -18,21 +16,4 @@ export function formatShortDuration(
     }
 
     return 'Flexible';
-}
-
-export function shortDepartureStatus(status: DepartureStatus): string {
-    switch (status) {
-        case 'Guaranteed':
-            return 'Guaranteed';
-        case 'Limited Availability':
-            return 'Limited';
-        case 'Almost Full':
-            return 'Almost full';
-        case 'Open for Inquiries':
-            return 'Open';
-        case 'On Request':
-            return 'On request';
-        default:
-            return status;
-    }
 }

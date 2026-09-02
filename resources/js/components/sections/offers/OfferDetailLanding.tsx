@@ -14,14 +14,14 @@ export function OfferDetailLanding({ offer }: OfferDetailLandingProps) {
     const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
     const [inquiryInitialData, setInquiryInitialData] = useState<InquiryFormData>({
         tourTitle: offer.title,
-        preferredDate: offer.inquiryPreferredDate ?? '',
+        preferredDate: '',
         travelerCount: '2',
     });
 
     const handleRequest = () => {
         setInquiryInitialData({
             tourTitle: offer.title,
-            preferredDate: offer.inquiryPreferredDate ?? '',
+            preferredDate: '',
             travelerCount: '2',
         });
         setInquiryModalOpen(true);

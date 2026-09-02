@@ -66,17 +66,11 @@ final class TourAttributes
             'key_destinations' => null,
             'included_services' => null,
             'journey_outline' => null,
-            'estimated_starting_price' => filled($validated['estimated_starting_price'] ?? null)
-                ? (string) $validated['estimated_starting_price']
-                : 'Custom inquiry basis',
+            'estimated_starting_price' => null,
             'price_estimate' => null,
             'ideal_for' => null,
-            'next_departure_date' => filled($validated['next_departure_date'] ?? null)
-                ? (string) $validated['next_departure_date']
-                : 'On request',
-            'next_departure_status' => filled($validated['next_departure_status'] ?? null)
-                ? (string) $validated['next_departure_status']
-                : 'Open for Inquiries',
+            'next_departure_date' => null,
+            'next_departure_status' => null,
             'is_popular' => false,
         ]);
     }

@@ -9,6 +9,7 @@ interface ContentRecordViewDialogProps {
     model: ContentRecordViewModel | null;
     onClose: () => void;
     onEdit?: () => void;
+    size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 export function ContentRecordViewDialog({
@@ -18,16 +19,24 @@ export function ContentRecordViewDialog({
     model,
     onClose,
     onEdit,
+    size = 'xl',
 }: ContentRecordViewDialogProps) {
+    const isCompact = model?.layout === 'compact';
+
     return (
         <DataTableDialog
             open={open}
             title={title}
             description={description}
             onClose={onClose}
-            size="xl"
+            size={size}
         >
-            {open && model ? <ContentRecordView model={model} className="p-4 sm:p-5" /> : null}
+            {open && model ? (
+                <ContentRecordView
+                    model={model}
+                    className={isCompact ? 'p-3 sm:p-4' : 'p-4 sm:p-5'}
+                />
+            ) : null}
 
             <footer className="flex flex-col-reverse gap-2 border-t border-border bg-surface px-4 py-3 sm:flex-row sm:justify-end">
                 <button

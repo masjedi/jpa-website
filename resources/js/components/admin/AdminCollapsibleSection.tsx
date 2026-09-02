@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react';
-import { useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -7,6 +7,7 @@ interface AdminCollapsibleSectionProps {
     title: string;
     description?: string;
     defaultOpen?: boolean;
+    error?: boolean;
     children: ReactNode;
 }
 
@@ -14,13 +15,25 @@ export function AdminCollapsibleSection({
     title,
     description,
     defaultOpen = false,
+    error = false,
     children,
 }: AdminCollapsibleSectionProps) {
     const panelId = useId();
-    const [open, setOpen] = useState(defaultOpen);
+    const [open, setOpen] = useState(defaultOpen || error);
+
+    useEffect(() => {
+        if (error) {
+            setOpen(true);
+        }
+    }, [error]);
 
     return (
-        <div className="overflow-hidden rounded-lg border border-border bg-surface-muted/20">
+        <div
+            className={cn(
+                'overflow-hidden rounded-lg border bg-surface-muted/20',
+                error ? 'border-red-500/40' : 'border-border',
+            )}
+        >
             <button
                 type="button"
                 onClick={() => setOpen((current) => !current)}

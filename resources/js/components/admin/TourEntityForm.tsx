@@ -5,26 +5,26 @@ import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminF
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
     createEmptyTourFormValues,
-    departureStatusOptions,
-    tourDifficultyOptions,
+    emptyTourFilterOptions,
     tourListingTypeOptions,
-    tourRegionOptions,
-    tourTravelStyleOptions,
     mapServerTourFormErrors,
     type TourFormErrors,
     type TourFormSubmitPayload,
     type TourFormValues,
     validateTourFormValues,
+    withCurrentTourFilterOption,
 } from '@/components/admin/tourForm';
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { mediaProfiles } from '@/lib/mediaProfiles';
 import { LazyRichTextEditor } from '@/components/admin/LazyRichTextEditor';
 import { cn } from '@/lib/utils';
+import type { TourFilterFieldOptions } from '@/types/tourFilterOptions';
 
 interface TourEntityFormProps {
     formId: string;
     mode: 'create' | 'edit';
     initialValues?: TourFormValues;
+    filterOptions?: TourFilterFieldOptions;
     onCancel: () => void;
     onSubmit: (payload: TourFormSubmitPayload) => void | Promise<void>;
 }
@@ -110,6 +110,7 @@ export function TourEntityForm({
     formId,
     mode,
     initialValues,
+    filterOptions = emptyTourFilterOptions,
     onCancel,
     onSubmit,
 }: TourEntityFormProps) {
@@ -123,9 +124,6 @@ export function TourEntityForm({
     const travelStyleFieldId = useId();
     const difficultyFieldId = useId();
     const badgeFieldId = useId();
-    const departureDateFieldId = useId();
-    const departureStatusFieldId = useId();
-    const priceFieldId = useId();
     const packagePriceFieldId = useId();
     const idealForFieldId = useId();
     const popularFieldId = useId();
@@ -136,7 +134,7 @@ export function TourEntityForm({
     const contentFieldId = useId();
 
     const [values, setValues] = useState<TourFormValues>(
-        () => initialValues ?? createEmptyTourFormValues(),
+        () => initialValues ?? createEmptyTourFormValues(filterOptions),
     );
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(
@@ -156,6 +154,15 @@ export function TourEntityForm({
 
     const isPackage = values.listingType === 'package';
     const hasImage = Boolean(imageFile) || Boolean((values.image ?? '').trim());
+    const regionOptions = withCurrentTourFilterOption(filterOptions.regions, values.region);
+    const travelStyleOptions = withCurrentTourFilterOption(
+        filterOptions.travelStyles,
+        values.travelStyle,
+    );
+    const difficultyOptions = withCurrentTourFilterOption(
+        filterOptions.difficulties,
+        values.difficulty,
+    );
     const submitLabel =
         mode === 'edit'
             ? submitting
@@ -193,8 +200,6 @@ export function TourEntityForm({
                     highlightsText: text(values.highlightsText),
                     keyDestinationsText: text(values.keyDestinationsText),
                     includedServicesText: text(values.includedServicesText),
-                    nextDepartureDate: text(values.nextDepartureDate),
-                    estimatedStartingPrice: text(values.estimatedStartingPrice),
                     priceEstimate: text(values.priceEstimate),
                     idealFor: text(values.idealFor),
                     content: text(values.content),
@@ -429,7 +434,10 @@ export function TourEntityForm({
                                 }
                                 className={adminFieldClass}
                             >
-                                {tourRegionOptions.map((region) => (
+                                {regionOptions.length === 0 ? (
+                                    <option value="">Add regions in Filter & Placement</option>
+                                ) : null}
+                                {regionOptions.map((region) => (
                                     <option key={region} value={region}>
                                         {region}
                                     </option>
@@ -483,13 +491,18 @@ export function TourEntityForm({
                                             }))
                                         }
                                         className={adminFieldClass}
-                                    >
-                                        {tourTravelStyleOptions.map((style) => (
-                                            <option key={style} value={style}>
-                                                {style}
-                                            </option>
-                                        ))}
-                                    </select>
+                                            >
+                                                {travelStyleOptions.length === 0 ? (
+                                                    <option value="">
+                                                        Add travel styles in Filter & Placement
+                                                    </option>
+                                                ) : null}
+                                                {travelStyleOptions.map((style) => (
+                                                    <option key={style} value={style}>
+                                                        {style}
+                                                    </option>
+                                                ))}
+                                            </select>
                                 </AdminFormField>
 
                                 <AdminFormField id={difficultyFieldId} label="Difficulty" required>
@@ -505,26 +518,28 @@ export function TourEntityForm({
                                             }))
                                         }
                                         className={adminFieldClass}
-                                    >
-                                        {tourDifficultyOptions.map((difficulty) => (
-                                            <option key={difficulty} value={difficulty}>
-                                                {difficulty}
-                                            </option>
-                                        ))}
-                                    </select>
+                                            >
+                                                {difficultyOptions.length === 0 ? (
+                                                    <option value="">
+                                                        Add difficulties in Filter & Placement
+                                                    </option>
+                                                ) : null}
+                                                {difficultyOptions.map((difficulty) => (
+                                                    <option key={difficulty} value={difficulty}>
+                                                        {difficulty}
+                                                    </option>
+                                                ))}
+                                            </select>
                                 </AdminFormField>
                             </>
                         ) : null}
                     </FormGroup>
 
-                    <FormDivider />
+                    {isPackage ? (
+                        <>
+                            <FormDivider />
 
-                    <FormGroup
-                        title={isPackage ? 'Pricing & audience' : 'Departure & pricing'}
-                        columns={isPackage ? 2 : 3}
-                    >
-                        {isPackage ? (
-                            <>
+                            <FormGroup title="Pricing & audience" columns={2}>
                                 <AdminFormField
                                     id={packagePriceFieldId}
                                     label="Price estimate"
@@ -588,63 +603,9 @@ export function TourEntityForm({
                                         )}
                                     />
                                 </AdminFormField>
-                            </>
-                        ) : (
-                            <>
-                                <AdminFormField id={departureDateFieldId} label="Next departure">
-                                    <input
-                                        id={departureDateFieldId}
-                                        value={values.nextDepartureDate}
-                                        disabled={submitting}
-                                        onChange={(event) =>
-                                            setValues((current) => ({
-                                                ...current,
-                                                nextDepartureDate: event.target.value,
-                                            }))
-                                        }
-                                        className={adminFieldClass}
-                                    />
-                                </AdminFormField>
-
-                                <AdminFormField id={departureStatusFieldId} label="Departure status">
-                                    <select
-                                        id={departureStatusFieldId}
-                                        value={values.nextDepartureStatus}
-                                        disabled={submitting}
-                                        onChange={(event) =>
-                                            setValues((current) => ({
-                                                ...current,
-                                                nextDepartureStatus: event.target
-                                                    .value as TourFormValues['nextDepartureStatus'],
-                                            }))
-                                        }
-                                        className={adminFieldClass}
-                                    >
-                                        {departureStatusOptions.map((status) => (
-                                            <option key={status} value={status}>
-                                                {status}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </AdminFormField>
-
-                                <AdminFormField id={priceFieldId} label="Starting price">
-                                    <input
-                                        id={priceFieldId}
-                                        value={values.estimatedStartingPrice}
-                                        disabled={submitting}
-                                        onChange={(event) =>
-                                            setValues((current) => ({
-                                                ...current,
-                                                estimatedStartingPrice: event.target.value,
-                                            }))
-                                        }
-                                        className={adminFieldClass}
-                                    />
-                                </AdminFormField>
-                            </>
-                        )}
-                    </FormGroup>
+                            </FormGroup>
+                        </>
+                    ) : null}
 
                     <FormDivider />
 

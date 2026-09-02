@@ -1,11 +1,22 @@
 import { Check } from 'lucide-react';
 
-import { BorderGlow } from '@/components/react-bits/BorderGlow/BorderGlow';
 import { FadeIn } from '@/components/motion/FadeIn';
-import { serviceOfferings } from '@/data/servicesData';
+import { BorderGlow } from '@/components/react-bits/BorderGlow/BorderGlow';
+import { useTranslations } from '@/hooks/use-translations';
+import { resolveServiceIcon } from '@/lib/serviceIcons';
+import type { PublicServiceOffering } from '@/types/services';
 
-export function ServicesFeaturedSection() {
-    const featured = serviceOfferings.filter((service) => service.isFeatured);
+interface ServicesFeaturedSectionProps {
+    offerings: readonly PublicServiceOffering[];
+}
+
+export function ServicesFeaturedSection({ offerings }: ServicesFeaturedSectionProps) {
+    const { t } = useTranslations();
+    const featured = offerings.filter((service) => service.isFeatured);
+
+    if (featured.length === 0) {
+        return null;
+    }
 
     return (
         <section className="border-b border-border bg-background py-12 sm:py-16">
@@ -13,17 +24,17 @@ export function ServicesFeaturedSection() {
                 <FadeIn>
                     <div className="text-start">
                         <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-                            Core services
+                            {t('servicesPage.featured.eyebrow')}
                         </p>
                         <h2 className="font-heading mt-1.5 text-2xl font-semibold text-foreground sm:text-3xl">
-                            Where most journeys begin
+                            {t('servicesPage.featured.title')}
                         </h2>
                     </div>
                 </FadeIn>
 
                 <div className="mt-8 grid gap-5 lg:grid-cols-2">
                     {featured.map((service, index) => {
-                        const Icon = service.icon;
+                        const Icon = resolveServiceIcon(service.iconKey);
 
                         return (
                             <FadeIn key={service.id} delay={index * 0.06}>

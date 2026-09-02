@@ -230,9 +230,11 @@ export function OfferDetailBody({ offer, onRequest }: OfferDetailBodyProps) {
                                         <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
                                             {item.tagline}
                                         </p>
-                                        <p className="mt-auto pt-3 text-xs font-semibold text-foreground">
-                                            {item.priceLabel}
-                                        </p>
+                                        {item.priceLabel ? (
+                                            <p className="mt-auto pt-3 text-xs font-semibold text-foreground">
+                                                {item.priceLabel}
+                                            </p>
+                                        ) : null}
                                     </div>
                                 </Link>
                                 </RevealItem>

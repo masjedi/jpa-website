@@ -2,6 +2,7 @@ import { Moon, Sun } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 
 import { useAppearance } from '@/hooks/use-appearance';
+import { useTranslations } from '@/hooks/use-translations';
 import { cn } from '@/lib/utils';
 
 interface ThemeToggleProps {
@@ -10,6 +11,7 @@ interface ThemeToggleProps {
 
 export function ThemeToggle({ glass = false }: ThemeToggleProps) {
     const { resolved, toggleAppearance } = useAppearance();
+    const { t } = useTranslations();
     const prefersReducedMotion = useReducedMotion();
     const isDark = resolved === 'dark';
 
@@ -26,7 +28,7 @@ export function ThemeToggle({ glass = false }: ThemeToggleProps) {
                     ? 'text-brand-on-surface hover:bg-white/10'
                     : 'text-foreground hover:bg-foreground/5',
             )}
-            aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+            aria-label={isDark ? t('common.switchToLightTheme') : t('common.switchToDarkTheme')}
         >
             <AnimatePresence mode="wait" initial={false}>
                 <motion.span

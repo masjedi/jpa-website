@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react';
 
 import { useSiteSettings } from '@/hooks/use-site-settings';
+import { useTranslations } from '@/hooks/use-translations';
 
 function WhatsAppMark({ className }: { className?: string }) {
     return (
@@ -18,13 +19,14 @@ function WhatsAppMark({ className }: { className?: string }) {
 export function WhatsAppFloat() {
     const reducedMotion = useReducedMotion();
     const { whatsappDisplay, whatsappHref } = useSiteSettings();
+    const { t } = useTranslations();
 
     return (
         <a
             href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Chat on WhatsApp at ${whatsappDisplay}`}
+            aria-label={t('whatsapp.chat', { number: whatsappDisplay })}
             className="fixed end-4 bottom-4 z-40 flex size-14 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-[0_10px_28px_rgba(14,115,115,0.38)] transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:end-6 sm:bottom-6 sm:size-16"
         >
             {!reducedMotion ? (

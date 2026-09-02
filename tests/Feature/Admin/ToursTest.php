@@ -6,6 +6,7 @@ use App\Enums\TourListingStatus;
 use App\Enums\TourListingType;
 use App\Models\Tour;
 use App\Models\User;
+use Database\Seeders\TourFilterOptionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -24,6 +25,7 @@ class ToursTest extends TestCase
         }
 
         Storage::fake('public');
+        $this->seed(TourFilterOptionSeeder::class);
     }
 
     public function test_authenticated_admin_can_view_tours_index(): void
@@ -37,6 +39,9 @@ class ToursTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('admin/Tours')
                 ->has('offers', 1)
+                ->has('filterOptions.regions')
+                ->has('filterOptions.travelStyles')
+                ->has('filterOptions.difficulties')
                 ->where('offers.0.id', $tour->id)
                 ->where('offers.0.title', 'Bamiyan Heritage Circuit'));
     }
@@ -209,9 +214,6 @@ class ToursTest extends TestCase
             'highlights_text' => "Band-e Amir lakes\nBuddha niches walk",
             'key_destinations_text' => '',
             'included_services_text' => "Private 4WD transport\nEnglish-speaking guide",
-            'next_departure_date' => '14 May 2026',
-            'next_departure_status' => 'Guaranteed',
-            'estimated_starting_price' => 'From $1,480 / person',
             'price_estimate' => '',
             'ideal_for' => '',
             'is_popular' => '0',
@@ -240,9 +242,6 @@ class ToursTest extends TestCase
             'highlights_text' => "Curated route\nLocal guides",
             'key_destinations_text' => "Kabul\nBamiyan\nHerat",
             'included_services_text' => "Airport transfers\nDaily breakfast",
-            'next_departure_date' => '',
-            'next_departure_status' => 'Open for Inquiries',
-            'estimated_starting_price' => '',
             'price_estimate' => 'From $1,890 / person',
             'ideal_for' => 'First-time visitors',
             'is_popular' => '1',

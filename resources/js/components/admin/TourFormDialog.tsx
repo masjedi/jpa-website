@@ -7,12 +7,14 @@ import {
 } from '@/components/admin/tourForm';
 import { TourEntityForm } from '@/components/admin/TourEntityForm';
 import { DataTableDialog } from '@/components/admin/DataTableDialog';
+import type { TourFilterFieldOptions } from '@/types/tourFilterOptions';
 
 interface TourFormDialogProps {
     open: boolean;
     mode: 'create' | 'edit';
     resetKey: string;
     initialValues?: TourFormValues;
+    filterOptions: TourFilterFieldOptions;
     onClose: () => void;
     onSubmit: (payload: TourFormSubmitPayload) => void | Promise<void>;
 }
@@ -22,6 +24,7 @@ export function TourFormDialog({
     mode,
     resetKey,
     initialValues,
+    filterOptions,
     onClose,
     onSubmit,
 }: TourFormDialogProps) {
@@ -52,7 +55,8 @@ export function TourFormDialog({
                     key={resetKey}
                     formId={formId}
                     mode={mode}
-                    initialValues={initialValues ?? createEmptyTourFormValues()}
+                    initialValues={initialValues ?? createEmptyTourFormValues(filterOptions)}
+                    filterOptions={filterOptions}
                     onCancel={onClose}
                     onSubmit={handleSubmit}
                 />

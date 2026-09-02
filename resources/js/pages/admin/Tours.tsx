@@ -1,10 +1,11 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Map, Plus } from 'lucide-react';
 import { Suspense, lazy, useState } from 'react';
 
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
 import {
     buildTourFormData,
+    createEmptyTourFormValues,
     listingTypeLabel,
     type TourFormSubmitPayload,
 } from '@/components/admin/tourForm';
@@ -18,6 +19,7 @@ import {
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
+import type { TourFilterFieldOptions } from '@/types/tourFilterOptions';
 
 const TourFormDialog = lazy(() =>
     import('@/components/admin/TourFormDialog').then((module) => ({
@@ -46,6 +48,7 @@ interface OfferRow {
 
 interface ToursPageProps {
     offers: ManagedOffer[];
+    filterOptions: TourFilterFieldOptions;
 }
 
 function buildOfferRow(offer: ManagedOffer): OfferRow {
@@ -153,7 +156,7 @@ function submitTourForm(
     });
 }
 
-export default function Tours({ offers }: ToursPageProps) {
+export default function Tours({ offers, filterOptions }: ToursPageProps) {
     const { flash } = usePage().props;
     const [formOpen, setFormOpen] = useState(false);
     const [viewOpen, setViewOpen] = useState(false);
@@ -220,8 +223,6 @@ export default function Tours({ offers }: ToursPageProps) {
 
     return (
         <>
-            <Head title="Tours" />
-
             <div className="space-y-4">
                 {flash.success ? (
                     <div
@@ -282,7 +283,12 @@ export default function Tours({ offers }: ToursPageProps) {
                         open={formOpen}
                         mode={editingOfferId ? 'edit' : 'create'}
                         resetKey={editingOfferId ? String(editingOfferId) : 'create'}
-                        initialValues={editingOffer ? offerToFormValues(editingOffer) : undefined}
+                        initialValues={
+                            editingOffer
+                                ? offerToFormValues(editingOffer)
+                                : createEmptyTourFormValues(filterOptions)
+                        }
+                        filterOptions={filterOptions}
                         onClose={closeForm}
                         onSubmit={handleSubmitOffer}
                     />

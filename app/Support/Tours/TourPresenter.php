@@ -8,7 +8,10 @@ use Illuminate\Support\Collection;
 class TourPresenter
 {
     /**
-     * @return array{offers: list<array<string, mixed>>}
+     * @return array{
+     *     offers: list<array<string, mixed>>,
+     *     filterOptions: array{regions: list<string>, travelStyles: list<string>, difficulties: list<string>}
+     * }
      */
     public static function forAdminIndex(): array
     {
@@ -19,11 +22,16 @@ class TourPresenter
                 ->map(fn (Tour $tour): array => self::adminOfferPayload($tour))
                 ->values()
                 ->all(),
+            'filterOptions' => TourFilterOptionPresenter::forTourForm(),
         ];
     }
 
     /**
-     * @return array{tours: list<array<string, mixed>>, packages: list<array<string, mixed>>}
+     * @return array{
+     *     tours: list<array<string, mixed>>,
+     *     packages: list<array<string, mixed>>,
+     *     filterOptions: array{regions: list<string>, travelStyles: list<string>, difficulties: list<string>}
+     * }
      */
     public static function forPublicIndex(): array
     {
@@ -44,6 +52,7 @@ class TourPresenter
                 ->map(fn (Tour $tour): array => self::publicPackagePayload($tour))
                 ->values()
                 ->all(),
+            'filterOptions' => TourFilterOptionPresenter::forPublicFilters(),
         ];
     }
 
@@ -108,7 +117,6 @@ class TourPresenter
             'durationDays' => $tour->duration_days,
             'durationLabel' => $tour->duration_label,
             'badge' => $tour->badge,
-            'priceLabel' => (string) ($tour->estimated_starting_price ?? 'Custom inquiry basis'),
             'description' => $tour->summary,
             'content' => $tour->content,
             'highlights' => $tour->highlights,
@@ -145,7 +153,6 @@ class TourPresenter
                 ->map(fn (Tour $relatedTour): array => self::relatedTourItem($relatedTour))
                 ->values()
                 ->all(),
-            'inquiryPreferredDate' => (string) ($tour->next_departure_date ?? 'On request'),
         ];
     }
 
@@ -236,11 +243,6 @@ class TourPresenter
             'groupSize' => (string) ($tour->group_size ?? 'Max 8 travelers / Private'),
             'content' => (string) ($tour->content ?? ''),
             'itineraryOverview' => $tour->itinerary_overview ?? [],
-            'estimatedStartingPrice' => (string) ($tour->estimated_starting_price ?? 'Custom inquiry basis'),
-            'nextDeparture' => [
-                'date' => (string) ($tour->next_departure_date ?? 'On request'),
-                'status' => (string) ($tour->next_departure_status ?? 'Open for Inquiries'),
-            ],
         ]);
     }
 
@@ -269,11 +271,6 @@ class TourPresenter
             'highlights' => $tour->highlights,
             'itineraryOverview' => $tour->itinerary_overview ?? [],
             'inclusions' => $tour->inclusions ?? [],
-            'estimatedStartingPrice' => (string) ($tour->estimated_starting_price ?? 'Custom inquiry basis'),
-            'nextDeparture' => [
-                'date' => (string) ($tour->next_departure_date ?? 'On request'),
-                'status' => (string) ($tour->next_departure_status ?? 'Open for Inquiries'),
-            ],
         ];
     }
 
@@ -315,7 +312,6 @@ class TourPresenter
             'durationDays' => $tour->duration_days,
             'durationLabel' => $tour->duration_label,
             'badge' => $tour->badge,
-            'priceLabel' => (string) ($tour->estimated_starting_price ?? 'Custom inquiry basis'),
             'href' => '/tours/'.$tour->slug,
         ];
     }

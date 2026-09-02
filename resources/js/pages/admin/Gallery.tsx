@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Images, Plus } from 'lucide-react';
 import { Suspense, lazy, useState } from 'react';
 
@@ -225,8 +225,6 @@ export default function Gallery({ photos }: GalleryPageProps) {
 
     return (
         <>
-            <Head title="Gallery" />
-
             <div className="space-y-4">
                 {flash.success ? (
                     <div

@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { MessageSquareText } from 'lucide-react';
 import { useState } from 'react';
 
@@ -69,8 +69,6 @@ export default function Inquiries() {
 
     return (
         <>
-            <Head title="Inquiries" />
-
             <div className="space-y-4">
                 {flash.success ? (
                     <div

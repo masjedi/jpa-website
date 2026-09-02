@@ -1,49 +1,66 @@
 import { Link } from '@inertiajs/react';
-import { ArrowRight, Calendar, MapPin, RotateCcw, Search } from 'lucide-react';
+import { ArrowRight, MapPin, RotateCcw, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { tourShowHref } from '@/components/public/navigation';
 import { FadeIn, RevealItem, RevealStagger } from '@/components/motion/FadeIn';
 import { TourOfferBadges } from '@/components/sections/tours/TourOfferBadges';
-import { shortDepartureStatus } from '@/components/sections/tours/tourDisplay';
+import { useTranslations } from '@/hooks/use-translations';
+import type { TourFilterFieldOptions } from '@/types/tourFilterOptions';
 import type { Tour } from '@/types/tours';
 
 interface ToursGridSectionProps {
     tours: Tour[];
+    filterOptions: TourFilterFieldOptions;
     onSelectTour: (tour: Tour) => void;
 }
 
-export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps) {
+function toFilterChoices(
+    values: readonly string[],
+    allLabel: string,
+): { value: string; label: string }[] {
+    return [
+        { value: 'all', label: allLabel },
+        ...values.map((value) => ({ value, label: value })),
+    ];
+}
+
+export function ToursGridSection({
+    tours,
+    filterOptions,
+    onSelectTour,
+}: ToursGridSectionProps) {
+    const { t } = useTranslations();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDestination, setSelectedDestination] = useState('all');
     const [selectedStyle, setSelectedStyle] = useState('all');
+    const [selectedDifficulty, setSelectedDifficulty] = useState('all');
     const [selectedDuration, setSelectedDuration] = useState('all');
 
     const destinations = useMemo(
-        () => [
-            { value: 'all', label: 'All regions' },
-            ...Array.from(new Set(tours.map((t) => t.region))).map((region) => ({
-                value: region,
-                label: region,
-            })),
-        ],
-        [tours],
+        () => toFilterChoices(filterOptions.regions, t('toursPage.catalog.allRegions')),
+        [filterOptions.regions, t],
     );
 
-    const travelStyles = [
-        { value: 'all', label: 'All styles' },
-        { value: 'Cultural & Heritage', label: 'Cultural & heritage' },
-        { value: 'Adventure & Trekking', label: 'Adventure & trekking' },
-        { value: 'Photography Focus', label: 'Photography' },
-        { value: 'Silk Road History', label: 'Silk Road history' },
-    ];
+    const travelStyles = useMemo(
+        () => toFilterChoices(filterOptions.travelStyles, t('toursPage.catalog.allStyles')),
+        [filterOptions.travelStyles, t],
+    );
 
-    const durations = [
-        { value: 'all', label: 'Any length' },
-        { value: 'short', label: 'Up to 5 days' },
-        { value: 'medium', label: '6–8 days' },
-        { value: 'long', label: '9+ days' },
-    ];
+    const difficulties = useMemo(
+        () => toFilterChoices(filterOptions.difficulties, t('toursPage.catalog.allDifficulties')),
+        [filterOptions.difficulties, t],
+    );
+
+    const durations = useMemo(
+        () => [
+            { value: 'all', label: t('toursPage.catalog.anyLength') },
+            { value: 'short', label: t('toursPage.catalog.upTo5Days') },
+            { value: 'medium', label: t('toursPage.catalog.days6to8') },
+            { value: 'long', label: t('toursPage.catalog.days9Plus') },
+        ],
+        [t],
+    );
 
     const filteredTours = useMemo(() => {
         return tours.filter((tour) => {
@@ -70,6 +87,10 @@ export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps)
                 return false;
             }
 
+            if (selectedDifficulty !== 'all' && tour.difficulty !== selectedDifficulty) {
+                return false;
+            }
+
             if (selectedDuration === 'short' && tour.durationDays > 5) return false;
             if (
                 selectedDuration === 'medium' &&
@@ -80,31 +101,21 @@ export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps)
 
             return true;
         });
-    }, [searchQuery, selectedDestination, selectedStyle, selectedDuration, tours]);
+    }, [searchQuery, selectedDestination, selectedStyle, selectedDifficulty, selectedDuration, tours]);
 
     const hasActiveFilters =
         searchQuery.trim() !== '' ||
         selectedDestination !== 'all' ||
         selectedStyle !== 'all' ||
+        selectedDifficulty !== 'all' ||
         selectedDuration !== 'all';
 
     const clearAllFilters = () => {
         setSearchQuery('');
         setSelectedDestination('all');
         setSelectedStyle('all');
+        setSelectedDifficulty('all');
         setSelectedDuration('all');
-    };
-
-    const getStatusBadgeStyle = (status: string) => {
-        switch (status) {
-            case 'Guaranteed':
-                return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
-            case 'Limited Availability':
-            case 'Almost Full':
-                return 'bg-accent/15 text-accent-foreground';
-            default:
-                return 'bg-secondary/10 text-secondary';
-        }
     };
 
     return (
@@ -114,15 +125,17 @@ export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps)
                 <div className="flex flex-col gap-2 text-start sm:flex-row sm:items-end sm:justify-between">
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-                            Tours
+                            {t('toursPage.catalog.eyebrow')}
                         </p>
                         <h2 className="font-heading mt-1.5 text-2xl font-semibold text-foreground sm:text-3xl">
-                            Browse itineraries
+                            {t('toursPage.catalog.title')}
                         </h2>
                     </div>
                     <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-                        {filteredTours.length} of {tours.length} journeys.
-                        Every tour can be private or small group.
+                        {t('toursPage.catalog.countNote', {
+                            shown: filteredTours.length,
+                            total: tours.length,
+                        })}
                     </p>
                 </div>
 
@@ -136,9 +149,9 @@ export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps)
                             type="search"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search tours, places, or themes…"
+                            placeholder={t('toursPage.catalog.searchPlaceholder')}
                             className="w-full rounded-full border border-border bg-surface py-2.5 pl-9 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
-                            aria-label="Search tours"
+                            aria-label={t('toursPage.catalog.searchAria')}
                         />
                     </div>
 
@@ -146,7 +159,7 @@ export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps)
                         <select
                             value={selectedDestination}
                             onChange={(e) => setSelectedDestination(e.target.value)}
-                            aria-label="Region"
+                            aria-label={t('common.region')}
                             className="rounded-full border border-border bg-surface px-3 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
                         >
                             {destinations.map((d) => (
@@ -158,7 +171,7 @@ export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps)
                         <select
                             value={selectedStyle}
                             onChange={(e) => setSelectedStyle(e.target.value)}
-                            aria-label="Travel style"
+                            aria-label={t('toursPage.catalog.travelStyle')}
                             className="rounded-full border border-border bg-surface px-3 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
                         >
                             {travelStyles.map((s) => (
@@ -168,9 +181,21 @@ export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps)
                             ))}
                         </select>
                         <select
+                            value={selectedDifficulty}
+                            onChange={(e) => setSelectedDifficulty(e.target.value)}
+                            aria-label={t('common.difficulty')}
+                            className="rounded-full border border-border bg-surface px-3 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
+                        >
+                            {difficulties.map((difficulty) => (
+                                <option key={difficulty.value} value={difficulty.value}>
+                                    {difficulty.label}
+                                </option>
+                            ))}
+                        </select>
+                        <select
                             value={selectedDuration}
                             onChange={(e) => setSelectedDuration(e.target.value)}
-                            aria-label="Duration"
+                            aria-label={t('common.duration')}
                             className="rounded-full border border-border bg-surface px-3 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
                         >
                             {durations.map((dur) => (
@@ -186,7 +211,7 @@ export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps)
                                 className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium text-secondary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                             >
                                 <RotateCcw className="size-3.5" aria-hidden />
-                                Clear
+                                {t('common.clear')}
                             </button>
                         ) : null}
                     </div>
@@ -232,34 +257,19 @@ export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps)
                                         {tour.description}
                                     </p>
 
-                                    <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3 text-[11px]">
-                                        <span className="flex items-center gap-1 text-muted-foreground">
-                                            <Calendar className="size-3 shrink-0 text-secondary" aria-hidden />
-                                            {tour.nextDeparture.date}
-                                        </span>
-                                        <span
-                                            className={`shrink-0 rounded-md px-1.5 py-0.5 font-medium ${getStatusBadgeStyle(
-                                                tour.nextDeparture.status,
-                                            )}`}
-                                            title={tour.nextDeparture.status}
-                                        >
-                                            {shortDepartureStatus(tour.nextDeparture.status)}
-                                        </span>
-                                    </div>
-
                                     <div className="mt-4 flex gap-2">
                                         <Link
                                             href={tourShowHref(tour.slug)}
                                             className="flex-1 rounded-full border border-border bg-surface px-3 py-2 text-center text-xs font-semibold text-foreground transition-colors hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                         >
-                                            View
+                                            {t('buttons.view')}
                                         </Link>
                                         <button
                                             type="button"
                                             onClick={() => onSelectTour(tour)}
                                             className="inline-flex items-center justify-center gap-1 rounded-full bg-accent px-3 py-2 text-xs font-semibold text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                         >
-                                            Request
+                                            {t('buttons.request')}
                                             <ArrowRight className="size-3.5" aria-hidden />
                                         </button>
                                     </div>
@@ -275,10 +285,10 @@ export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps)
                             aria-hidden
                         />
                         <h3 className="font-heading mt-3 text-lg font-semibold text-foreground">
-                            No matching tours
+                            {t('toursPage.catalog.noResultsTitle')}
                         </h3>
                         <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-                            Try a different search or clear the filters.
+                            {t('toursPage.catalog.noResultsDescription')}
                         </p>
                         <button
                             type="button"
@@ -286,7 +296,7 @@ export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps)
                             className="mt-5 inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                         >
                             <RotateCcw className="size-4" aria-hidden />
-                            Reset filters
+                            {t('common.resetFilters')}
                         </button>
                     </div>
                 )}

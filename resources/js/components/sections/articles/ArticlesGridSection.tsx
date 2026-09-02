@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { FadeIn } from '@/components/motion/FadeIn';
 import { articleShowHref } from '@/components/public/navigation';
 import { stripHtml } from '@/lib/richText';
+import { useTranslations } from '@/hooks/use-translations';
 import type { ArticleCategory, ArticleListItem } from '@/types/articles';
 
 const PAGE_SIZE = 6;
@@ -27,6 +28,8 @@ function EditorialCard({
     delay?: number;
     wide?: boolean;
 }) {
+    const { t } = useTranslations();
+
     return (
         <FadeIn delay={delay} className={wide ? 'sm:col-span-2' : undefined}>
             <Link
@@ -53,7 +56,7 @@ function EditorialCard({
                     </span>
                     <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
                         <Clock className="size-3" aria-hidden />
-                        {article.readingTimeMinutes} min
+                        {t('common.minShort', { minutes: article.readingTimeMinutes })}
                     </span>
                 </div>
 
@@ -83,7 +86,7 @@ function EditorialCard({
                         {article.summary}
                     </p>
                     <p className="mt-auto flex items-center gap-1 pt-4 text-xs font-semibold text-secondary">
-                        <span>Read article</span>
+                        <span>{t('buttons.readArticle')}</span>
                         <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
                     </p>
                 </div>
@@ -98,6 +101,7 @@ interface ArticlesGridSectionProps {
 }
 
 export function ArticlesGridSection({ articles, featuredSlug }: ArticlesGridSectionProps) {
+    const { t } = useTranslations();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<'all' | ArticleCategory>(
         'all',
@@ -106,13 +110,13 @@ export function ArticlesGridSection({ articles, featuredSlug }: ArticlesGridSect
 
     const categories = useMemo(
         () => [
-            { value: 'all' as const, label: 'All topics' },
+            { value: 'all' as const, label: t('articlesPage.grid.allTopics') },
             ...articleCategories.map((category) => ({
                 value: category,
                 label: category,
             })),
         ],
-        [],
+        [t],
     );
 
     const filteredArticles = useMemo(() => {
@@ -165,15 +169,17 @@ export function ArticlesGridSection({ articles, featuredSlug }: ArticlesGridSect
                     <div className="flex flex-col gap-4 text-start sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-                                Library
+                                {t('articlesPage.grid.eyebrow')}
                             </p>
                             <h2 className="font-heading mt-1.5 text-2xl font-semibold text-foreground sm:text-3xl">
-                                Latest from our team
+                                {t('articlesPage.grid.title')}
                             </h2>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                            {filteredArticles.length} article
-                            {filteredArticles.length === 1 ? '' : 's'}
+                            {filteredArticles.length}{' '}
+                            {filteredArticles.length === 1
+                                ? t('common.article')
+                                : t('common.articles')}
                         </p>
                     </div>
                 </FadeIn>
@@ -191,8 +197,8 @@ export function ArticlesGridSection({ articles, featuredSlug }: ArticlesGridSect
                                 setSearchQuery(event.target.value);
                                 setVisibleCount(PAGE_SIZE);
                             }}
-                            placeholder="Search articles…"
-                            aria-label="Search articles"
+                            placeholder={t('articlesPage.grid.searchPlaceholder')}
+                            aria-label={t('articlesPage.grid.searchAria')}
                             className="w-full rounded-full border border-border bg-surface py-2.5 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
                         />
                     </div>
@@ -226,7 +232,7 @@ export function ArticlesGridSection({ articles, featuredSlug }: ArticlesGridSect
                                 className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold text-secondary hover:underline"
                             >
                                 <RotateCcw className="size-3.5" aria-hidden />
-                                Clear
+                                {t('common.clear')}
                             </button>
                         ) : null}
                     </div>
@@ -260,7 +266,7 @@ export function ArticlesGridSection({ articles, featuredSlug }: ArticlesGridSect
                                     }
                                     className="inline-flex items-center justify-center rounded-full border border-border bg-surface px-6 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                 >
-                                    Load more articles
+                                    {t('buttons.loadMoreArticles')}
                                 </button>
                             </FadeIn>
                         ) : null}
@@ -273,13 +279,13 @@ export function ArticlesGridSection({ articles, featuredSlug }: ArticlesGridSect
                         />
                         <h3 className="font-heading mt-3 text-lg font-semibold text-foreground">
                             {articles.length === 0
-                                ? 'No published articles yet'
-                                : 'No articles found'}
+                                ? t('articlesPage.grid.noPublishedTitle')
+                                : t('articlesPage.grid.noResultsTitle')}
                         </h3>
                         <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
                             {articles.length === 0
-                                ? 'Publish articles from the admin dashboard to populate this library.'
-                                : 'Try a different search term or clear the filters.'}
+                                ? t('articlesPage.grid.noPublishedDescription')
+                                : t('articlesPage.grid.noResultsDescription')}
                         </p>
                     </div>
                 )}

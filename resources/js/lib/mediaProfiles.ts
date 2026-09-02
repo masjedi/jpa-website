@@ -22,7 +22,7 @@ export const mediaProfiles = {
         thumb: { width: 160, height: 160 },
         card: { width: 480, height: 600 },
         maxUploadKilobytes: 4096,
-        hint: 'Portrait or square photos work best. Images are scaled to fit the team card (up to 480 × 600 px). Max 4096 KB.',
+        hint: 'Square or portrait photos work best. Images are shown in a circular team card (up to 480 × 600 px). Max 4096 KB.',
     },
     about_journey_image: {
         aspectRatio: '4:3',
@@ -51,6 +51,12 @@ export const mediaProfiles = {
         detail: { width: 1600, height: 1200 },
         maxUploadKilobytes: 8192,
         hint: 'Target 1600 × 1200 px (4:3). Larger uploads are cropped/resized automatically. Max 8192 KB.',
+    },
+    document_attachment: {
+        maxUploadKilobytes: 12288,
+        maxFiles: 12,
+        accept: 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png,.pdf,.doc,.docx,.jpg,.jpeg,.png',
+        hint: 'Allowed: PDF, DOC, DOCX, JPG, JPEG, PNG. Max 12288 KB.',
     },
 } as const;
 

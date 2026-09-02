@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Image, Plus } from 'lucide-react';
 import { useState } from 'react';
 
@@ -152,8 +152,6 @@ export default function HeroSection({ eyebrow, slides }: HeroSectionPageProps) {
 
     return (
         <>
-            <Head title="Hero section" />
-
             <div className="space-y-4">
                 <AdminSectionHeader
                     eyebrow="Public website"

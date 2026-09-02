@@ -1,228 +1,136 @@
 import { Mail, MessageCircle } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 
 import { FadeIn } from '@/components/motion/FadeIn';
-import { teamPageCopy } from '@/data/teamPageCopy';
+import { useTranslations } from '@/hooks/use-translations';
 import { buildWebMailComposeHref } from '@/lib/mailto';
 import { cn } from '@/lib/utils';
 import type { PublicTeamMember } from '@/types/team';
 
-const ARC_LAYOUT = [
-    { rotate: -26, translateY: 28 },
-    { rotate: -14, translateY: 10 },
-    { rotate: -4, translateY: 0 },
-    { rotate: 4, translateY: 0 },
-    { rotate: 14, translateY: 10 },
-    { rotate: 26, translateY: 28 },
-] as const;
+const BAND_TEXTURE =
+    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1600&q=60';
 
-function TeamContactLink({
-    href,
-    label,
-    icon: Icon,
-    external = false,
-    iconClassName,
-}: {
-    href: string;
-    label: string;
-    icon: LucideIcon;
-    external?: boolean;
-    iconClassName: string;
-}) {
-    return (
-        <a
-            href={href}
-            target={external ? '_blank' : undefined}
-            rel={external ? 'noopener noreferrer' : undefined}
-            className="group flex items-start gap-3 rounded-xl py-1 text-sm text-brand-on-surface/75 transition-colors hover:text-brand-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-        >
-            <span
-                className={cn(
-                    'mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/12 bg-white/10 text-brand-on-surface/80 shadow-[0_4px_14px_rgba(0,0,0,0.16)] backdrop-blur-sm',
-                    'transition-[transform,background-color,border-color,color,box-shadow] duration-300',
-                    'motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:scale-105 motion-safe:group-hover:shadow-[0_8px_20px_rgba(0,0,0,0.22)]',
-                    iconClassName,
-                )}
-            >
-                <Icon
-                    className="size-[1.125rem] motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-110"
-                    strokeWidth={2.25}
-                    aria-hidden
-                />
-            </span>
-            <span className="min-w-0 flex-1 pt-2 leading-snug break-words">{label}</span>
-        </a>
-    );
-}
-
-function TeamContactDetails({ member }: { member: PublicTeamMember }) {
-    return (
-        <div className="mt-5 space-y-3">
-            <TeamContactLink
-                href={buildWebMailComposeHref(member.email)}
-                label={member.email}
-                icon={Mail}
-                external
-                iconClassName="motion-safe:group-hover:border-sky-300/35 motion-safe:group-hover:bg-sky-400/15 motion-safe:group-hover:text-sky-300"
-            />
-            <TeamContactLink
-                href={member.whatsappHref}
-                label={member.whatsapp}
-                icon={MessageCircle}
-                external
-                iconClassName="motion-safe:group-hover:border-secondary/40 motion-safe:group-hover:bg-secondary/18 motion-safe:group-hover:text-secondary"
-            />
-        </div>
-    );
-}
-
-function TeamPortrait({
-    src,
-    alt,
-    className,
-    frameClassName,
-}: {
-    src: string;
-    alt: string;
-    className?: string;
-    frameClassName?: string;
-}) {
-    return (
-        <div
-            className={cn(
-                'relative overflow-hidden bg-surface-muted/80',
-                frameClassName ?? 'aspect-[4/5] w-full rounded-2xl',
-                className,
-            )}
-        >
-            <img
-                src={src}
-                alt={alt}
-                className="absolute inset-0 size-full object-contain object-center"
-                loading="lazy"
-            />
-        </div>
-    );
-}
-
-function TeamGridCard({
+function TeamMemberCard({
     member,
     delay = 0,
 }: {
     member: PublicTeamMember;
     delay?: number;
 }) {
-    return (
-        <FadeIn delay={delay}>
-            <article className="text-start">
-                <TeamPortrait
-                    src={member.image}
-                    alt={`Portrait of ${member.name}`}
-                />
+    const { t } = useTranslations();
 
-                <h3 className="font-heading mt-5 text-lg font-semibold text-brand-on-surface">
+    return (
+        <FadeIn delay={delay} className="h-full">
+            <article className="flex h-full flex-col items-center text-center">
+                <div
+                    className={cn(
+                        'relative size-28 shrink-0 overflow-hidden rounded-full border-[5px] border-surface bg-surface-muted shadow-[0_10px_28px_rgba(7,23,34,0.14)] sm:size-32',
+                        'motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:-translate-y-1',
+                    )}
+                >
+                    <img
+                        src={member.image}
+                        alt={t('teamPage.portraitAlt', { name: member.name })}
+                        className="absolute inset-0 size-full object-cover object-center"
+                        loading="lazy"
+                    />
+                </div>
+
+                <h3 className="font-heading mt-5 text-sm font-bold uppercase tracking-[0.14em] text-foreground sm:text-[0.9375rem]">
                     {member.name}
                 </h3>
-                <p className="mt-1 text-sm font-medium text-sky-400">{member.role}</p>
-                <p className="mt-3 text-sm leading-relaxed text-brand-on-surface/65">
+                <p className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    {member.role}
+                </p>
+                <p className="mt-3 max-w-[16rem] text-sm leading-relaxed text-muted-foreground">
                     {member.bio}
                 </p>
 
-                <TeamContactDetails member={member} />
+                <div className="mt-5 flex items-center justify-center gap-2">
+                    <a
+                        href={buildWebMailComposeHref(member.email)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={t('teamPage.emailAria', { name: member.name })}
+                        className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:border-secondary/40 hover:bg-secondary/10 hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                    >
+                        <Mail className="size-3.5" strokeWidth={2.25} aria-hidden />
+                    </a>
+                    <a
+                        href={member.whatsappHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={t('teamPage.whatsappAria', { name: member.name })}
+                        className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:border-secondary/40 hover:bg-secondary/10 hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                    >
+                        <MessageCircle className="size-3.5" strokeWidth={2.25} aria-hidden />
+                    </a>
+                </div>
             </article>
         </FadeIn>
     );
 }
 
-function TeamArcPhoto({
-    member,
-    rotate,
-    translateY,
-}: {
-    member: PublicTeamMember;
-    rotate: number;
-    translateY: number;
-}) {
-    return (
-        <div
-            className="relative shrink-0"
-            style={{
-                transform: `rotate(${rotate}deg) translateY(${translateY}px)`,
-            }}
-        >
-            <div className="size-20 overflow-hidden rounded-2xl border border-white/10 bg-surface-muted/80 shadow-lg shadow-black/30 sm:size-24">
-                <img
-                    src={member.image}
-                    alt=""
-                    aria-hidden
-                    className="size-full object-contain object-center"
-                    loading="lazy"
-                />
-            </div>
-        </div>
-    );
-}
-
 export function AboutTeamSection({ members }: { members: PublicTeamMember[] }) {
-    const arcMembers = members.slice(0, ARC_LAYOUT.length);
+    const { t } = useTranslations();
 
     return (
-        <section id="leadership" className="bg-brand-deep text-brand-on-surface">
-            <div className="relative overflow-hidden pb-10 pt-28 sm:pb-14 sm:pt-32 lg:pt-36">
+        <section id="leadership" className="bg-surface">
+            <div className="relative overflow-hidden bg-brand-deep pt-28 sm:pt-32 lg:pt-36">
                 <div
                     aria-hidden
-                    className="pointer-events-none absolute inset-x-0 top-1/2 h-72 -translate-y-1/2 bg-[radial-gradient(circle_at_center,rgba(117,166,199,0.22)_0%,rgba(42,163,160,0.12)_32%,transparent_68%)]"
+                    className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-[0.22]"
+                    style={{ backgroundImage: `url(${BAND_TEXTURE})` }}
+                />
+                <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 bg-brand-deep/55"
+                />
+                <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-brand-deep to-transparent"
                 />
 
-                <div className="relative z-10 mx-auto max-w-3xl px-4 text-center sm:px-6">
+                <div className="relative z-10 mx-auto max-w-3xl px-4 pb-24 text-center sm:px-6 sm:pb-28">
                     <FadeIn>
-                        <h2 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-                            {teamPageCopy.hero.title}
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
+                            {t('teamPage.hero.eyebrow')}
+                        </p>
+                        <h2 className="font-heading mt-3 text-3xl font-bold uppercase tracking-[0.08em] text-brand-on-surface sm:text-4xl lg:text-[2.75rem]">
+                            {t('teamPage.hero.title')}
                         </h2>
-                        <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-brand-on-surface/70 sm:text-base">
-                            {teamPageCopy.hero.description}
+                        <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-brand-on-surface/70 sm:text-base">
+                            {t('teamPage.hero.description')}
                         </p>
                     </FadeIn>
                 </div>
-
-                <div
-                    className="relative z-10 mx-auto mt-12 flex max-w-4xl items-end justify-center gap-3 px-4 sm:mt-14 sm:gap-4"
-                    aria-hidden
-                >
-                    {arcMembers.map((member, index) => (
-                        <TeamArcPhoto
-                            key={member.id}
-                            member={member}
-                            rotate={ARC_LAYOUT[index].rotate}
-                            translateY={ARC_LAYOUT[index].translateY}
-                        />
-                    ))}
-                </div>
             </div>
 
-            <div className="border-t border-white/8 pb-16 pt-14 sm:pb-20 sm:pt-16">
-                <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                    <FadeIn>
-                        <div className="mx-auto max-w-3xl text-center">
-                            <h3 className="font-heading text-2xl font-semibold sm:text-3xl">
-                                {teamPageCopy.grid.title}
-                            </h3>
-                            <p className="mt-4 text-sm leading-relaxed text-brand-on-surface/70 sm:text-base">
-                                {teamPageCopy.grid.description}
-                            </p>
-                        </div>
-                    </FadeIn>
-
-                    <div className="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="relative z-10 mx-auto -mt-16 max-w-6xl px-4 pb-16 sm:-mt-[4.5rem] sm:px-6 sm:pb-20 lg:px-8 lg:pb-24">
+                {members.length === 0 ? (
+                    <p className="rounded-2xl border border-border bg-surface px-6 py-10 text-center text-sm text-muted-foreground">
+                        {t('teamPage.emptyState')}
+                    </p>
+                ) : (
+                    <div
+                        className={cn(
+                            'grid justify-items-center gap-x-6 gap-y-12',
+                            members.length === 1 && 'grid-cols-1',
+                            members.length === 2 && 'grid-cols-1 sm:grid-cols-2',
+                            members.length === 3 && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+                            members.length === 4 && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+                            members.length >= 5 &&
+                                'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5',
+                        )}
+                    >
                         {members.map((member, index) => (
-                            <TeamGridCard
+                            <TeamMemberCard
                                 key={member.id}
                                 member={member}
-                                delay={index * 0.04}
+                                delay={index * 0.05}
                             />
                         ))}
                     </div>
-                </div>
+                )}
             </div>
         </section>
     );

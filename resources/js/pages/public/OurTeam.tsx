@@ -2,6 +2,7 @@ import { setLayoutProps } from '@inertiajs/react';
 
 import { PageMeta } from '@/components/public/PageMeta';
 import { AboutTeamSection } from '@/components/sections/about/AboutTeamSection';
+import { useTranslations } from '@/hooks/use-translations';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import type { PublicTeamMember } from '@/types/team';
 
@@ -11,12 +12,13 @@ interface OurTeamPageProps {
 
 export default function OurTeam({ members }: OurTeamPageProps) {
     setLayoutProps({ transparentHeader: true });
+    const { t } = useTranslations();
 
     return (
         <>
             <PageMeta
-                title="Our Team"
-                description="Meet the JPA team — Afghan guides, planners and coordinators who design and lead every journey with local expertise and cultural respect."
+                title={t('teamPage.meta.title')}
+                description={t('teamPage.meta.description')}
             />
             <AboutTeamSection members={members} />
         </>

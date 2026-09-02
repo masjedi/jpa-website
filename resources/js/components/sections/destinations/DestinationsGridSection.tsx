@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { destinationShowHref } from '@/components/public/navigation';
 import { FadeIn } from '@/components/motion/FadeIn';
 import { SpotlightCard } from '@/components/react-bits/SpotlightCard/SpotlightCard';
+import { useTranslations } from '@/hooks/use-translations';
 import type { Destination } from '@/types/destinations';
 
 function DestinationCard({
@@ -16,6 +17,7 @@ function DestinationCard({
     featured?: boolean;
     delay?: number;
 }) {
+    const { t } = useTranslations();
     const relatedTourCount = destination.linkedToursCount ?? 0;
 
     if (featured) {
@@ -54,14 +56,16 @@ function DestinationCard({
                         </p>
                         <div className="mt-auto flex items-center justify-between gap-3 pt-4">
                             <span className="text-xs text-muted-foreground">
-                                {relatedTourCount} related tour
-                                {relatedTourCount === 1 ? '' : 's'}
+                                {relatedTourCount}{' '}
+                                {relatedTourCount === 1
+                                    ? t('destinationsPage.grid.relatedTour')
+                                    : t('destinationsPage.grid.relatedTours')}
                             </span>
                             <Link
                                 href={destinationShowHref(destination.slug)}
                                 className="inline-flex items-center gap-1 text-sm font-semibold text-secondary transition-colors hover:text-foreground"
                             >
-                                Explore
+                                {t('buttons.explore')}
                                 <ArrowRight className="size-4" aria-hidden />
                             </Link>
                         </div>
@@ -97,7 +101,7 @@ function DestinationCard({
                         {destination.tagline}
                     </p>
                     <p className="mt-3 flex items-center gap-1 text-xs font-medium text-secondary">
-                        <span>View destination</span>
+                        <span>{t('buttons.viewDestination')}</span>
                         <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                     </p>
                 </div>
@@ -111,6 +115,7 @@ interface DestinationsGridSectionProps {
 }
 
 export function DestinationsGridSection({ destinations }: DestinationsGridSectionProps) {
+    const { t } = useTranslations();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRegion, setSelectedRegion] = useState('all');
 
@@ -120,13 +125,13 @@ export function DestinationsGridSection({ destinations }: DestinationsGridSectio
         ].sort((a, b) => a.localeCompare(b));
 
         return [
-            { value: 'all', label: 'All regions' },
+            { value: 'all', label: t('destinationsPage.grid.allRegions') },
             ...uniqueRegions.map((region) => ({
                 value: region,
                 label: region,
             })),
         ];
-    }, [destinations]);
+    }, [destinations, t]);
 
     const featuredDestinations = useMemo(
         () => destinations.filter((destination) => destination.isFeatured),
@@ -185,15 +190,17 @@ export function DestinationsGridSection({ destinations }: DestinationsGridSectio
                     <div className="flex flex-col gap-2 text-start sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-                                Regions
+                                {t('destinationsPage.grid.eyebrow')}
                             </p>
                             <h2 className="font-heading mt-1.5 text-2xl font-semibold text-foreground sm:text-3xl">
-                                Where we guide
+                                {t('destinationsPage.grid.title')}
                             </h2>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                            {filteredDestinations.length} of {destinations.length}{' '}
-                            destinations
+                            {t('destinationsPage.grid.countNote', {
+                                shown: filteredDestinations.length,
+                                total: destinations.length,
+                            })}
                         </p>
                     </div>
                 </FadeIn>
@@ -208,15 +215,15 @@ export function DestinationsGridSection({ destinations }: DestinationsGridSectio
                             type="search"
                             value={searchQuery}
                             onChange={(event) => setSearchQuery(event.target.value)}
-                            placeholder="Search destinations…"
-                            aria-label="Search destinations"
+                            placeholder={t('destinationsPage.grid.searchPlaceholder')}
+                            aria-label={t('destinationsPage.grid.searchAria')}
                             className="w-full rounded-full border border-border bg-surface py-2.5 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
                         />
                     </div>
                     <select
                         value={selectedRegion}
                         onChange={(event) => setSelectedRegion(event.target.value)}
-                        aria-label="Region"
+                        aria-label={t('common.region')}
                         className="rounded-full border border-border bg-surface px-4 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
                     >
                         {regions.map((region) => (
@@ -235,7 +242,7 @@ export function DestinationsGridSection({ destinations }: DestinationsGridSectio
                             className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium text-secondary hover:underline"
                         >
                             <RotateCcw className="size-3.5" aria-hidden />
-                            Clear
+                            {t('common.clear')}
                         </button>
                     ) : null}
                 </FadeIn>
@@ -272,12 +279,12 @@ export function DestinationsGridSection({ destinations }: DestinationsGridSectio
                             aria-hidden
                         />
                         <h3 className="font-heading mt-3 text-lg font-semibold text-foreground">
-                            No destinations found
+                            {t('destinationsPage.grid.noResultsTitle')}
                         </h3>
                         <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
                             {destinations.length === 0
-                                ? 'No published destinations yet. Set a destination to Published in Admin → Destinations to show it here.'
-                                : 'Try a different search or clear the filters.'}
+                                ? t('destinationsPage.grid.noResultsEmpty')
+                                : t('destinationsPage.grid.noResultsFilter')}
                         </p>
                     </div>
                 )}

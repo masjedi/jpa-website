@@ -1,27 +1,18 @@
 import { Link } from '@inertiajs/react';
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     ArrowRight,
-    BedDouble,
-    Bus,
-    Camera,
     Compass,
-    FileText,
-    MapPin,
     MapPinned,
     MessageCircle,
-    Mountain,
-    Route,
     ShieldCheck,
-    UserCheck,
-    Users,
-    Wallet,
     type LucideIcon,
 } from "lucide-react";
 
 import type { PublicFaqItem } from '@/types/faq';
 import type { PublicTestimonial } from '@/types/testimonials';
+import type { HomeServicePreview } from '@/types/services';
 import { SpotlightCard } from "@/components/react-bits/SpotlightCard/SpotlightCard";
 import { FadeIn, FadeInOnMount, RevealItem, RevealStagger } from "@/components/motion/FadeIn";
 import { destinationShowHref, articleShowHref } from "@/components/public/navigation";
@@ -29,10 +20,13 @@ import { DonateButton } from "@/components/public/DonateButton";
 import { HomeDeferredSection } from '@/components/loading/HomeDeferredSection';
 import { DeferredTestimonialsCarousel } from '@/components/sections/home/HomeDeferredSections';
 import { HeroScannerBackground } from "@/components/sections/home/HeroScannerBackground";
+import { resolveServiceIcon } from '@/lib/serviceIcons';
+import { useTranslations } from '@/hooks/use-translations';
 import type { ArticleListItem } from '@/types/articles';
 import type { Destination } from '@/types/destinations';
 import type { GalleryPhoto } from '@/types/gallery';
 import type { PublicHeroSlide, PublicHeroSection } from '@/types/heroSection';
+import type { HomeFinderOptions } from '@/types/tourFilterOptions';
 import type { Tour } from '@/types/tours';
 
 /* -------------------------------------------------------------------------- */
@@ -50,114 +44,50 @@ interface TrustIndicator {
     description: string;
 }
 
-interface Service {
-    icon: LucideIcon;
-    title: string;
-    description: string;
+/* Finder helpers ----------------------------------------------------------- */
+
+function withAnyOption(
+    values: readonly string[],
+    anyValue: string,
+    anyLabel: string,
+): FinderOption[] {
+    return [
+        { value: anyValue, label: anyLabel },
+        ...values.map((value) => ({ value, label: value })),
+    ];
 }
-
-/* Finder options ----------------------------------------------------------- */
-
-const destinationOptions: readonly FinderOption[] = [
-    { value: "all", label: "All destinations" },
-    { value: "kabul", label: "Kabul & around" },
-    { value: "bamiyan", label: "Bamiyan Valley" },
-    { value: "herat", label: "Herat" },
-    { value: "panjshir", label: "Panjshir Valley" },
-];
-
-const travelStyleOptions: readonly FinderOption[] = [
-    { value: "any", label: "Any travel style" },
-    { value: "cultural", label: "Cultural & heritage" },
-    { value: "adventure", label: "Adventure & trekking" },
-    { value: "photography", label: "Photography focus" },
-    { value: "family", label: "Family friendly" },
-];
-
-const seasonOptions: readonly FinderOption[] = [
-    { value: "any", label: "Any season" },
-    { value: "spring", label: "Spring" },
-    { value: "summer", label: "Summer" },
-    { value: "autumn", label: "Autumn" },
-    { value: "winter", label: "Winter" },
-];
-
-const groupTypeOptions: readonly FinderOption[] = [
-    { value: "any", label: "Any group type" },
-    { value: "private", label: "Private tour" },
-    { value: "small-group", label: "Small group" },
-    { value: "solo", label: "Solo traveler" },
-];
 
 /* Trust indicators --------------------------------------------------------- */
 
-const trustIndicators: readonly TrustIndicator[] = [
-    {
-        icon: MapPinned,
-        title: "Local expertise",
-        description:
-            "Experienced Afghan guides who know the routes, culture and practical realities of travel here.",
-    },
-    {
-        icon: Compass,
-        title: "Tailored planning",
-        description:
-            "Every journey is shaped around your interests, pace and travel style — not a fixed template.",
-    },
-    {
-        icon: ShieldCheck,
-        title: "Responsible tourism",
-        description:
-            "We prioritise respectful engagement, clear communication and community-minded tourism.",
-    },
-    {
-        icon: MessageCircle,
-        title: "Human support",
-        description:
-            "Real people review every inquiry and stay available before and during your journey.",
-    },
-] as const;
+function useTrustIndicators(): readonly TrustIndicator[] {
+    const { t } = useTranslations();
 
-/* Services ------------------------------------------------------------------ */
-
-const servicesOverview: readonly Service[] = [
-    {
-        icon: Users,
-        title: "Guided tours",
-        description:
-            "Scheduled small-group journeys led by experienced local guides.",
-    },
-    {
-        icon: UserCheck,
-        title: "Private tours",
-        description:
-            "Flexible travel with your own guide and vehicle, at your own pace.",
-    },
-    {
-        icon: Route,
-        title: "Custom itineraries",
-        description:
-            "Bespoke routes designed around your dates, interests and travel style.",
-    },
-    {
-        icon: MapPinned,
-        title: "Local guides",
-        description:
-            "Certified Afghan guides for day trips, city walks and specialist visits.",
-    },
-    {
-        icon: Bus,
-        title: "Transportation coordination",
-        description:
-            "Reliable vehicles and drivers matched to your route and group size.",
-    },
-    {
-        icon: BedDouble,
-        title: "Accommodation coordination",
-        description:
-            "Guesthouses and hotels selected for comfort, location and character.",
-    },
-];
+    return useMemo(
+        () => [
+            {
+                icon: MapPinned,
+                title: t('home.trust.localExpertise.title'),
+                description: t('home.trust.localExpertise.description'),
+            },
+            {
+                icon: Compass,
+                title: t('home.trust.tailoredPlanning.title'),
+                description: t('home.trust.tailoredPlanning.description'),
+            },
+            {
+                icon: ShieldCheck,
+                title: t('home.trust.responsibleTourism.title'),
+                description: t('home.trust.responsibleTourism.description'),
+            },
+            {
+                icon: MessageCircle,
+                title: t('home.trust.humanSupport.title'),
+                description: t('home.trust.humanSupport.description'),
+            },
+        ],
+        [t],
+    );
+}
 
 /* Section header helper ------------------------------------------------------- */
 
@@ -254,7 +184,17 @@ function Badge({
 
 /* Hero carousel ------------------------------------------------------------- */
 
-function HeroMessageCarousel({ slides }: { slides: readonly PublicHeroSlide[] }) {
+function HeroMessageCarousel({
+    slides,
+    carouselLabel,
+    chooseMessageLabel,
+    showMessageLabel,
+}: {
+    slides: readonly PublicHeroSlide[];
+    carouselLabel: string;
+    chooseMessageLabel: string;
+    showMessageLabel: (current: number, total: number) => string;
+}) {
     const reducedMotion = useReducedMotion();
     const [activeIndex, setActiveIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
@@ -289,7 +229,7 @@ function HeroMessageCarousel({ slides }: { slides: readonly PublicHeroSlide[] })
 
     return (
         <div
-            aria-label="Featured travel messages"
+            aria-label={carouselLabel}
             aria-roledescription="carousel"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
@@ -315,13 +255,13 @@ function HeroMessageCarousel({ slides }: { slides: readonly PublicHeroSlide[] })
                 </AnimatePresence>
             </div>
 
-            <div className="mt-3 flex items-center justify-center gap-2" aria-label="Choose a message">
+            <div className="mt-3 flex items-center justify-center gap-2" aria-label={chooseMessageLabel}>
                 {slides.map((message, index) => (
                     <button
                         key={message.id}
                         type="button"
                         onClick={() => setActiveIndex(index)}
-                        aria-label={`Show message ${index + 1} of ${slides.length}`}
+                        aria-label={showMessageLabel(index + 1, slides.length)}
                         aria-current={index === activeIndex ? "true" : undefined}
                         className={`h-1.5 rounded-full transition-[width,background-color] duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-focus ${
                             index === activeIndex
@@ -341,6 +281,8 @@ function HeroMessageCarousel({ slides }: { slides: readonly PublicHeroSlide[] })
 
 export function HomeLanding({
     hero,
+    finderOptions,
+    homeServices = [],
     featuredTours,
     featuredDestinations,
     galleryPreview,
@@ -349,6 +291,8 @@ export function HomeLanding({
     testimonials,
 }: {
     hero: PublicHeroSection;
+    finderOptions: HomeFinderOptions;
+    homeServices?: readonly HomeServicePreview[];
     featuredTours?: readonly Tour[];
     featuredDestinations?: readonly Destination[];
     galleryPreview?: readonly GalleryPhoto[];
@@ -356,6 +300,26 @@ export function HomeLanding({
     faqItems?: readonly PublicFaqItem[];
     testimonials?: readonly PublicTestimonial[];
 }) {
+    const { t } = useTranslations();
+    const trustIndicators = useTrustIndicators();
+
+    const destinationOptions = withAnyOption(
+        finderOptions.destinations,
+        'all',
+        t('home.finder.allDestinations'),
+    );
+    const travelStyleOptions = withAnyOption(
+        finderOptions.travelStyles,
+        'any',
+        t('home.finder.anyTravelStyle'),
+    );
+    const seasonOptions = withAnyOption(finderOptions.seasons, 'any', t('home.finder.anySeason'));
+    const groupTypeOptions = withAnyOption(
+        finderOptions.groupTypes,
+        'any',
+        t('home.finder.anyGroupType'),
+    );
+
     return (
         <>
             {/* Hero ---------------------------------------------------------- */}
@@ -372,11 +336,18 @@ export function HomeLanding({
                         {hero.eyebrow}
                     </p>
                     {hero.slides.length > 0 ? (
-                        <HeroMessageCarousel slides={hero.slides} />
+                        <HeroMessageCarousel
+                            slides={hero.slides}
+                            carouselLabel={t('home.hero.carouselLabel')}
+                            chooseMessageLabel={t('home.hero.chooseMessage')}
+                            showMessageLabel={(current, total) =>
+                                t('home.hero.showMessage', { current, total })
+                            }
+                        />
                     ) : (
                         <div className="mt-5 grid min-h-[13.5rem] place-items-center sm:min-h-[14rem]">
                             <p className="max-w-lg text-base leading-relaxed text-brand-on-surface/75 sm:text-lg">
-                                Publish a hero slide in the admin dashboard to show your headline here.
+                                {t('home.hero.emptySlides')}
                             </p>
                         </div>
                     )}
@@ -387,14 +358,14 @@ export function HomeLanding({
                                 href="#tours"
                                 className="inline-flex min-w-[9.5rem] items-center justify-center rounded-full border border-brand-on-surface/25 px-6 py-2.5 text-sm font-medium text-brand-on-surface transition-colors hover:border-brand-on-surface/45 hover:bg-brand-on-surface/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                             >
-                                Explore Tours
+                                {t('buttons.exploreTours')}
                             </a>
                             <Link
                                 id="plan-trip"
                                 href="/contact"
                                 className="inline-flex min-w-[9.5rem] items-center justify-center rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                             >
-                                Send your Inquiry
+                                {t('buttons.sendInquiry')}
                             </Link>
                         </div>
                         <DonateButton variant="hero" />
@@ -413,11 +384,11 @@ export function HomeLanding({
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                             <label className="block">
                                 <span className="mb-1.5 block text-sm font-medium text-foreground">
-                                    Destination
+                                    {t('home.finder.destination')}
                                 </span>
                                 <select
                                     className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
-                                    aria-label="Destination"
+                                    aria-label={t('home.finder.destination')}
                                 >
                                     {destinationOptions.map((option) => (
                                         <option
@@ -431,11 +402,11 @@ export function HomeLanding({
                             </label>
                             <label className="block">
                                 <span className="mb-1.5 block text-sm font-medium text-foreground">
-                                    Travel style
+                                    {t('home.finder.travelStyle')}
                                 </span>
                                 <select
                                     className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
-                                    aria-label="Travel style"
+                                    aria-label={t('home.finder.travelStyle')}
                                 >
                                     {travelStyleOptions.map((option) => (
                                         <option
@@ -449,11 +420,11 @@ export function HomeLanding({
                             </label>
                             <label className="block">
                                 <span className="mb-1.5 block text-sm font-medium text-foreground">
-                                    Preferred season
+                                    {t('home.finder.preferredSeason')}
                                 </span>
                                 <select
                                     className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
-                                    aria-label="Preferred season"
+                                    aria-label={t('home.finder.preferredSeason')}
                                 >
                                     {seasonOptions.map((option) => (
                                         <option
@@ -467,11 +438,11 @@ export function HomeLanding({
                             </label>
                             <label className="block">
                                 <span className="mb-1.5 block text-sm font-medium text-foreground">
-                                    Group type
+                                    {t('home.finder.groupType')}
                                 </span>
                                 <select
                                     className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
-                                    aria-label="Group type"
+                                    aria-label={t('home.finder.groupType')}
                                 >
                                     {groupTypeOptions.map((option) => (
                                         <option
@@ -488,7 +459,7 @@ export function HomeLanding({
                                     href="/tours"
                                     className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                 >
-                                    Find Tours
+                                    {t('buttons.findTours')}
                                 </Link>
                             </div>
                         </div>
@@ -531,10 +502,10 @@ export function HomeLanding({
                 <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
-                        eyebrow="Featured tours"
-                        title="Journeys we love to guide"
-                        description="A few of our most requested routes, each built around local insight and flexible pacing."
-                        action={{ label: "View all tours", href: "/tours" }}
+                        eyebrow={t('home.featuredTours.eyebrow')}
+                        title={t('home.featuredTours.title')}
+                        description={t('home.featuredTours.description')}
+                        action={{ label: t('buttons.viewAllTours'), href: "/tours" }}
                     />
                     <HomeDeferredSection data="featuredTours" columns={3}>
                     <RevealStagger className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -572,13 +543,13 @@ export function HomeLanding({
                                         </p>
                                         <div className="mt-5 flex items-center justify-between">
                                             <p className="text-sm font-semibold text-foreground">
-                                                Price on Request
+                                                {t('buttons.priceOnRequest')}
                                             </p>
                                             <a
                                                 href="#contact"
                                                 className="inline-flex items-center gap-1 text-sm font-medium text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                             >
-                                                Request This Tour
+                                                {t('buttons.requestThisTour')}
                                                 <ArrowRight
                                                     className="size-4"
                                                     aria-hidden
@@ -600,11 +571,11 @@ export function HomeLanding({
                 <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
-                        eyebrow="Destinations"
-                        title="Where we can take you"
-                        description="From high-altitude lakes to ancient cities, each destination offers a different side of Afghanistan."
+                        eyebrow={t('home.destinations.eyebrow')}
+                        title={t('home.destinations.title')}
+                        description={t('home.destinations.description')}
                         action={{
-                            label: "Explore all destinations",
+                            label: t('buttons.exploreAllDestinations'),
                             href: "/destinations",
                         }}
                     />
@@ -634,16 +605,15 @@ export function HomeLanding({
                                         <div className="mt-4 flex items-center justify-between">
                                             <p className="text-xs text-muted-foreground">
                                                 {destination.linkedToursCount ?? 0}{" "}
-                                                related tour
                                                 {(destination.linkedToursCount ?? 0) === 1
-                                                    ? ""
-                                                    : "s"}
+                                                    ? t('home.destinations.relatedTour')
+                                                    : t('home.destinations.relatedTours')}
                                             </p>
                                             <Link
                                                 href={destinationShowHref(destination.slug)}
                                                 className="text-sm font-medium text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                             >
-                                                Explore
+                                                {t('buttons.explore')}
                                             </Link>
                                         </div>
                                     </div>
@@ -657,49 +627,55 @@ export function HomeLanding({
             </section>
 
             {/* Services Overview --------------------------------------------------- */}
-            <section id="services" className="bg-surface-muted py-16 sm:py-20">
-                <FadeIn>
-                <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
-                    <SectionHeader
-                        eyebrow="Services"
-                        title="How we support your journey"
-                        description="From a single day with a local guide to a fully custom itinerary, we coordinate the practical details so you can focus on the experience."
-                        action={{
-                            label: "See all services",
-                            href: "/services",
-                        }}
-                    />
-                    <RevealStagger className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {servicesOverview.map((service) => (
-                            <RevealItem key={service.title}>
-                                <Card className="p-6 text-start">
-                                    <service.icon
-                                        className="size-6 text-secondary"
-                                        aria-hidden
-                                    />
-                                    <h3 className="mt-4 font-heading text-lg font-semibold text-foreground">
-                                        {service.title}
-                                    </h3>
-                                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                                        {service.description}
-                                    </p>
-                                </Card>
-                            </RevealItem>
-                        ))}
-                    </RevealStagger>
-                </div>
-                </FadeIn>
-            </section>
+            {homeServices.length > 0 ? (
+                <section id="services" className="bg-surface-muted py-16 sm:py-20">
+                    <FadeIn>
+                        <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
+                            <SectionHeader
+                                eyebrow={t('home.services.eyebrow')}
+                                title={t('home.services.title')}
+                                description={t('home.services.description')}
+                                action={{
+                                    label: t('buttons.seeAllServices'),
+                                    href: "/services",
+                                }}
+                            />
+                            <RevealStagger className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                {homeServices.map((service) => {
+                                    const Icon = resolveServiceIcon(service.iconKey);
+
+                                    return (
+                                        <RevealItem key={service.id}>
+                                            <Card className="p-6 text-start">
+                                                <Icon
+                                                    className="size-6 text-secondary"
+                                                    aria-hidden
+                                                />
+                                                <h3 className="mt-4 font-heading text-lg font-semibold text-foreground">
+                                                    {service.title}
+                                                </h3>
+                                                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                                                    {service.description}
+                                                </p>
+                                            </Card>
+                                        </RevealItem>
+                                    );
+                                })}
+                            </RevealStagger>
+                        </div>
+                    </FadeIn>
+                </section>
+            ) : null}
 
             {/* Gallery Preview ------------------------------------------------------ */}
             <section id="gallery" className="bg-surface-muted py-16 sm:py-20">
                 <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
-                        eyebrow="Gallery"
-                        title="Moments from the road"
-                        description="A glimpse of the landscapes, cities and everyday life our travellers experience."
-                        action={{ label: "View full gallery", href: "/gallery" }}
+                        eyebrow={t('home.gallery.eyebrow')}
+                        title={t('home.gallery.title')}
+                        description={t('home.gallery.description')}
+                        action={{ label: t('buttons.viewFullGallery'), href: "/gallery" }}
                     />
                     <HomeDeferredSection data="galleryPreview" columns={6}>
                     <RevealStagger className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6" stagger={0.05}>
@@ -732,9 +708,9 @@ export function HomeLanding({
                 <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
-                        eyebrow="Testimonials"
-                        title="What travellers say"
-                        description="Real feedback from guests who explored Afghanistan with our team."
+                        eyebrow={t('home.testimonials.eyebrow')}
+                        title={t('home.testimonials.title')}
+                        description={t('home.testimonials.description')}
                         center
                     />
                     <HomeDeferredSection data="testimonials" columns={1}>
@@ -749,11 +725,11 @@ export function HomeLanding({
                 <FadeIn>
                 <div className="mx-auto max-w-7xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
-                        eyebrow="Travel blog"
-                        title="Latest articles & guides"
-                        description="Practical advice, cultural insight and itinerary ideas from our team."
+                        eyebrow={t('home.articles.eyebrow')}
+                        title={t('home.articles.title')}
+                        description={t('home.articles.description')}
                         action={{
-                            label: "Read all articles",
+                            label: t('buttons.readAllArticles'),
                             href: "/articles",
                         }}
                     />
@@ -792,7 +768,7 @@ export function HomeLanding({
                                             href={articleShowHref(article.slug)}
                                             className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                         >
-                                            Read Article
+                                            {t('buttons.readArticle')}
                                             <ArrowRight
                                                 className="size-4"
                                                 aria-hidden
@@ -813,9 +789,9 @@ export function HomeLanding({
                 <FadeIn>
                 <div className="mx-auto max-w-3xl px-4 text-start sm:px-6 lg:px-8">
                     <SectionHeader
-                        eyebrow="Travel information"
-                        title="Frequently asked questions"
-                        description="Quick answers to common questions about planning a trip to Afghanistan."
+                        eyebrow={t('home.faq.eyebrow')}
+                        title={t('home.faq.title')}
+                        description={t('home.faq.description')}
                         center
                     />
                     <HomeDeferredSection data="faqItems" columns={1}>

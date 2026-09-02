@@ -3,16 +3,15 @@
     $direction = \App\Support\Locale::direction($locale);
 @endphp
 <!DOCTYPE html>
-<html lang="{{ \App\Support\Locale::htmlLang($locale) }}" dir="{{ $direction }}">
+<html lang="{{ \App\Support\Locale::htmlLang($locale) }}" dir="{{ $direction }}" @if (request()->is('admin*')) data-secure-chrome="true" @endif>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         @if (request()->is('admin*'))
-            {{-- Keep admin and login pages excluded after public launch. --}}
+            {{-- Keep admin and login pages out of search indexes. --}}
             <meta name="robots" content="noindex, nofollow">
-        @else
-            {{-- CLIENT REVIEW MODE: remove this else branch after final launch approval. --}}
-            <meta name="robots" content="noindex, nofollow">
+            <meta name="referrer" content="no-referrer">
+            <title>&nbsp;</title>
         @endif
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -23,7 +22,7 @@
             (function () {
                 var storageKey = 'appearance';
                 var stored = localStorage.getItem(storageKey);
-                var preference = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+                var preference = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'light';
                 var isDark = preference === 'dark' || (preference === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
                 document.documentElement.classList.toggle('dark', isDark);

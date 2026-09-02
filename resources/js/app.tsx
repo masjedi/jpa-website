@@ -5,6 +5,7 @@ import { createInertiaApp, router } from '@inertiajs/react';
 import { NavigationProgress } from '@/components/loading/NavigationProgress';
 import { BRAND_NAME } from '@/components/public/brand';
 import { AppearanceProvider } from '@/hooks/use-appearance';
+import { SECURE_TAB_TITLE } from '@/lib/secureTabTitle';
 
 const appName = import.meta.env.VITE_APP_NAME || BRAND_NAME;
 
@@ -14,6 +15,10 @@ router.on('navigate', () => {
 
 createInertiaApp({
     title: (title) => {
+        if (title === SECURE_TAB_TITLE) {
+            return SECURE_TAB_TITLE;
+        }
+
         if (!title || title === appName) {
             return appName;
         }
