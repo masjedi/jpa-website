@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 
 import { FadeIn } from '@/components/motion/FadeIn';
 import { useTranslations } from '@/hooks/use-translations';
+import { cardLineClass, cardSummaryClass, cardTitleClass } from '@/lib/cardText';
 import { resolveServiceIcon } from '@/lib/serviceIcons';
 import type { PublicServiceOffering, ServiceCategory } from '@/types/services';
 import { serviceCategoryLabels } from '@/types/services';
@@ -81,11 +82,11 @@ export function ServicesListSection({ offerings }: ServicesListSectionProps) {
                             const Icon = resolveServiceIcon(service.iconKey);
 
                             return (
-                                <FadeIn key={service.id} delay={index * 0.04}>
+                                <FadeIn key={service.id} delay={index * 0.04} className="h-full">
                                     <article className="group relative flex h-full gap-4 overflow-hidden rounded-2xl border border-border bg-surface p-5 text-start shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-secondary/30 hover:shadow-md">
                                         <div
                                             aria-hidden
-                                            className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-secondary/80 via-secondary/40 to-accent/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                                            className="absolute inset-y-0 start-0 w-1 bg-gradient-to-b from-secondary/80 via-secondary/40 to-accent/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                                         />
 
                                         <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-secondary/10 group-hover:text-secondary">
@@ -96,17 +97,17 @@ export function ServicesListSection({ offerings }: ServicesListSectionProps) {
                                             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                                                 {service.category}
                                             </p>
-                                            <h3 className="font-heading mt-0.5 text-base font-semibold text-foreground">
+                                            <h3 className={`font-heading mt-0.5 text-base font-semibold text-foreground ${cardTitleClass}`}>
                                                 {service.title}
                                             </h3>
-                                            <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                                            <p className={`mt-1.5 text-sm leading-relaxed text-muted-foreground ${cardSummaryClass}`}>
                                                 {service.description}
                                             </p>
                                             <ul className="mt-3 space-y-1">
                                                 {service.features.slice(0, 2).map((feature) => (
                                                     <li
                                                         key={feature}
-                                                        className="line-clamp-1 text-xs text-muted-foreground before:me-1.5 before:text-secondary before:content-['·']"
+                                                        className={`${cardLineClass} text-xs text-muted-foreground before:me-1.5 before:text-secondary before:content-['·']`}
                                                     >
                                                         {feature}
                                                     </li>

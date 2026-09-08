@@ -4,6 +4,7 @@ namespace App\Support\Services;
 
 use App\Enums\ServiceOfferingCategory;
 use App\Models\ServiceOffering;
+use App\Support\Translatable;
 
 class ServiceOfferingPresenter
 {
@@ -64,13 +65,14 @@ class ServiceOfferingPresenter
     {
         return [
             'id' => $offering->id,
-            'title' => (string) $offering->title,
+            'title' => Translatable::normalize($offering->title),
             'slug' => (string) $offering->slug,
-            'tagline' => (string) $offering->tagline,
-            'description' => (string) $offering->description,
+            'tagline' => Translatable::normalize($offering->tagline),
+            'description' => Translatable::normalize($offering->description),
             'category' => $offering->category->frontendLabel(),
             'iconKey' => (string) $offering->icon_key,
-            'features' => $offering->features ?? [],
+            'featuresText' => Translatable::stringListToTextMap($offering->features ?? []),
+            'features' => Translatable::resolveStringList($offering->features ?? []),
             'isFeatured' => (bool) $offering->is_featured,
             'showOnHome' => (bool) $offering->show_on_home,
             'order' => (int) $offering->sort_order,
@@ -87,12 +89,12 @@ class ServiceOfferingPresenter
         return [
             'id' => $offering->id,
             'slug' => (string) $offering->slug,
-            'title' => (string) $offering->title,
-            'tagline' => (string) $offering->tagline,
-            'description' => (string) $offering->description,
+            'title' => Translatable::resolve($offering->title),
+            'tagline' => Translatable::resolve($offering->tagline),
+            'description' => Translatable::resolve($offering->description),
             'category' => $offering->category->frontendLabel(),
             'iconKey' => (string) $offering->icon_key,
-            'features' => $offering->features ?? [],
+            'features' => Translatable::resolveStringList($offering->features ?? []),
             'isFeatured' => (bool) $offering->is_featured,
         ];
     }
@@ -104,8 +106,9 @@ class ServiceOfferingPresenter
     {
         return [
             'id' => $offering->id,
-            'title' => (string) $offering->title,
-            'description' => (string) $offering->tagline,
+            'slug' => (string) $offering->slug,
+            'title' => Translatable::resolve($offering->title),
+            'description' => Translatable::resolve($offering->tagline),
             'iconKey' => (string) $offering->icon_key,
         ];
     }

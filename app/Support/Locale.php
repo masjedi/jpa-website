@@ -44,12 +44,21 @@ class Locale
     public static function publicTranslations(?string $locale = null): array
     {
         $locale = $locale ?? app()->getLocale();
-        $path = lang_path("{$locale}/public.json");
+        $translations = self::loadPublicJson($locale);
 
-        if (! is_file($path)) {
-            $fallback = (string) config('app.fallback_locale', 'en');
-            $path = lang_path("{$fallback}/public.json");
+        if ($locale === 'en') {
+            return $translations;
         }
+
+        return self::mergeTranslations(self::loadPublicJson('en'), $translations);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function loadPublicJson(string $locale): array
+    {
+        $path = lang_path("{$locale}/public.json");
 
         if (! is_file($path)) {
             return [];
@@ -64,5 +73,29 @@ class Locale
         $decoded = json_decode($contents, true);
 
         return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $base
+     * @param  array<string, mixed>  $override
+     * @return array<string, mixed>
+     */
+    private static function mergeTranslations(array $base, array $override): array
+    {
+        foreach ($override as $key => $value) {
+            if (is_array($value) && is_array($base[$key] ?? null)) {
+                $base[$key] = self::mergeTranslations($base[$key], $value);
+
+                continue;
+            }
+
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $base[$key] = $value;
+        }
+
+        return $base;
     }
 }

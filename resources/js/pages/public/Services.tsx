@@ -14,10 +14,7 @@ export default function Services({ offerings }: ServicesPageProps) {
 
     return (
         <>
-            <PageMeta
-                title="Services"
-                description="Guided tours, private travel, custom itineraries, local guides, transport, accommodation, visa support and safety briefings for travel in Afghanistan."
-            />
+            <PageMeta />
             <ServicesLanding offerings={offerings} />
         </>
     );

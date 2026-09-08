@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Seo\SeoPresenter;
 use App\Support\Services\ServiceOfferingPresenter;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -12,6 +13,7 @@ class ServiceController extends Controller
     {
         return Inertia::render('public/Services', [
             'offerings' => ServiceOfferingPresenter::forPublicPage(),
+            'seo' => SeoPresenter::page('services', '/services'),
         ]);
     }
 }

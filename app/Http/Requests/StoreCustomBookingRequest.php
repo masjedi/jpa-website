@@ -4,10 +4,10 @@ namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\ProhibitsMassAssignmentFields;
 use App\Http\Requests\Concerns\TrimsStringInput;
-use App\Support\Booking\CustomBookingAttributes;
 use App\Support\Booking\CustomBookingCatalog;
 use App\Support\Booking\CustomBookingOptions;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -33,23 +33,71 @@ class StoreCustomBookingRequest extends FormRequest
 
         $trip['recommendDestinations'] = $this->boolean('trip.recommendDestinations');
         $trip['startDate'] = $this->filled('trip.startDate') ? trim((string) $this->input('trip.startDate')) : null;
+        $trip['endDate'] = $this->filled('trip.endDate') ? trim((string) $this->input('trip.endDate')) : null;
         $trip['season'] = $this->filled('trip.season') ? trim((string) $this->input('trip.season')) : null;
-        $trip['otherDestination'] = trim((string) ($trip['otherDestination'] ?? ''));
+        $trip['otherDestination'] = '';
         $trip['durationDays'] = (int) ($trip['durationDays'] ?? 0);
+        $trip['destinations'] = is_array($trip['destinations'] ?? null) ? array_values($trip['destinations']) : [];
 
+        if ($trip['recommendDestinations']) {
+            $trip['destinations'] = [];
+        }
+
+        if (($trip['flexibility'] ?? '') === 'unsure') {
+            $trip['startDate'] = null;
+            $trip['endDate'] = null;
+            $trip['durationDays'] = 0;
+        } elseif (filled($trip['startDate']) && filled($trip['endDate'])) {
+            try {
+                $start = Carbon::parse($trip['startDate'])->startOfDay();
+                $end = Carbon::parse($trip['endDate'])->startOfDay();
+
+                if ($end->greaterThanOrEqualTo($start)) {
+                    $trip['durationDays'] = (int) $start->diffInDays($end) + 1;
+                }
+            } catch (\Throwable) {
+            }
+        }
+
+        $travelers['groupType'] = trim((string) ($travelers['groupType'] ?? ''));
         $travelers['adults'] = (int) ($travelers['adults'] ?? 0);
         $travelers['children'] = (int) ($travelers['children'] ?? 0);
+
+        if ($travelers['groupType'] === 'private') {
+            $travelers['adults'] = 1;
+            $travelers['children'] = 0;
+            $travelers['companions'] = [];
+        }
+
+        if ($travelers['groupType'] === 'group') {
+            $travelers['children'] = 0;
+        }
+
         $primary['email'] = isset($primary['email']) ? trim((string) $primary['email']) : '';
         $primary['phone'] = isset($primary['phone']) ? trim((string) $primary['phone']) : '';
         $travelers['primary'] = $primary;
 
+        $services['guideLanguages'] = is_array($services['guideLanguages'] ?? null)
+            ? array_values(array_filter(array_map(
+                fn (mixed $language): string => trim((string) $language),
+                $services['guideLanguages'],
+            )))
+            : [];
+        $services['guideCount'] = (int) ($services['guideCount'] ?? 0);
+        $services['airportPickup'] = trim((string) ($services['airportPickup'] ?? ''));
+        $services['guide'] = true;
+        $services['transportation'] = true;
+        $services['accommodation'] = true;
+        $services['domestic'] = true;
+        $services['complete'] = false;
+        $services['airport'] = $services['airportPickup'] === 'yes';
+        $services['roomCount'] = (int) ($services['roomCount'] ?? 0);
+
         foreach ([
-            'complete', 'guide', 'transportation', 'accommodation', 'airport', 'domestic',
             'arrivalDetailsLater', 'departureDetailsLater',
         ] as $flag) {
             $services[$flag] = $this->boolean('services.'.$flag);
         }
-        $services['roomCount'] = (int) ($services['roomCount'] ?? 0);
 
         foreach ([
             'arrivalAirport', 'arrivalDate', 'arrivalTime', 'arrivalFlight',
@@ -63,6 +111,22 @@ class StoreCustomBookingRequest extends FormRequest
         foreach (['accuracy', 'terms', 'privacy', 'marketing'] as $flag) {
             $agreements[$flag] = $this->boolean('agreements.'.$flag);
         }
+
+        $documents['visaStatus'] = trim((string) ($documents['visaStatus'] ?? ''));
+        $documents['insuranceStatus'] = filled($documents['insuranceStatus'] ?? null)
+            ? trim((string) $documents['insuranceStatus'])
+            : 'will_arrange';
+
+        $requirements['dietary'] = array_values(array_unique(
+            is_array($requirements['dietary'] ?? null)
+                ? array_filter(array_map(
+                    fn (mixed $item): string => trim((string) $item),
+                    $requirements['dietary'],
+                ))
+                : (filled($requirements['dietary'] ?? null) ? [trim((string) $requirements['dietary'])] : []),
+        ));
+        $requirements['specialRequests'] = '';
+        $requirements['medicalDetails'] = '';
 
         $this->merge([
             'trip' => $trip,
@@ -80,15 +144,6 @@ class StoreCustomBookingRequest extends FormRequest
     public function rules(): array
     {
         $name = ['required', 'string', 'min:2', 'max:80', 'regex:'.CustomBookingOptions::NAME_REGEX];
-        $guide = $this->boolean('services.guide');
-        $transportation = $this->boolean('services.transportation');
-        $accommodation = $this->boolean('services.accommodation');
-        $airport = $this->boolean('services.airport');
-        $domestic = $this->boolean('services.domestic');
-        $arrivalLater = $this->boolean('services.arrivalDetailsLater');
-        $departureLater = $this->boolean('services.departureDetailsLater');
-        $arrivalYes = $this->input('services.arrivalAssistance') === 'yes';
-        $departureYes = $this->input('services.departureAssistance') === 'yes';
 
         return [
             ...$this->prohibitedMassAssignmentRules(),
@@ -101,36 +156,49 @@ class StoreCustomBookingRequest extends FormRequest
             'created_by' => ['prohibited'],
             'trip.flexibility' => ['required', 'string', Rule::in(CustomBookingOptions::flexibilities())],
             'trip.startDate' => [
-                Rule::requiredIf(fn (): bool => in_array($this->input('trip.flexibility'), ['exact', 'plus_minus_3', 'plus_minus_week', 'within_month'], true)),
+                Rule::requiredIf(fn (): bool => $this->input('trip.flexibility') === 'known'),
                 'nullable',
                 'date',
                 'after_or_equal:today',
             ],
+            'trip.endDate' => [
+                Rule::requiredIf(fn (): bool => $this->input('trip.flexibility') === 'known'),
+                'nullable',
+                'date',
+                'after_or_equal:today',
+                Rule::when(filled($this->input('trip.startDate')), ['after_or_equal:trip.startDate']),
+            ],
             'trip.season' => [
-                Rule::requiredIf(fn (): bool => $this->input('trip.flexibility') === 'unsure'),
                 'nullable',
                 'string',
                 Rule::in(CustomBookingCatalog::allowedSeasonValues()),
             ],
             'trip.durationDays' => [
-                'required',
+                Rule::requiredIf(fn (): bool => $this->input('trip.flexibility') === 'known'),
+                'nullable',
                 'integer',
-                'min:'.CustomBookingOptions::MIN_DURATION_DAYS,
+                'min:'.($this->input('trip.flexibility') === 'unsure' ? 0 : CustomBookingOptions::MIN_DURATION_DAYS),
                 'max:'.CustomBookingOptions::MAX_DURATION_DAYS,
             ],
             'trip.destinations' => ['nullable', 'array'],
             'trip.destinations.*' => ['string', 'max:120', Rule::in(CustomBookingCatalog::allowedDestinationNames())],
-            'trip.otherDestination' => [
-                'nullable',
-                'string',
-                'max:120',
-                Rule::requiredIf(fn (): bool => in_array(CustomBookingOptions::OTHER_DESTINATION, $this->input('trip.destinations', []), true)),
-            ],
+            'trip.otherDestination' => ['nullable', 'string', 'max:120'],
             'trip.recommendDestinations' => ['boolean'],
             'trip.interests' => ['required', 'array', 'min:1'],
             'trip.interests.*' => ['string', Rule::in(CustomBookingOptions::interests())],
             'trip.routePreference' => ['required', 'string', Rule::in(CustomBookingOptions::routePreferences())],
-            'travelers.adults' => ['required', 'integer', 'min:1', 'max:'.CustomBookingOptions::MAX_ADULTS],
+            'travelers.adults' => [
+                'required',
+                'integer',
+                Rule::when(
+                    $this->input('travelers.groupType') === 'group',
+                    ['min:2', 'max:'.CustomBookingOptions::MAX_TRAVELERS],
+                ),
+                Rule::when(
+                    $this->input('travelers.groupType') !== 'group',
+                    ['min:1', 'max:'.CustomBookingOptions::MAX_ADULTS],
+                ),
+            ],
             'travelers.children' => ['required', 'integer', 'min:0', 'max:'.CustomBookingOptions::MAX_CHILDREN],
             'travelers.primary.firstName' => $name,
             'travelers.primary.lastName' => $name,
@@ -139,139 +207,51 @@ class StoreCustomBookingRequest extends FormRequest
             'travelers.primary.dateOfBirth' => ['required', 'date', 'before:today'],
             'travelers.primary.nationality' => $name,
             'travelers.primary.countryOfResidence' => $name,
+            'travelers.primary.isFirstVisit' => ['required', 'string', Rule::in(CustomBookingOptions::firstVisitAnswers())],
             'travelers.companions' => ['nullable', 'array'],
             'travelers.companions.*.firstName' => $name,
             'travelers.companions.*.lastName' => $name,
+            'travelers.companions.*.email' => ['required', 'string', 'email:filter', 'min:5', 'max:255'],
+            'travelers.companions.*.phone' => ['required', 'string', 'min:8', 'max:60', 'regex:'.CustomBookingOptions::PHONE_REGEX],
             'travelers.companions.*.dateOfBirth' => ['required', 'date', 'before:today'],
             'travelers.companions.*.nationality' => $name,
-            'travelers.groupType' => ['nullable', 'string', Rule::in(CustomBookingOptions::groupTypes())],
+            'travelers.companions.*.countryOfResidence' => $name,
+            'travelers.companions.*.isFirstVisit' => ['required', 'string', Rule::in(CustomBookingOptions::firstVisitAnswers())],
+            'travelers.groupType' => ['required', 'string', Rule::in(CustomBookingOptions::groupTypes())],
             'services.complete' => ['boolean'],
             'services.guide' => ['boolean'],
             'services.transportation' => ['boolean'],
             'services.accommodation' => ['boolean'],
             'services.airport' => ['boolean'],
             'services.domestic' => ['boolean'],
-            'services.guideGender' => [
-                Rule::excludeIf(! $guide),
-                'required',
-                'string',
-                Rule::in(CustomBookingOptions::guideGenders()),
-            ],
-            'services.guideLanguage' => [
-                Rule::excludeIf(! $guide),
-                'required',
-                'string',
-                Rule::in(CustomBookingOptions::guideLanguages()),
-            ],
-            'services.guideLanguageOther' => [
-                Rule::excludeIf(! $guide || $this->input('services.guideLanguage') !== 'other'),
-                'required',
-                'string',
-                'max:80',
-            ],
-            'services.guideRequest' => [Rule::excludeIf(! $guide), 'nullable', 'string', 'max:2000'],
-            'services.vehicle' => [
-                Rule::excludeIf(! $transportation),
-                'required',
-                'string',
-                Rule::in(CustomBookingOptions::vehicles()),
-            ],
-            'services.transportCoverage' => [
-                Rule::excludeIf(! $transportation),
-                'required',
-                'string',
-                Rule::in(CustomBookingOptions::transportCoverages()),
-            ],
-            'services.transportNotes' => [
-                Rule::excludeIf(! $transportation || $this->input('services.transportCoverage') !== 'selected'),
-                'required',
-                'string',
-                'max:2000',
-            ],
-            'services.accommodationLevel' => [
-                Rule::excludeIf(! $accommodation),
-                'required',
-                'string',
-                Rule::in(CustomBookingOptions::accommodationLevels()),
-            ],
-            'services.roomPreference' => [
-                Rule::excludeIf(! $accommodation),
-                'required',
-                'string',
-                Rule::in(CustomBookingOptions::roomPreferences()),
-            ],
-            'services.roomCount' => [Rule::excludeIf(! $accommodation), 'required', 'integer', 'min:1', 'max:12'],
-            'services.accommodationNotes' => [Rule::excludeIf(! $accommodation), 'nullable', 'string', 'max:2000'],
-            'services.arrivalAssistance' => [
-                Rule::excludeIf(! $airport),
-                'required',
-                'string',
-                Rule::in(CustomBookingOptions::flightAssistance()),
-            ],
+            'services.guideCount' => ['required', 'integer', 'min:1', 'max:'.CustomBookingOptions::MAX_GUIDES],
+            'services.guideGender' => ['required', 'string', Rule::in(CustomBookingOptions::guideGenders())],
+            'services.guideLanguages' => ['required', 'array', 'min:1'],
+            'services.guideLanguages.*' => ['string', Rule::in(CustomBookingOptions::guideLanguages())],
+            'services.guideLanguage' => ['nullable', 'string', Rule::in(CustomBookingOptions::guideLanguages())],
+            'services.guideLanguageOther' => ['nullable', 'string', 'max:80'],
+            'services.guideRequest' => ['nullable', 'string', 'max:2000'],
+            'services.vehicle' => ['required', 'string', Rule::in(CustomBookingOptions::vehicles())],
+            'services.transportCoverage' => ['required', 'string', Rule::in(CustomBookingOptions::transportCoverages())],
+            'services.transportNotes' => ['nullable', 'string', 'max:2000'],
+            'services.accommodationLevel' => ['required', 'string', Rule::in(CustomBookingOptions::accommodationLevels())],
+            'services.roomPreference' => ['required', 'string', Rule::in(CustomBookingOptions::roomPreferences())],
+            'services.roomCount' => ['required', 'integer', 'min:1', 'max:12'],
+            'services.accommodationNotes' => ['nullable', 'string', 'max:2000'],
+            'services.airportPickup' => ['required', 'string', Rule::in(CustomBookingOptions::firstVisitAnswers())],
+            'services.arrivalAssistance' => ['nullable', 'string', Rule::in(CustomBookingOptions::flightAssistance())],
             'services.arrivalDetailsLater' => ['boolean'],
-            'services.arrivalAirport' => [
-                Rule::excludeIf(! $airport || ! $arrivalYes || $arrivalLater),
-                'required',
-                'string',
-                'max:80',
-            ],
-            'services.arrivalDate' => [
-                Rule::excludeIf(! $airport || ! $arrivalYes || $arrivalLater),
-                'nullable',
-                'date',
-            ],
-            'services.arrivalTime' => [
-                Rule::excludeIf(! $airport || ! $arrivalYes || $arrivalLater),
-                'nullable',
-                'string',
-                'max:20',
-                'regex:'.CustomBookingOptions::TIME_REGEX,
-            ],
-            'services.arrivalFlight' => [
-                Rule::excludeIf(! $airport || ! $arrivalYes || $arrivalLater),
-                'nullable',
-                'string',
-                'max:12',
-                'regex:'.CustomBookingOptions::FLIGHT_REGEX,
-            ],
-            'services.departureAssistance' => [
-                Rule::excludeIf(! $airport),
-                'required',
-                'string',
-                Rule::in(CustomBookingOptions::flightAssistance()),
-            ],
+            'services.arrivalAirport' => ['nullable', 'string', 'max:80'],
+            'services.arrivalDate' => ['nullable', 'date'],
+            'services.arrivalTime' => ['nullable', 'string', 'max:20', 'regex:'.CustomBookingOptions::TIME_REGEX],
+            'services.arrivalFlight' => ['nullable', 'string', 'max:12', 'regex:'.CustomBookingOptions::FLIGHT_REGEX],
+            'services.departureAssistance' => ['nullable', 'string', Rule::in(CustomBookingOptions::flightAssistance())],
             'services.departureDetailsLater' => ['boolean'],
-            'services.departureAirport' => [
-                Rule::excludeIf(! $airport || ! $departureYes || $departureLater),
-                'required',
-                'string',
-                'max:80',
-            ],
-            'services.departureDate' => [
-                Rule::excludeIf(! $airport || ! $departureYes || $departureLater),
-                'nullable',
-                'date',
-            ],
-            'services.departureTime' => [
-                Rule::excludeIf(! $airport || ! $departureYes || $departureLater),
-                'nullable',
-                'string',
-                'max:20',
-                'regex:'.CustomBookingOptions::TIME_REGEX,
-            ],
-            'services.departureFlight' => [
-                Rule::excludeIf(! $airport || ! $departureYes || $departureLater),
-                'nullable',
-                'string',
-                'max:12',
-                'regex:'.CustomBookingOptions::FLIGHT_REGEX,
-            ],
-            'services.domesticPreference' => [
-                Rule::excludeIf(! $domestic),
-                'required',
-                'string',
-                Rule::in(CustomBookingOptions::domesticPreferences()),
-            ],
+            'services.departureAirport' => ['nullable', 'string', 'max:80'],
+            'services.departureDate' => ['nullable', 'date'],
+            'services.departureTime' => ['nullable', 'string', 'max:20', 'regex:'.CustomBookingOptions::TIME_REGEX],
+            'services.departureFlight' => ['nullable', 'string', 'max:12', 'regex:'.CustomBookingOptions::FLIGHT_REGEX],
+            'services.domesticPreference' => ['required', 'string', Rule::in(CustomBookingOptions::domesticPreferences())],
             'documents.passports' => ['required', 'array', 'min:1'],
             'documents.passports.*.issuingCountry' => $name,
             'documents.passports.*.expiryDate' => ['required', 'date', 'after:today'],
@@ -280,20 +260,19 @@ class StoreCustomBookingRequest extends FormRequest
             'requirements.emergencyName' => ['required', 'string', 'min:2', 'max:120'],
             'requirements.emergencyRelationship' => ['required', 'string', 'min:2', 'max:80'],
             'requirements.emergencyPhone' => ['required', 'string', 'min:8', 'max:60', 'regex:'.CustomBookingOptions::PHONE_REGEX],
-            'requirements.dietary' => ['required', 'string', Rule::in(CustomBookingOptions::dietaryOptions())],
+            'requirements.dietary' => ['required', 'array', 'min:1'],
+            'requirements.dietary.*' => ['string', Rule::in(CustomBookingOptions::dietaryOptions())],
             'requirements.dietaryDetails' => [
-                Rule::requiredIf(fn (): bool => in_array($this->input('requirements.dietary'), ['allergy', 'other'], true)),
+                Rule::requiredIf(fn (): bool => count(array_intersect(
+                    is_array($this->input('requirements.dietary')) ? $this->input('requirements.dietary') : [],
+                    ['allergy', 'other'],
+                )) > 0),
                 'nullable',
                 'string',
                 'max:1000',
             ],
             'requirements.medical' => ['required', 'string', Rule::in(CustomBookingOptions::medicalOptions())],
-            'requirements.medicalDetails' => [
-                Rule::requiredIf(fn (): bool => $this->input('requirements.medical') === 'yes'),
-                'nullable',
-                'string',
-                'max:2000',
-            ],
+            'requirements.medicalDetails' => ['nullable', 'string', 'max:2000'],
             'requirements.contactMethod' => ['required', 'string', Rule::in(CustomBookingOptions::contactMethods())],
             'requirements.specialRequests' => ['nullable', 'string', 'max:2000'],
             'agreements.accuracy' => ['accepted'],
@@ -329,7 +308,14 @@ class StoreCustomBookingRequest extends FormRequest
                 if ($companionCount !== max(0, $total - 1)) {
                     $validator->errors()->add(
                         'travelers.adults',
-                        'Traveler details do not match the selected traveler count.',
+                        'Add a tourist form for each tourist until the count matches.',
+                    );
+                }
+
+                if ($this->input('travelers.groupType') === 'group' && $total < 2) {
+                    $validator->errors()->add(
+                        'travelers.adults',
+                        'A group booking needs at least two tourists.',
                     );
                 }
 
@@ -358,13 +344,6 @@ class StoreCustomBookingRequest extends FormRequest
                 if (! $hasService) {
                     $validator->errors()->add('services.complete', 'Select at least one service, or choose a complete custom package.');
                 }
-
-                if (
-                    CustomBookingAttributes::inferredGroupType($adults, $children) === null
-                    && blank($this->input('travelers.groupType'))
-                ) {
-                    $validator->errors()->add('travelers.groupType', 'Choose a group type.');
-                }
             },
         ];
     }
@@ -381,6 +360,8 @@ class StoreCustomBookingRequest extends FormRequest
             'travelers.primary.email.required' => 'Enter an email address.',
             'travelers.primary.email.email' => 'Enter a valid email address, for example name@example.com.',
             'travelers.primary.phone.regex' => 'Enter a valid phone number with country code, for example +49 177 668 7088.',
+            'travelers.primary.isFirstVisit.required' => 'Choose whether this is the first visit.',
+            'travelers.companions.*.isFirstVisit.required' => 'Choose whether this is the first visit.',
             'requirements.emergencyPhone.regex' => 'Enter a valid phone number with country code, for example +49 177 668 7088.',
             'services.arrivalTime.regex' => 'Enter a valid arrival time, for example 14:30.',
             'services.departureTime.regex' => 'Enter a valid departure time, for example 14:30.',
@@ -389,7 +370,7 @@ class StoreCustomBookingRequest extends FormRequest
             'agreements.accuracy.accepted' => 'Please confirm that the information is accurate.',
             'agreements.terms.accepted' => 'Please agree to the booking terms and cancellation policy.',
             'agreements.privacy.accepted' => 'Please acknowledge the privacy policy.',
-            'trip.destinations.*.in' => 'Choose a destination from the published list.',
+            'trip.destinations.*.in' => 'Choose a province from the list.',
         ];
     }
 }

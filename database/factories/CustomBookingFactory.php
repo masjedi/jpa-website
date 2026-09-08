@@ -25,9 +25,10 @@ class CustomBookingFactory extends Factory
             'adults' => 2,
             'children' => 0,
             'traveler_count' => 2,
-            'group_type' => 'couple',
+            'group_type' => 'group',
             'start_date' => now()->addMonth()->toDateString(),
-            'flexibility' => 'exact',
+            'end_date' => now()->addMonth()->addDays(9)->toDateString(),
+            'flexibility' => 'known',
             'season' => 'Autumn',
             'duration_days' => 10,
             'other_destination' => null,
@@ -39,6 +40,7 @@ class CustomBookingFactory extends Factory
             'emergency_relationship' => 'Spouse',
             'emergency_phone' => '+49 177 0000000',
             'dietary' => 'none',
+            'dietary_options' => ['none'],
             'dietary_details' => null,
             'medical' => 'no',
             'medical_details' => null,
@@ -75,6 +77,7 @@ class CustomBookingFactory extends Factory
                 'email' => 'sara@example.com',
                 'phone' => '+49 177 668 7088',
                 'country_of_residence' => 'Germany',
+                'is_first_visit' => true,
             ]);
         });
     }

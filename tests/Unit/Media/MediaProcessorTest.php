@@ -211,6 +211,19 @@ class MediaProcessorTest extends TestCase
         $this->assertStringContainsString('1600 × 1000', $profile->uploadHint());
     }
 
+    public function test_skips_upscaled_variants_for_smaller_sources(): void
+    {
+        $asset = $this->processor->store(
+            $this->makeImageUpload(1920, 1080, 'hero-hd.jpg'),
+            'hero_slide',
+        );
+
+        $this->assertArrayHasKey('thumb', $asset->variants);
+        $this->assertArrayHasKey('hero_md', $asset->variants);
+        $this->assertArrayNotHasKey('hero', $asset->variants);
+        $this->assertArrayNotHasKey('hero_ultra', $asset->variants);
+    }
+
     public function test_hydrate_round_trips_inertia_safe_payload(): void
     {
         $asset = $this->processor->store(

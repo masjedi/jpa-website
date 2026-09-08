@@ -1,6 +1,7 @@
 import { usePage } from '@inertiajs/react';
-import { type FormEvent, useEffect, useId, useState } from 'react';
+import { type FormEvent, useEffect, useId, useMemo, useState } from 'react';
 
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
@@ -12,6 +13,11 @@ import {
     type TeamFormValues,
     validateTeamFormValues,
 } from '@/components/admin/teamForm';
+import {
+    buildInitialLocaleMap,
+    localeMapToTranslatedRecord,
+    useLocaleFormFields,
+} from '@/hooks/use-locale-form-fields';
 import { mediaProfiles } from '@/lib/mediaProfiles';
 import { cn } from '@/lib/utils';
 import type { TeamAvatarSpec } from '@/types/team';
@@ -19,39 +25,69 @@ import type { TeamAvatarSpec } from '@/types/team';
 interface TeamEntityFormProps {
     formId: string;
     mode: 'create' | 'edit';
+    avatarSpec: TeamAvatarSpec;
     initialValues?: TeamFormValues;
     onCancel: () => void;
     onSubmit: (payload: TeamFormSubmitPayload) => void | Promise<void>;
 }
 
+const teamTranslatableFields = ['name', 'role', 'bio'] as const;
+
+const emptyTeamFields = {
+    name: '',
+    role: '',
+    bio: '',
+};
+
 export function TeamEntityForm({
     formId,
     mode,
+    avatarSpec,
     initialValues,
     onCancel,
     onSubmit,
 }: TeamEntityFormProps) {
-    const { avatarSpec, errors: serverErrors } = usePage<{
-        avatarSpec: TeamAvatarSpec;
-        errors: Record<string, string | string[] | undefined>;
-    }>().props;
+    const { errors: serverErrors } = usePage().props;
 
-    const nameFieldId = useId();
-    const roleFieldId = useId();
-    const bioFieldId = useId();
     const emailFieldId = useId();
     const whatsappFieldId = useId();
     const whatsappHrefFieldId = useId();
     const statusFieldId = useId();
     const imageFieldId = useId();
+    const nameFieldId = useId();
+    const roleFieldId = useId();
+    const bioFieldId = useId();
 
-    const [values, setValues] = useState<TeamFormValues>(
-        () => initialValues ?? createEmptyTeamFormValues(),
+    const startingValues = initialValues ?? createEmptyTeamFormValues();
+    const initialByLocale = useMemo(
+        () =>
+            buildInitialLocaleMap(teamTranslatableFields, {
+                name: startingValues.name,
+                role: startingValues.role,
+                bio: startingValues.bio,
+            }),
+        [startingValues.bio, startingValues.name, startingValues.role],
     );
+
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setField,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormFields({
+        initialByLocale,
+        emptyFields: emptyTeamFields,
+    });
+
+    const [email, setEmail] = useState(startingValues.email);
+    const [whatsapp, setWhatsapp] = useState(startingValues.whatsapp);
+    const [whatsappHref, setWhatsappHref] = useState(startingValues.whatsappHref);
+    const [status, setStatus] = useState(startingValues.status);
     const [avatarImage, setAvatarImage] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(
-        () => initialValues?.image || null,
-    );
+    const [previewUrl, setPreviewUrl] = useState<string | null>(startingValues.image || null);
     const [errors, setErrors] = useState<TeamFormErrors>({});
     const [submitting, setSubmitting] = useState(false);
 
@@ -84,7 +120,20 @@ export function TeamEntityForm({
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const nextErrors = validateTeamFormValues(values, hasImage);
+        const localeValues = commitAllLocales();
+        const translated = localeMapToTranslatedRecord(teamTranslatableFields, localeValues);
+        const payloadValues: TeamFormValues = {
+            name: translated.name,
+            role: translated.role,
+            bio: translated.bio,
+            email,
+            whatsapp,
+            whatsappHref,
+            image: startingValues.image,
+            status,
+        };
+
+        const nextErrors = validateTeamFormValues(payloadValues, hasImage);
         setErrors(nextErrors);
 
         if (Object.keys(nextErrors).length > 0) {
@@ -96,13 +145,10 @@ export function TeamEntityForm({
         try {
             await onSubmit({
                 values: {
-                    ...values,
-                    name: values.name.trim(),
-                    role: values.role.trim(),
-                    bio: values.bio.trim(),
-                    email: values.email.trim(),
-                    whatsapp: values.whatsapp.trim(),
-                    whatsappHref: values.whatsappHref.trim(),
+                    ...payloadValues,
+                    email: email.trim(),
+                    whatsapp: whatsapp.trim(),
+                    whatsappHref: whatsappHref.trim(),
                 },
                 avatarImage,
             });
@@ -132,14 +178,22 @@ export function TeamEntityForm({
                     previewObjectFit="contain"
                 />
 
+                <AdminLocaleSelector
+                    activeLocale={activeLocale}
+                    completion={completion}
+                    onChange={switchLocale}
+                    disabled={submitting}
+                />
+
                 <div className="grid gap-3 sm:grid-cols-2">
                     <AdminFormField id={nameFieldId} label="Name" required error={errors.name}>
                         <input
                             id={nameFieldId}
-                            value={values.name}
+                            value={draft.name}
+                            dir={direction}
                             disabled={submitting}
                             onChange={(event) => {
-                                setValues((current) => ({ ...current, name: event.target.value }));
+                                setField('name', event.target.value);
                                 setErrors((current) => ({ ...current, name: undefined }));
                             }}
                             placeholder="Wahid Rahimi"
@@ -152,10 +206,11 @@ export function TeamEntityForm({
                     <AdminFormField id={roleFieldId} label="Role" required error={errors.role}>
                         <input
                             id={roleFieldId}
-                            value={values.role}
+                            value={draft.role}
+                            dir={direction}
                             disabled={submitting}
                             onChange={(event) => {
-                                setValues((current) => ({ ...current, role: event.target.value }));
+                                setField('role', event.target.value);
                                 setErrors((current) => ({ ...current, role: undefined }));
                             }}
                             placeholder="Founder & lead guide"
@@ -169,11 +224,12 @@ export function TeamEntityForm({
                 <AdminFormField id={bioFieldId} label="Bio" required error={errors.bio}>
                     <textarea
                         id={bioFieldId}
-                        value={values.bio}
+                        value={draft.bio}
+                        dir={direction}
                         disabled={submitting}
                         rows={5}
                         onChange={(event) => {
-                            setValues((current) => ({ ...current, bio: event.target.value }));
+                            setField('bio', event.target.value);
                             setErrors((current) => ({ ...current, bio: undefined }));
                         }}
                         placeholder="A short biography shown on the public team page."
@@ -192,10 +248,10 @@ export function TeamEntityForm({
                         <input
                             id={emailFieldId}
                             type="email"
-                            value={values.email}
+                            value={email}
                             disabled={submitting}
                             onChange={(event) => {
-                                setValues((current) => ({ ...current, email: event.target.value }));
+                                setEmail(event.target.value);
                                 setErrors((current) => ({ ...current, email: undefined }));
                             }}
                             placeholder="name@journey-to-afghanistan.com"
@@ -213,13 +269,10 @@ export function TeamEntityForm({
                     >
                         <input
                             id={whatsappFieldId}
-                            value={values.whatsapp}
+                            value={whatsapp}
                             disabled={submitting}
                             onChange={(event) => {
-                                setValues((current) => ({
-                                    ...current,
-                                    whatsapp: event.target.value,
-                                }));
+                                setWhatsapp(event.target.value);
                                 setErrors((current) => ({ ...current, whatsapp: undefined }));
                             }}
                             placeholder="+49 177 6687088"
@@ -244,13 +297,10 @@ export function TeamEntityForm({
                 >
                     <input
                         id={whatsappHrefFieldId}
-                        value={values.whatsappHref}
+                        value={whatsappHref}
                         disabled={submitting}
                         onChange={(event) => {
-                            setValues((current) => ({
-                                ...current,
-                                whatsappHref: event.target.value,
-                            }));
+                            setWhatsappHref(event.target.value);
                             setErrors((current) => ({ ...current, whatsappHref: undefined }));
                         }}
                         placeholder="https://wa.me/491776687088"
@@ -269,13 +319,10 @@ export function TeamEntityForm({
                 <AdminFormField id={statusFieldId} label="Status">
                     <select
                         id={statusFieldId}
-                        value={values.status}
+                        value={status}
                         disabled={submitting}
                         onChange={(event) =>
-                            setValues((current) => ({
-                                ...current,
-                                status: event.target.value as TeamFormValues['status'],
-                            }))
+                            setStatus(event.target.value as TeamFormValues['status'])
                         }
                         className={adminFieldClass}
                     >

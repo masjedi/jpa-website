@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\Translatable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,16 +18,18 @@ abstract class TeamMemberListingRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name' => ['required', 'string', 'max:255'],
-            'role' => ['required', 'string', 'max:255'],
-            'bio' => ['required', 'string', 'max:5000'],
-            'email' => ['required', 'string', 'email', 'max:255'],
-            'whatsapp' => ['required', 'string', 'max:80'],
-            'whatsapp_href' => ['required', 'string', 'url', 'max:500'],
-            'status' => ['required', 'string', Rule::in(['Published', 'Draft'])],
-            'avatar_image' => $this->avatarImageRules(),
-        ];
+        return array_merge(
+            Translatable::validationRules('name', maxLength: 255),
+            Translatable::validationRules('role', maxLength: 255),
+            Translatable::validationRules('bio', maxLength: 5000),
+            [
+                'email' => ['required', 'string', 'email', 'max:255'],
+                'whatsapp' => ['required', 'string', 'max:80'],
+                'whatsapp_href' => ['required', 'string', 'url', 'max:500'],
+                'status' => ['required', 'string', Rule::in(['Published', 'Draft'])],
+                'avatar_image' => $this->avatarImageRules(),
+            ],
+        );
     }
 
     /**

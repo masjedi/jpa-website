@@ -23,6 +23,7 @@ export interface RichTextEditorProps {
     required?: boolean;
     disabled?: boolean;
     className?: string;
+    dir?: 'ltr' | 'rtl';
 }
 
 interface EditorHistory {
@@ -69,6 +70,7 @@ export function RichTextEditor({
     required = false,
     disabled = false,
     className,
+    dir = 'ltr',
 }: RichTextEditorProps) {
     const generatedId = useId();
     const editorId = id ?? generatedId;
@@ -368,6 +370,7 @@ export function RichTextEditor({
                     aria-invalid={Boolean(error)}
                     aria-describedby={error ? errorId : undefined}
                     contentEditable={!disabled}
+                    dir={dir}
                     suppressContentEditableWarning
                     onInput={syncValue}
                     onBlur={saveSelection}

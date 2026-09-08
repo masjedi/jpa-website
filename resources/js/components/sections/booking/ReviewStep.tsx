@@ -6,15 +6,13 @@ import {
     DATE_FLEXIBILITY_OPTIONS,
     DIETARY_OPTIONS,
     DOMESTIC_TRAVEL_OPTIONS,
-    FLIGHT_ASSISTANCE_OPTIONS,
     GROUP_TYPE_OPTIONS,
     GUIDE_GENDER_OPTIONS,
     GUIDE_LANGUAGE_OPTIONS,
-    OTHER_DESTINATION_VALUE,
     RECOMMEND_SEASON_VALUE,
     ROOM_PREFERENCE_OPTIONS,
     ROUTE_PREFERENCE_OPTIONS,
-    SERVICE_OPTIONS,
+    TRANSPORT_COVERAGE_OPTIONS,
     TRAVEL_INTEREST_OPTIONS,
     VEHICLE_OPTIONS,
     optionLabel,
@@ -25,7 +23,6 @@ import { ConsentCheckbox } from '@/components/sections/booking/bookingFields';
 import {
     displayDate,
     inferredGroupType,
-    maskFlight,
     maskPhone,
     resolvedSeason,
     sensitiveProvided,
@@ -87,42 +84,60 @@ function travelerName(firstName: string, lastName: string, fallback: string): st
     return name === '' ? fallback : name;
 }
 
+function firstVisitSummary(value: string): string {
+    if (value === 'yes') {
+        return ' · First visit: Yes';
+    }
+
+    if (value === 'no') {
+        return ' · First visit: No';
+    }
+
+    return '';
+}
+
 export function ReviewStep({ state, errors, seasons, onChange, onEdit }: ReviewStepProps) {
     const { trip, travelers, services, documents, requirements, agreements } = state;
     const totalTravelers = travelerCount(travelers.adults, travelers.children);
-    const group = travelers.groupType || inferredGroupType(travelers.adults, travelers.children) || '';
+    const group = travelers.groupType || inferredGroupType(travelers.adults, travelers.children);
     const season = resolvedSeason(trip.flexibility, trip.startDate, trip.season, seasons);
     const seasonLabel =
         season === RECOMMEND_SEASON_VALUE ? 'Recommend the best time' : season;
     const destinationList = trip.recommendDestinations
         ? 'Recommend destinations'
-        : [
-              ...trip.destinations.filter((name) => name !== OTHER_DESTINATION_VALUE),
-              trip.destinations.includes(OTHER_DESTINATION_VALUE) ? trip.otherDestination : '',
-          ]
-              .filter(Boolean)
-              .join(', ');
-    const selectedServices = SERVICE_OPTIONS.filter((option) => services[option.key]).map((option) => option.label);
-    const guideLanguage =
-        services.guideLanguage === 'other'
-            ? services.guideLanguageOther
-            : optionLabel(GUIDE_LANGUAGE_OPTIONS, services.guideLanguage);
-    const dietary = optionLabel(DIETARY_OPTIONS, requirements.dietary);
-    const dietaryValue =
-        requirements.dietary === 'allergy' || requirements.dietary === 'other'
-            ? `${dietary} — details provided`
-            : dietary;
+        : trip.destinations.join(', ');
+    const guideLanguages = services.guideLanguages
+        .map((language) => optionLabel(GUIDE_LANGUAGE_OPTIONS, language))
+        .filter(Boolean)
+        .join(', ');
+    const dietaryValue = requirements.dietary
+        .map((item) => optionLabel(DIETARY_OPTIONS, item))
+        .filter(Boolean)
+        .join(', ');
 
     return (
         <div className="space-y-6">
             <SummaryCard title="Trip summary" step={0} onEdit={onEdit}>
-                <SummaryRow label="Preferred dates" value={displayDate(trip.startDate) || 'To be decided'} />
-                <SummaryRow label="Flexibility" value={optionLabel(DATE_FLEXIBILITY_OPTIONS, trip.flexibility)} />
-                <SummaryRow label="Season" value={seasonLabel} />
-                <SummaryRow label="Duration" value={`${trip.durationDays} days`} />
+                <SummaryRow
+                    label="Preferred dates"
+                    value={
+                        trip.startDate && trip.endDate
+                            ? `${displayDate(trip.startDate)} – ${displayDate(trip.endDate)}`
+                            : displayDate(trip.startDate) || 'To be decided'
+                    }
+                />
+                <SummaryRow
+                    label="I am not sure yet"
+                    value={optionLabel(DATE_FLEXIBILITY_OPTIONS, trip.flexibility) || 'No'}
+                />
+                {seasonLabel ? <SummaryRow label="Season" value={seasonLabel} /> : null}
+                <SummaryRow
+                    label="Duration"
+                    value={trip.durationDays > 0 ? `${trip.durationDays} days` : 'To be decided'}
+                />
                 <SummaryRow label="Destinations" value={destinationList || 'To be recommended'} />
                 <SummaryRow
-                    label="Interests"
+                    label="Tour interests"
                     value={trip.interests
                         .map((interest) => optionLabel(TRAVEL_INTEREST_OPTIONS, interest))
                         .join(', ')}
@@ -130,23 +145,23 @@ export function ReviewStep({ state, errors, seasons, onChange, onEdit }: ReviewS
                 <SummaryRow label="Route" value={optionLabel(ROUTE_PREFERENCE_OPTIONS, trip.routePreference)} />
             </SummaryCard>
 
-            <SummaryCard title="Traveler summary" step={1} onEdit={onEdit}>
+            <SummaryCard title="Tourists summary" step={1} onEdit={onEdit}>
+                <SummaryRow label="Group type" value={optionLabel(GROUP_TYPE_OPTIONS, group)} />
                 <SummaryRow
-                    label="Primary traveler"
-                    value={`${travelerName(travelers.primary.firstName, travelers.primary.lastName, 'Primary traveler')}, ${travelers.primary.email}`}
+                    label="Number of tourists"
+                    value={String(totalTravelers)}
                 />
                 <SummaryRow
-                    label="Additional travelers"
-                    value={
-                        travelers.companions.length === 0
-                            ? 'None'
-                            : travelers.companions
-                                  .map((companion, index) =>
-                                      travelerName(companion.firstName, companion.lastName, `Traveler ${index + 2}`),
-                                  )
-                                  .join(', ')
-                    }
+                    label="Tourist 1"
+                    value={`${travelerName(travelers.primary.firstName, travelers.primary.lastName, 'Tourist 1')}, ${travelers.primary.email}${firstVisitSummary(travelers.primary.isFirstVisit)}`}
                 />
+                {travelers.companions.map((companion, index) => (
+                    <SummaryRow
+                        key={`review-tourist-${index}`}
+                        label={`Tourist ${index + 2}`}
+                        value={`${travelerName(companion.firstName, companion.lastName, `Tourist ${index + 2}`)}${firstVisitSummary(companion.isFirstVisit)}`}
+                    />
+                ))}
                 <SummaryRow
                     label="Nationalities"
                     value={[travelers.primary.nationality, ...travelers.companions.map((companion) => companion.nationality)]
@@ -162,82 +177,40 @@ export function ReviewStep({ state, errors, seasons, onChange, onEdit }: ReviewS
                         .filter(Boolean)
                         .join(', ')}
                 />
-                <SummaryRow label="Group type" value={optionLabel(GROUP_TYPE_OPTIONS, group)} />
-                <SummaryRow label="Travelers" value={`${totalTravelers} (${travelers.adults} adults${travelers.children > 0 ? `, ${travelers.children} children` : ''})`} />
             </SummaryCard>
 
             <SummaryCard title="Services summary" step={2} onEdit={onEdit}>
+                <SummaryRow label="Number of guides" value={services.guideCount > 0 ? String(services.guideCount) : ''} />
+                <SummaryRow label="Languages" value={guideLanguages} />
                 <SummaryRow
-                    label="Selected services"
-                    value={
-                        services.complete
-                            ? `Complete custom package${selectedServices.length > 0 ? ` — ${selectedServices.join(', ')}` : ''}`
-                            : selectedServices.join(', ')
-                    }
+                    label="Male and female"
+                    value={optionLabel(GUIDE_GENDER_OPTIONS, services.guideGender)}
                 />
-                {services.guide ? (
-                    <>
-                        <SummaryRow
-                            label="Preferred guide"
-                            value={optionLabel(GUIDE_GENDER_OPTIONS, services.guideGender)}
-                        />
-                        <SummaryRow label="Guide language" value={guideLanguage} />
-                    </>
-                ) : null}
-                {services.transportation ? (
-                    <SummaryRow label="Vehicle" value={optionLabel(VEHICLE_OPTIONS, services.vehicle)} />
-                ) : null}
-                {services.accommodation ? (
-                    <>
-                        <SummaryRow
-                            label="Accommodation"
-                            value={optionLabel(ACCOMMODATION_LEVEL_OPTIONS, services.accommodationLevel)}
-                        />
-                        <SummaryRow
-                            label="Rooms"
-                            value={`${services.roomCount} × ${optionLabel(ROOM_PREFERENCE_OPTIONS, services.roomPreference)}`}
-                        />
-                    </>
-                ) : null}
-                {services.airport ? (
-                    <>
-                        <SummaryRow
-                            label="Arrival assistance"
-                            value={
-                                services.arrivalAssistance === 'yes' && services.arrivalDetailsLater
-                                    ? 'Yes — flight details later'
-                                    : optionLabel(FLIGHT_ASSISTANCE_OPTIONS, services.arrivalAssistance)
-                            }
-                        />
-                        {services.arrivalAssistance === 'yes' && !services.arrivalDetailsLater ? (
-                            <SummaryRow
-                                label="Arrival"
-                                value={[
-                                    services.arrivalAirport,
-                                    displayDate(services.arrivalDate),
-                                    services.arrivalTime,
-                                    maskFlight(services.arrivalFlight),
-                                ]
-                                    .filter(Boolean)
-                                    .join(' · ')}
-                            />
-                        ) : null}
-                        <SummaryRow
-                            label="Departure assistance"
-                            value={
-                                services.departureAssistance === 'yes' && services.departureDetailsLater
-                                    ? 'Yes — flight details later'
-                                    : optionLabel(FLIGHT_ASSISTANCE_OPTIONS, services.departureAssistance)
-                            }
-                        />
-                    </>
-                ) : null}
-                {services.domestic ? (
-                    <SummaryRow
-                        label="Domestic travel"
-                        value={optionLabel(DOMESTIC_TRAVEL_OPTIONS, services.domesticPreference)}
-                    />
-                ) : null}
+                <SummaryRow label="Type of Vehicle" value={optionLabel(VEHICLE_OPTIONS, services.vehicle)} />
+                <SummaryRow
+                    label="Transportation Coverage"
+                    value={optionLabel(TRANSPORT_COVERAGE_OPTIONS, services.transportCoverage)}
+                />
+                <SummaryRow
+                    label="Airport Pickup / drop-off"
+                    value={services.airportPickup === 'yes' ? 'Yes' : services.airportPickup === 'no' ? 'No' : ''}
+                />
+                <SummaryRow
+                    label="Domestic Transportation"
+                    value={optionLabel(DOMESTIC_TRAVEL_OPTIONS, services.domesticPreference)}
+                />
+                <SummaryRow
+                    label="Accommodation Level"
+                    value={optionLabel(ACCOMMODATION_LEVEL_OPTIONS, services.accommodationLevel)}
+                />
+                <SummaryRow
+                    label="Room type"
+                    value={optionLabel(ROOM_PREFERENCE_OPTIONS, services.roomPreference)}
+                />
+                <SummaryRow
+                    label="Number of rooms"
+                    value={services.roomCount > 0 ? String(services.roomCount) : ''}
+                />
             </SummaryCard>
 
             <SummaryCard title="Travel documents" step={3} onEdit={onEdit}>
@@ -249,7 +222,7 @@ export function ReviewStep({ state, errors, seasons, onChange, onEdit }: ReviewS
                     />
                 ))}
                 <SummaryRow
-                    label="Visa"
+                    label="Visa status"
                     value={
                         documents.visaStatus === 'obtained'
                             ? 'Already obtained'
@@ -262,41 +235,22 @@ export function ReviewStep({ state, errors, seasons, onChange, onEdit }: ReviewS
                                   : ''
                     }
                 />
-                <SummaryRow
-                    label="Insurance"
-                    value={
-                        documents.insuranceStatus === 'arranged'
-                            ? 'Already arranged'
-                            : documents.insuranceStatus === 'will_arrange'
-                              ? 'Will arrange before travel'
-                              : documents.insuranceStatus === 'guidance'
-                                ? 'Need general guidance'
-                                : ''
-                    }
-                />
             </SummaryCard>
 
-            <SummaryCard title="Requirements summary" step={4} onEdit={onEdit}>
+            <SummaryCard title="Emergency Contact" step={4} onEdit={onEdit}>
                 <SummaryRow label="Dietary needs" value={dietaryValue} />
                 <SummaryRow
-                    label="Accessibility / medical"
-                    value={
-                        requirements.medical === 'yes'
-                            ? 'Yes — shared with the planning team'
-                            : requirements.medical === 'no'
-                              ? 'No'
-                              : ''
-                    }
+                    label="Do you have any medical accessibility requirement?"
+                    value={requirements.medical === 'yes' ? 'Yes' : requirements.medical === 'no' ? 'No' : ''}
                 />
                 <SummaryRow
                     label="Emergency contact"
                     value={`${requirements.emergencyName} (${requirements.emergencyRelationship}) · ${maskPhone(requirements.emergencyPhone)}`}
                 />
                 <SummaryRow
-                    label="Preferred contact"
+                    label="Preferred contact method"
                     value={optionLabel(CONTACT_METHOD_OPTIONS, requirements.contactMethod)}
                 />
-                <SummaryRow label="Special requests" value={requirements.specialRequests} />
             </SummaryCard>
 
             <section className="rounded-2xl border border-border bg-background/70 p-4 sm:p-5">

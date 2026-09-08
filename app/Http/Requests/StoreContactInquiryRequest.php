@@ -4,9 +4,7 @@ namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\ProhibitsMassAssignmentFields;
 use App\Http\Requests\Concerns\TrimsStringInput;
-use App\Support\Inquiries\ContactInquiryTopics;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreContactInquiryRequest extends FormRequest
 {
@@ -20,7 +18,7 @@ class StoreContactInquiryRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->trimStringInput(['name', 'email', 'topic', 'message']);
+        $this->trimStringInput(['name', 'email', 'subject', 'message']);
     }
 
     /**
@@ -38,7 +36,7 @@ class StoreContactInquiryRequest extends FormRequest
                 'regex:/^[\p{L}\p{M}][\p{L}\p{M}\s.\'-]*$/u',
             ],
             'email' => ['required', 'string', 'email:filter', 'min:5', 'max:255'],
-            'topic' => ['required', 'string', Rule::in(ContactInquiryTopics::values())],
+            'subject' => ['required', 'string', 'min:3', 'max:200'],
             'message' => ['required', 'string', 'min:10', 'max:5000'],
         ];
     }
@@ -50,7 +48,7 @@ class StoreContactInquiryRequest extends FormRequest
     {
         return [
             'name.regex' => 'Please enter a valid name using letters only.',
-            'topic.in' => 'Please choose a valid topic.',
+            'subject.min' => 'Please enter at least :min characters for the subject.',
             'message.min' => 'Please write at least :min characters in your message.',
         ];
     }

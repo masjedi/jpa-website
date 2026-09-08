@@ -3,6 +3,7 @@
 use App\Http\Controllers\AboutPageController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DestinationController;
 use App\Http\Controllers\GalleryPageController;
 use App\Http\Controllers\HomeController;
@@ -11,8 +12,11 @@ use App\Http\Controllers\InvoiceVerificationController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TeamPageController;
 use App\Http\Controllers\TourController;
+use App\Http\Middleware\EnsureChatVisitorToken;
+use App\Support\Seo\SeoPresenter;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -63,53 +67,39 @@ Route::post('/booking', [BookingController::class, 'store'])
     ->name('booking.store');
 
 Route::get('/contact', function () {
-    return Inertia::render('public/Contact');
+    return Inertia::render('public/Contact', [
+        'seo' => SeoPresenter::page('contact', '/contact'),
+    ]);
 })->name('contact');
 
 Route::get('/privacy', function () {
-    return Inertia::render('public/Privacy');
+    return Inertia::render('public/Privacy', [
+        'seo' => SeoPresenter::page('privacy', '/privacy'),
+    ]);
 })->name('privacy');
 
 Route::get('/terms', function () {
-    return Inertia::render('public/Terms');
+    return Inertia::render('public/Terms', [
+        'seo' => SeoPresenter::page('terms', '/terms'),
+    ]);
 })->name('terms');
 
 Route::get('/invoices/verify/{token}', [InvoiceVerificationController::class, 'show'])
     ->name('invoices.verify');
 
-Route::get('/sitemap.xml', function () {
-    $base = rtrim((string) config('app.url'), '/');
-    $paths = [
-        '/',
-        '/tours',
-        '/destinations',
-        '/services',
-        '/articles',
-        '/about',
-        '/about/team',
-        '/gallery',
-        '/booking',
-        '/contact',
-        '/privacy',
-        '/terms',
-    ];
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
-    $urls = collect($paths)
-        ->map(function (string $path) use ($base): string {
-            $loc = htmlspecialchars($base.$path, ENT_XML1);
-
-            return "    <url>\n        <loc>{$loc}</loc>\n        <changefreq>weekly</changefreq>\n    </url>";
-        })
-        ->implode("\n");
-
-    $xml = <<<XML
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-{$urls}
-</urlset>
-XML;
-
-    return response($xml, 200)->header('Content-Type', 'application/xml');
-})->name('sitemap');
+Route::middleware(EnsureChatVisitorToken::class)
+    ->prefix('chat')
+    ->name('chat.')
+    ->group(function (): void {
+        Route::get('messages', [ChatController::class, 'index'])->name('messages.index');
+        Route::post('messages', [ChatController::class, 'store'])
+            ->middleware('throttle:20,1')
+            ->name('messages.store');
+        Route::post('typing', [ChatController::class, 'typing'])
+            ->middleware('throttle:30,1')
+            ->name('typing');
+    });
 
 require __DIR__.'/admin.php';

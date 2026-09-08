@@ -19,18 +19,21 @@ final class CustomBookingAttributes
 
         $adults = (int) ($travelers['adults'] ?? 1);
         $children = (int) ($travelers['children'] ?? 0);
-        $guide = (bool) ($services['guide'] ?? false);
-        $transportation = (bool) ($services['transportation'] ?? false);
-        $accommodation = (bool) ($services['accommodation'] ?? false);
-        $airport = (bool) ($services['airport'] ?? false);
-        $domestic = (bool) ($services['domestic'] ?? false);
-        $arrivalLater = (bool) ($services['arrivalDetailsLater'] ?? false);
-        $departureLater = (bool) ($services['departureDetailsLater'] ?? false);
+        $guideLanguages = is_array($services['guideLanguages'] ?? null)
+            ? array_values(array_filter(array_map(
+                fn (mixed $language): string => trim((string) $language),
+                $services['guideLanguages'],
+            )))
+            : [];
+        $airportPickup = (string) ($services['airportPickup'] ?? '');
 
         $groupType = (string) ($travelers['groupType'] ?? '');
-        if ($groupType === '') {
-            $groupType = self::inferredGroupType($adults, $children) ?? '';
-        }
+        $dietaries = is_array($requirements['dietary'] ?? null)
+            ? array_values(array_unique(array_filter(array_map(
+                fn (mixed $item): string => trim((string) $item),
+                $requirements['dietary'],
+            ))))
+            : (filled($requirements['dietary'] ?? null) ? [trim((string) $requirements['dietary'])] : []);
 
         return [
             'adults' => $adults,
@@ -38,9 +41,10 @@ final class CustomBookingAttributes
             'traveler_count' => max(1, $adults + $children),
             'group_type' => $groupType !== '' ? $groupType : null,
             'start_date' => self::nullableString($trip['startDate'] ?? null),
+            'end_date' => self::nullableString($trip['endDate'] ?? null),
             'flexibility' => (string) ($trip['flexibility'] ?? ''),
             'season' => self::nullableString($trip['season'] ?? null),
-            'duration_days' => (int) ($trip['durationDays'] ?? 1),
+            'duration_days' => (int) ($trip['durationDays'] ?? 0),
             'other_destination' => self::nullableString($trip['otherDestination'] ?? null),
             'recommend_destinations' => (bool) ($trip['recommendDestinations'] ?? false)
                 || (($trip['routePreference'] ?? '') === 'recommend'),
@@ -50,70 +54,51 @@ final class CustomBookingAttributes
             'emergency_name' => (string) ($requirements['emergencyName'] ?? ''),
             'emergency_relationship' => (string) ($requirements['emergencyRelationship'] ?? ''),
             'emergency_phone' => (string) ($requirements['emergencyPhone'] ?? ''),
-            'dietary' => (string) ($requirements['dietary'] ?? ''),
-            'dietary_details' => in_array($requirements['dietary'] ?? '', ['allergy', 'other'], true)
+            'dietary' => $dietaries[0] ?? '',
+            'dietary_options' => $dietaries,
+            'dietary_details' => count(array_intersect($dietaries, ['allergy', 'other'])) > 0
                 ? self::nullableString($requirements['dietaryDetails'] ?? null)
                 : null,
             'medical' => (string) ($requirements['medical'] ?? ''),
-            'medical_details' => ($requirements['medical'] ?? '') === 'yes'
-                ? self::nullableString($requirements['medicalDetails'] ?? null)
-                : null,
+            'medical_details' => null,
             'contact_method' => (string) ($requirements['contactMethod'] ?? ''),
-            'special_requests' => self::nullableString($requirements['specialRequests'] ?? null),
+            'special_requests' => null,
             'accuracy' => (bool) ($agreements['accuracy'] ?? false),
             'terms' => (bool) ($agreements['terms'] ?? false),
             'privacy' => (bool) ($agreements['privacy'] ?? false),
             'marketing' => (bool) ($agreements['marketing'] ?? false),
-            'wants_complete' => (bool) ($services['complete'] ?? false),
-            'wants_guide' => $guide,
-            'guide_gender' => $guide ? self::nullableString($services['guideGender'] ?? null) : null,
-            'wants_transportation' => $transportation,
-            'wants_accommodation' => $accommodation,
-            'wants_airport' => $airport,
-            'wants_domestic' => $domestic,
-            'guide_language' => $guide ? self::nullableString($services['guideLanguage'] ?? null) : null,
-            'guide_language_other' => $guide && ($services['guideLanguage'] ?? '') === 'other'
-                ? self::nullableString($services['guideLanguageOther'] ?? null)
-                : null,
-            'guide_request' => $guide ? self::nullableString($services['guideRequest'] ?? null) : null,
-            'vehicle' => $transportation ? self::nullableString($services['vehicle'] ?? null) : null,
-            'transport_coverage' => $transportation ? self::nullableString($services['transportCoverage'] ?? null) : null,
-            'transport_notes' => $transportation && ($services['transportCoverage'] ?? '') === 'selected'
-                ? self::nullableString($services['transportNotes'] ?? null)
-                : null,
-            'accommodation_level' => $accommodation ? self::nullableString($services['accommodationLevel'] ?? null) : null,
-            'room_preference' => $accommodation ? self::nullableString($services['roomPreference'] ?? null) : null,
-            'room_count' => $accommodation ? (int) ($services['roomCount'] ?? 1) : null,
-            'accommodation_notes' => $accommodation ? self::nullableString($services['accommodationNotes'] ?? null) : null,
-            'arrival_assistance' => $airport ? self::nullableString($services['arrivalAssistance'] ?? null) : null,
-            'arrival_details_later' => $airport && $arrivalLater,
-            'arrival_airport' => $airport && ($services['arrivalAssistance'] ?? '') === 'yes' && ! $arrivalLater
-                ? self::nullableString($services['arrivalAirport'] ?? null)
-                : null,
-            'arrival_date' => $airport && ($services['arrivalAssistance'] ?? '') === 'yes' && ! $arrivalLater
-                ? self::nullableString($services['arrivalDate'] ?? null)
-                : null,
-            'arrival_time' => $airport && ($services['arrivalAssistance'] ?? '') === 'yes' && ! $arrivalLater
-                ? self::nullableString($services['arrivalTime'] ?? null)
-                : null,
-            'arrival_flight' => $airport && ($services['arrivalAssistance'] ?? '') === 'yes' && ! $arrivalLater
-                ? self::nullableString($services['arrivalFlight'] ?? null)
-                : null,
-            'departure_assistance' => $airport ? self::nullableString($services['departureAssistance'] ?? null) : null,
-            'departure_details_later' => $airport && $departureLater,
-            'departure_airport' => $airport && ($services['departureAssistance'] ?? '') === 'yes' && ! $departureLater
-                ? self::nullableString($services['departureAirport'] ?? null)
-                : null,
-            'departure_date' => $airport && ($services['departureAssistance'] ?? '') === 'yes' && ! $departureLater
-                ? self::nullableString($services['departureDate'] ?? null)
-                : null,
-            'departure_time' => $airport && ($services['departureAssistance'] ?? '') === 'yes' && ! $departureLater
-                ? self::nullableString($services['departureTime'] ?? null)
-                : null,
-            'departure_flight' => $airport && ($services['departureAssistance'] ?? '') === 'yes' && ! $departureLater
-                ? self::nullableString($services['departureFlight'] ?? null)
-                : null,
-            'domestic_preference' => $domestic ? self::nullableString($services['domesticPreference'] ?? null) : null,
+            'wants_complete' => false,
+            'wants_guide' => true,
+            'guide_count' => (int) ($services['guideCount'] ?? 0),
+            'guide_gender' => self::nullableString($services['guideGender'] ?? null),
+            'wants_transportation' => true,
+            'wants_accommodation' => true,
+            'wants_airport' => $airportPickup === 'yes',
+            'wants_domestic' => true,
+            'guide_language' => $guideLanguages[0] ?? null,
+            'guide_languages' => $guideLanguages,
+            'guide_language_other' => null,
+            'guide_request' => null,
+            'vehicle' => self::nullableString($services['vehicle'] ?? null),
+            'transport_coverage' => self::nullableString($services['transportCoverage'] ?? null),
+            'transport_notes' => null,
+            'accommodation_level' => self::nullableString($services['accommodationLevel'] ?? null),
+            'room_preference' => self::nullableString($services['roomPreference'] ?? null),
+            'room_count' => (int) ($services['roomCount'] ?? 1),
+            'accommodation_notes' => null,
+            'arrival_assistance' => null,
+            'arrival_details_later' => false,
+            'arrival_airport' => null,
+            'arrival_date' => null,
+            'arrival_time' => null,
+            'arrival_flight' => null,
+            'departure_assistance' => null,
+            'departure_details_later' => false,
+            'departure_airport' => null,
+            'departure_date' => null,
+            'departure_time' => null,
+            'departure_flight' => null,
+            'domestic_preference' => self::nullableString($services['domesticPreference'] ?? null),
         ];
     }
 
@@ -137,6 +122,7 @@ final class CustomBookingAttributes
                 'email' => mb_strtolower(trim((string) ($primary['email'] ?? ''))),
                 'phone' => trim((string) ($primary['phone'] ?? '')),
                 'country_of_residence' => trim((string) ($primary['countryOfResidence'] ?? '')),
+                'is_first_visit' => ($primary['isFirstVisit'] ?? '') === 'yes',
             ],
         ];
 
@@ -152,9 +138,14 @@ final class CustomBookingAttributes
                 'last_name' => trim((string) ($companion['lastName'] ?? '')),
                 'date_of_birth' => $companion['dateOfBirth'] ?? null,
                 'nationality' => trim((string) ($companion['nationality'] ?? '')),
-                'email' => null,
-                'phone' => null,
-                'country_of_residence' => null,
+                'email' => filled($companion['email'] ?? null)
+                    ? mb_strtolower(trim((string) $companion['email']))
+                    : null,
+                'phone' => filled($companion['phone'] ?? null) ? trim((string) $companion['phone']) : null,
+                'country_of_residence' => filled($companion['countryOfResidence'] ?? null)
+                    ? trim((string) $companion['countryOfResidence'])
+                    : null,
+                'is_first_visit' => ($companion['isFirstVisit'] ?? '') === 'yes',
             ];
         }
 
@@ -199,7 +190,7 @@ final class CustomBookingAttributes
 
         return collect($names)
             ->map(fn (mixed $name): string => trim((string) $name))
-            ->filter()
+            ->filter(fn (string $name): bool => $name !== '' && strcasecmp($name, CustomBookingOptions::OTHER_DESTINATION) !== 0)
             ->unique()
             ->values()
             ->all();
@@ -222,21 +213,9 @@ final class CustomBookingAttributes
             ->all();
     }
 
-    public static function inferredGroupType(int $adults, int $children): ?string
+    public static function inferredGroupType(int $adults, int $children): string
     {
-        if ($children > 0) {
-            return 'family';
-        }
-
-        if ($adults === 1) {
-            return 'solo';
-        }
-
-        if ($adults === 2) {
-            return 'couple';
-        }
-
-        return null;
+        return ($adults + $children) > 1 ? 'group' : 'private';
     }
 
     private static function nullableString(mixed $value): ?string

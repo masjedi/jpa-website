@@ -26,6 +26,29 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class AboutPage extends Model
 {
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'intro_eyebrow' => 'array',
+            'intro_title' => 'array',
+            'intro_description' => 'array',
+            'mission_section_eyebrow' => 'array',
+            'mission_section_title' => 'array',
+            'mission_title' => 'array',
+            'mission_description' => 'array',
+            'vision_title' => 'array',
+            'vision_description' => 'array',
+            'cta_eyebrow' => 'array',
+            'cta_title' => 'array',
+            'cta_description' => 'array',
+            'cta_primary_label' => 'array',
+            'cta_secondary_label' => 'array',
+        ];
+    }
+
     public static function current(): self
     {
         return static::query()->firstOrCreate([], AboutPageDefaults::attributes());

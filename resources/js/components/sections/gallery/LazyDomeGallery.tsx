@@ -11,7 +11,7 @@ const DomeGallery = lazy(() =>
 
 export function LazyDomeGallery(props: DomeGalleryProps) {
     return (
-        <div className="relative mx-auto h-[min(85vh,920px)] w-full max-w-[1400px]">
+        <div className="relative mx-auto h-[min(70vh,920px)] w-full max-w-[1400px] sm:h-[min(85vh,920px)]">
             <Suspense fallback={<SkeletonDomeGallery />}>
                 <div className="size-full">
                     <DomeGallery {...props} />

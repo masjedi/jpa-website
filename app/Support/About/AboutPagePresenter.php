@@ -5,6 +5,7 @@ namespace App\Support\About;
 use App\Models\AboutJourneyStep;
 use App\Models\AboutPage;
 use App\Support\Media\AboutJourneyImage;
+use App\Support\Translatable;
 
 class AboutPagePresenter
 {
@@ -16,7 +17,7 @@ class AboutPagePresenter
         $page = AboutPage::current();
 
         return [
-            'content' => self::contentPayload($page),
+            'content' => self::contentPayload($page, forAdmin: true),
             'journeySteps' => AboutJourneyStep::query()
                 ->ordered()
                 ->get()
@@ -50,35 +51,39 @@ class AboutPagePresenter
     /**
      * @return array<string, mixed>
      */
-    public static function contentPayload(AboutPage $page): array
+    public static function contentPayload(AboutPage $page, bool $forAdmin = false): array
     {
+        $resolve = $forAdmin
+            ? static fn (mixed $value): mixed => Translatable::normalize($value)
+            : static fn (mixed $value): string => Translatable::resolve($value);
+
         return [
             'intro' => [
-                'eyebrow' => (string) $page->intro_eyebrow,
-                'title' => (string) $page->intro_title,
-                'description' => (string) $page->intro_description,
+                'eyebrow' => $resolve($page->intro_eyebrow),
+                'title' => $resolve($page->intro_title),
+                'description' => $resolve($page->intro_description),
             ],
             'missionSection' => [
-                'eyebrow' => (string) $page->mission_section_eyebrow,
-                'title' => (string) $page->mission_section_title,
+                'eyebrow' => $resolve($page->mission_section_eyebrow),
+                'title' => $resolve($page->mission_section_title),
             ],
             'missionVision' => [
                 'mission' => [
-                    'title' => (string) $page->mission_title,
-                    'description' => (string) $page->mission_description,
+                    'title' => $resolve($page->mission_title),
+                    'description' => $resolve($page->mission_description),
                 ],
                 'vision' => [
-                    'title' => (string) $page->vision_title,
-                    'description' => (string) $page->vision_description,
+                    'title' => $resolve($page->vision_title),
+                    'description' => $resolve($page->vision_description),
                 ],
             ],
             'cta' => [
-                'eyebrow' => (string) $page->cta_eyebrow,
-                'title' => (string) $page->cta_title,
-                'description' => (string) $page->cta_description,
-                'primaryLabel' => (string) $page->cta_primary_label,
+                'eyebrow' => $resolve($page->cta_eyebrow),
+                'title' => $resolve($page->cta_title),
+                'description' => $resolve($page->cta_description),
+                'primaryLabel' => $resolve($page->cta_primary_label),
                 'primaryHref' => (string) $page->cta_primary_href,
-                'secondaryLabel' => (string) $page->cta_secondary_label,
+                'secondaryLabel' => $resolve($page->cta_secondary_label),
                 'secondaryHref' => (string) $page->cta_secondary_href,
             ],
         ];
@@ -91,21 +96,21 @@ class AboutPagePresenter
     public static function contentAttributesFromValidated(array $validated): array
     {
         return [
-            'intro_eyebrow' => (string) $validated['intro_eyebrow'],
-            'intro_title' => (string) $validated['intro_title'],
-            'intro_description' => (string) $validated['intro_description'],
-            'mission_section_eyebrow' => (string) $validated['mission_section_eyebrow'],
-            'mission_section_title' => (string) $validated['mission_section_title'],
-            'mission_title' => (string) $validated['mission_title'],
-            'mission_description' => (string) $validated['mission_description'],
-            'vision_title' => (string) $validated['vision_title'],
-            'vision_description' => (string) $validated['vision_description'],
-            'cta_eyebrow' => (string) $validated['cta_eyebrow'],
-            'cta_title' => (string) $validated['cta_title'],
-            'cta_description' => (string) $validated['cta_description'],
-            'cta_primary_label' => (string) $validated['cta_primary_label'],
+            'intro_eyebrow' => Translatable::sanitize($validated['intro_eyebrow']),
+            'intro_title' => Translatable::sanitize($validated['intro_title']),
+            'intro_description' => Translatable::sanitize($validated['intro_description']),
+            'mission_section_eyebrow' => Translatable::sanitize($validated['mission_section_eyebrow']),
+            'mission_section_title' => Translatable::sanitize($validated['mission_section_title']),
+            'mission_title' => Translatable::sanitize($validated['mission_title']),
+            'mission_description' => Translatable::sanitize($validated['mission_description']),
+            'vision_title' => Translatable::sanitize($validated['vision_title']),
+            'vision_description' => Translatable::sanitize($validated['vision_description']),
+            'cta_eyebrow' => Translatable::sanitize($validated['cta_eyebrow']),
+            'cta_title' => Translatable::sanitize($validated['cta_title']),
+            'cta_description' => Translatable::sanitize($validated['cta_description']),
+            'cta_primary_label' => Translatable::sanitize($validated['cta_primary_label']),
             'cta_primary_href' => (string) $validated['cta_primary_href'],
-            'cta_secondary_label' => (string) $validated['cta_secondary_label'],
+            'cta_secondary_label' => Translatable::sanitize($validated['cta_secondary_label']),
             'cta_secondary_href' => (string) $validated['cta_secondary_href'],
         ];
     }
@@ -117,10 +122,10 @@ class AboutPagePresenter
     {
         return [
             'id' => $step->id,
-            'title' => (string) $step->title,
-            'description' => (string) $step->description,
+            'title' => Translatable::normalize($step->title),
+            'description' => Translatable::normalize($step->description),
             'image' => self::journeyImageUrl($step),
-            'imageAlt' => (string) $step->image_alt,
+            'imageAlt' => Translatable::normalize($step->image_alt),
             'iconKey' => (string) $step->icon_key,
             'order' => (int) $step->sort_order,
             'status' => $step->status->frontendLabel(),
@@ -135,10 +140,10 @@ class AboutPagePresenter
     {
         return [
             'id' => $step->id,
-            'title' => (string) $step->title,
-            'description' => (string) $step->description,
+            'title' => Translatable::resolve($step->title),
+            'description' => Translatable::resolve($step->description),
             'image' => self::journeyImageUrl($step),
-            'imageAlt' => (string) $step->image_alt,
+            'imageAlt' => Translatable::resolve($step->image_alt),
             'iconKey' => (string) $step->icon_key,
         ];
     }

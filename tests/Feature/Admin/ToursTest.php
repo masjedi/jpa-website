@@ -6,6 +6,7 @@ use App\Enums\TourListingStatus;
 use App\Enums\TourListingType;
 use App\Models\Tour;
 use App\Models\User;
+use App\Support\Translatable;
 use Database\Seeders\TourFilterOptionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -43,7 +44,7 @@ class ToursTest extends TestCase
                 ->has('filterOptions.travelStyles')
                 ->has('filterOptions.difficulties')
                 ->where('offers.0.id', $tour->id)
-                ->where('offers.0.title', 'Bamiyan Heritage Circuit'));
+                ->where('offers.0.title.en', 'Bamiyan Heritage Circuit'));
     }
 
     public function test_authenticated_admin_can_create_update_and_delete_tour(): void
@@ -58,27 +59,29 @@ class ToursTest extends TestCase
 
         $this->assertDatabaseHas('tours', [
             'id' => $tour->id,
-            'title' => 'Bamiyan Heritage Circuit',
             'listing_type' => TourListingType::Tour->value,
             'status' => TourListingStatus::Draft->value,
             'slug' => 'bamiyan-heritage-circuit',
         ]);
 
+        $this->assertSame('Bamiyan Heritage Circuit', Translatable::resolve($tour->fresh()->title));
+
         $this->assertNotNull($tour->cover_media);
 
         $this->actingAs($user)
             ->patch("/admin/tours/{$tour->id}", array_merge($this->validTourPayload(), [
-                'title' => 'Updated Heritage Circuit',
+                'title' => Translatable::normalize('Updated Heritage Circuit'),
                 'status' => 'Published',
             ]))
             ->assertRedirect(route('admin.tours.index'));
 
         $this->assertDatabaseHas('tours', [
             'id' => $tour->id,
-            'title' => 'Updated Heritage Circuit',
             'status' => TourListingStatus::Published->value,
             'slug' => 'updated-heritage-circuit',
         ]);
+
+        $this->assertSame('Updated Heritage Circuit', Translatable::resolve($tour->fresh()->title));
 
         $this->actingAs($user)
             ->delete("/admin/tours/{$tour->id}")
@@ -98,11 +101,13 @@ class ToursTest extends TestCase
             ->assertRedirect(route('admin.tours.index'));
 
         $this->assertDatabaseHas('tours', [
-            'title' => 'Afghanistan Essentials Package',
             'listing_type' => TourListingType::Package->value,
-            'tagline' => 'Seven days across Kabul, Bamiyan, and Herat.',
             'is_popular' => true,
         ]);
+
+        $package = Tour::query()->firstOrFail();
+        $this->assertSame('Afghanistan Essentials Package', Translatable::resolve($package->title));
+        $this->assertSame('Seven days across Kabul, Bamiyan, and Herat.', Translatable::resolve($package->tagline));
     }
 
     public function test_authenticated_admin_can_update_and_delete_package(): void
@@ -117,8 +122,8 @@ class ToursTest extends TestCase
 
         $payload = $this->validPackagePayload();
         unset($payload['cover_image']);
-        $payload['title'] = 'Updated Essentials Package';
-        $payload['price_estimate'] = 'From $2,100 / person';
+        $payload['title'] = Translatable::normalize('Updated Essentials Package');
+        $payload['price_estimate'] = Translatable::normalize('From $2,100 / person');
         $payload['status'] = 'Published';
 
         $this->actingAs($user)
@@ -127,11 +132,13 @@ class ToursTest extends TestCase
 
         $this->assertDatabaseHas('tours', [
             'id' => $package->id,
-            'title' => 'Updated Essentials Package',
-            'price_estimate' => 'From $2,100 / person',
             'status' => TourListingStatus::Published->value,
             'slug' => 'updated-essentials-package',
         ]);
+
+        $package->refresh();
+        $this->assertSame('Updated Essentials Package', Translatable::resolve($package->title));
+        $this->assertSame('From $2,100 / person', Translatable::resolve($package->price_estimate));
 
         $this->actingAs($user)
             ->delete("/admin/tours/{$package->id}")
@@ -171,7 +178,7 @@ class ToursTest extends TestCase
 
         $payload = $this->validTourPayload();
         unset($payload['cover_image']);
-        $payload['title'] = 'Updated without new cover';
+        $payload['title'] = Translatable::normalize('Updated without new cover');
 
         $this->actingAs($user)
             ->patch("/admin/tours/{$tour->id}", $payload)
@@ -179,7 +186,7 @@ class ToursTest extends TestCase
 
         $tour->refresh();
 
-        $this->assertSame('Updated without new cover', $tour->title);
+        $this->assertSame('Updated without new cover', Translatable::resolve($tour->title));
         $this->assertSame($originalCover, $tour->cover_media);
     }
 
@@ -201,21 +208,29 @@ class ToursTest extends TestCase
     {
         return [
             'listing_type' => 'tour',
-            'title' => 'Bamiyan Heritage Circuit',
-            'tagline' => '',
-            'summary' => 'Buddha niches, Shahr-e Gholghola, and Band-e Amir lakes.',
-            'destination' => 'Bamiyan & Central Highlands',
+            'title' => Translatable::normalize('Bamiyan Heritage Circuit'),
+            'tagline' => Translatable::normalize(''),
+            'summary' => Translatable::normalize('Buddha niches, Shahr-e Gholghola, and Band-e Amir lakes.'),
+            'destination' => Translatable::normalize('Bamiyan & Central Highlands'),
             'region' => 'Central Highlands',
             'duration_days' => 7,
             'travel_style' => 'Cultural & Heritage',
             'difficulty' => 'Moderate',
-            'badge' => 'Top pick',
-            'content' => '<p>Detailed tour content.</p>',
-            'highlights_text' => "Band-e Amir lakes\nBuddha niches walk",
-            'key_destinations_text' => '',
-            'included_services_text' => "Private 4WD transport\nEnglish-speaking guide",
-            'price_estimate' => '',
-            'ideal_for' => '',
+            'badge' => Translatable::normalize('Top pick'),
+            'content' => Translatable::normalize('<p>Detailed tour content.</p>'),
+            'highlights_text' => [
+                'en' => "Band-e Amir lakes\nBuddha niches walk",
+                'fa' => '',
+                'ps' => '',
+            ],
+            'key_destinations_text' => ['en' => '', 'fa' => '', 'ps' => ''],
+            'included_services_text' => [
+                'en' => "Private 4WD transport\nEnglish-speaking guide",
+                'fa' => '',
+                'ps' => '',
+            ],
+            'price_estimate' => Translatable::normalize(''),
+            'ideal_for' => Translatable::normalize(''),
             'is_popular' => '0',
             'status' => 'Draft',
             'cover_image' => $this->makeCoverUpload(),
@@ -229,21 +244,33 @@ class ToursTest extends TestCase
     {
         return [
             'listing_type' => 'package',
-            'title' => 'Afghanistan Essentials Package',
-            'tagline' => 'Seven days across Kabul, Bamiyan, and Herat.',
-            'summary' => 'A balanced first journey through Afghanistan.',
-            'destination' => 'Kabul',
+            'title' => Translatable::normalize('Afghanistan Essentials Package'),
+            'tagline' => Translatable::normalize('Seven days across Kabul, Bamiyan, and Herat.'),
+            'summary' => Translatable::normalize('A balanced first journey through Afghanistan.'),
+            'destination' => Translatable::normalize('Kabul'),
             'region' => 'Multiple Regions',
             'duration_days' => 7,
             'travel_style' => 'Cultural & Heritage',
             'difficulty' => 'Moderate',
-            'badge' => 'Package',
-            'content' => '',
-            'highlights_text' => "Curated route\nLocal guides",
-            'key_destinations_text' => "Kabul\nBamiyan\nHerat",
-            'included_services_text' => "Airport transfers\nDaily breakfast",
-            'price_estimate' => 'From $1,890 / person',
-            'ideal_for' => 'First-time visitors',
+            'badge' => Translatable::normalize('Package'),
+            'content' => Translatable::normalize(''),
+            'highlights_text' => [
+                'en' => "Curated route\nLocal guides",
+                'fa' => '',
+                'ps' => '',
+            ],
+            'key_destinations_text' => [
+                'en' => "Kabul\nBamiyan\nHerat",
+                'fa' => '',
+                'ps' => '',
+            ],
+            'included_services_text' => [
+                'en' => "Airport transfers\nDaily breakfast",
+                'fa' => '',
+                'ps' => '',
+            ],
+            'price_estimate' => Translatable::normalize('From $1,890 / person'),
+            'ideal_for' => Translatable::normalize('First-time visitors'),
             'is_popular' => '1',
             'status' => 'Draft',
             'cover_image' => $this->makeCoverUpload(),
@@ -256,20 +283,20 @@ class ToursTest extends TestCase
             'slug' => 'existing-tour',
             'listing_type' => TourListingType::Tour,
             'status' => TourListingStatus::Published,
-            'title' => 'Bamiyan Heritage Circuit',
-            'summary' => 'Summary copy.',
-            'destination' => 'Bamiyan',
+            'title' => Translatable::normalize('Bamiyan Heritage Circuit'),
+            'summary' => Translatable::normalize('Summary copy.'),
+            'destination' => Translatable::normalize('Bamiyan'),
             'region' => 'Central Highlands',
             'duration_days' => 7,
-            'duration_label' => '7 Days / 6 Nights',
+            'duration_label' => Translatable::normalize('7 Days / 6 Nights'),
             'travel_style' => 'Cultural & Heritage',
             'difficulty' => 'Moderate',
-            'highlights' => ['Highlight one'],
-            'content' => '<p>Content</p>',
-            'inclusions' => ['Guide'],
-            'estimated_starting_price' => 'Custom inquiry basis',
-            'next_departure_date' => 'On request',
-            'next_departure_status' => 'Open for Inquiries',
+            'highlights' => Translatable::normalizeStringListStorage(['Highlight one']),
+            'content' => Translatable::normalize('<p>Content</p>'),
+            'inclusions' => Translatable::normalizeStringListStorage(['Guide']),
+            'estimated_starting_price' => Translatable::normalize('Custom inquiry basis'),
+            'next_departure_date' => Translatable::normalize('On request'),
+            'next_departure_status' => Translatable::normalize('Open for Inquiries'),
             'cover_media' => null,
         ]);
     }

@@ -1,20 +1,20 @@
-import { type PackageServiceKey } from '@/components/sections/booking/bookingOptions';
+import { MAX_GUIDES } from '@/components/sections/booking/bookingOptions';
 import { useBookingTranslationContext } from '@/components/sections/booking/BookingTranslationContext';
 import {
-    BookingRadioGroup,
+    BookingAccordion,
     BookingTextField,
-    BookingTextareaField,
-    CheckboxCard,
-    OptionCards,
-    StepSection,
     bookingErrorClass,
+    bookingLabelClass,
 } from '@/components/sections/booking/bookingFields';
-import {
-    suggestedRoomCount,
-    toggleService,
-    withRoomPreference,
-} from '@/components/sections/booking/bookingModel';
-import type { BookingErrors, CustomBookingState, RoomPreference } from '@/types/customBooking';
+import { BookingChoiceDropdown } from '@/components/sections/booking/BookingChoiceDropdown';
+import { cn } from '@/lib/utils';
+import type {
+    BookingErrors,
+    CustomBookingState,
+    FirstVisit,
+    GuideGender,
+    GuideLanguage,
+} from '@/types/customBooking';
 
 interface ServicesStepProps {
     state: CustomBookingState;
@@ -22,24 +22,78 @@ interface ServicesStepProps {
     onChange: (next: CustomBookingState) => void;
 }
 
+function ExclusiveCheckboxes({
+    id,
+    label,
+    value,
+    options,
+    error,
+    hideLabel = false,
+    onChange,
+}: {
+    id: string;
+    label: string;
+    value: string;
+    options: readonly { value: string; label: string }[];
+    error?: string;
+    hideLabel?: boolean;
+    onChange: (value: string) => void;
+}) {
+    const errorId = error ? `${id}-error` : undefined;
+
+    return (
+        <fieldset
+            data-field={id}
+            aria-invalid={error ? true : undefined}
+            aria-required
+            aria-describedby={errorId}
+        >
+            <legend className={cn(bookingLabelClass, hideLabel && 'sr-only')}>{label}</legend>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-6 gap-y-2">
+                {options.map((option) => {
+                    const optionId = `${id}-${option.value}`;
+
+                    return (
+                        <label
+                            key={option.value}
+                            htmlFor={optionId}
+                            className="flex cursor-pointer items-center gap-2 text-sm text-foreground"
+                        >
+                            <input
+                                id={optionId}
+                                type="checkbox"
+                                checked={value === option.value}
+                                aria-invalid={error ? true : undefined}
+                                onChange={() => onChange(option.value)}
+                                className={cn(
+                                    'size-4 shrink-0 rounded border-border text-secondary focus:outline-focus',
+                                    error && 'border-red-500 dark:border-red-400',
+                                )}
+                            />
+                            <span>{option.label}</span>
+                        </label>
+                    );
+                })}
+            </div>
+            {error ? (
+                <p id={errorId} className={bookingErrorClass} role="alert">
+                    {error}
+                </p>
+            ) : null}
+        </fieldset>
+    );
+}
+
 export function ServicesStep({ state, errors, onChange }: ServicesStepProps) {
     const {
-        serviceOptions,
-        guideGenderOptions,
         guideLanguageOptions,
         vehicleOptions,
         transportCoverageOptions,
         accommodationLevelOptions,
         roomPreferenceOptions,
-        flightAssistanceOptions,
         domesticTravelOptions,
     } = useBookingTranslationContext();
-    const { services, travelers } = state;
-    const suggestedRooms = suggestedRoomCount(
-        travelers.adults,
-        travelers.children,
-        services.roomPreference,
-    );
+    const { services } = state;
 
     const patchServices = (patch: Partial<CustomBookingState['services']>) => {
         onChange({
@@ -51,349 +105,167 @@ export function ServicesStep({ state, errors, onChange }: ServicesStepProps) {
         });
     };
 
-    const handleServiceToggle = (key: PackageServiceKey | 'complete') => {
-        onChange({
-            ...state,
-            services: toggleService(state.services, key),
-        });
-    };
-
     return (
-        <div className="space-y-8">
-            <StepSection
-                title="What would you like us to arrange?"
-                description="Choose only the services you need. Details appear after you select them."
+        <div className="space-y-3">
+            <BookingAccordion
+                title="Tour Guide"
+                forceOpen={Boolean(
+                    errors['services-guideCount'] ||
+                        errors['services-guideLanguages'] ||
+                        errors['services-guideGender'],
+                )}
             >
-                <div data-field="services-arrangement" className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <CheckboxCard
-                        emphasized
-                        invalid={Boolean(errors['services-arrangement'])}
-                        checked={services.complete}
-                        label="Complete custom package"
-                        description="Includes guide, transportation, accommodation, airport assistance, and domestic travel. You can still adjust any of these."
-                        onChange={() => handleServiceToggle('complete')}
+                <div className="space-y-4">
+                    <BookingTextField
+                        id="services-guideCount"
+                        label="Number of guides"
+                        type="number"
+                        inputMode="numeric"
+                        step={1}
+                        min={1}
+                        max={MAX_GUIDES}
+                        required
+                        value={services.guideCount > 0 ? String(services.guideCount) : ''}
+                        error={errors['services-guideCount']}
+                        onChange={(value) => {
+                            const parsed = Number(value);
+                            patchServices({
+                                guideCount: Number.isFinite(parsed) ? parsed : 0,
+                            });
+                        }}
                     />
-                    {serviceOptions.map((option) => (
-                        <CheckboxCard
-                            key={option.key}
-                            invalid={Boolean(errors['services-arrangement'])}
-                            checked={services[option.key]}
-                            label={option.label}
-                            description={option.description}
-                            onChange={() => handleServiceToggle(option.key)}
-                        />
-                    ))}
-                </div>
-                {errors['services-arrangement'] ? (
-                    <p className={bookingErrorClass} role="alert">
-                        {errors['services-arrangement']}
-                    </p>
-                ) : null}
-            </StepSection>
-
-            {services.guide ? (
-                <StepSection title="Tour guide">
-                    <BookingRadioGroup
-                        legend="Preferred guide"
-                        name="services-guideGender"
-                        options={guideGenderOptions}
+                    <BookingChoiceDropdown
+                        id="services-guideLanguages"
+                        label="Languages"
+                        options={guideLanguageOptions}
+                        values={services.guideLanguages}
+                        multiple
+                        required
+                        placeholder="Select languages"
+                        error={errors['services-guideLanguages']}
+                        onChange={(next) => patchServices({ guideLanguages: next as GuideLanguage[] })}
+                    />
+                    <ExclusiveCheckboxes
+                        id="services-guideGender"
+                        label="Male and female"
+                        hideLabel
                         value={services.guideGender}
+                        options={[
+                            { value: 'male', label: 'Male' },
+                            { value: 'female', label: 'Female' },
+                        ]}
                         error={errors['services-guideGender']}
-                        onChange={(value) => patchServices({ guideGender: value })}
+                        onChange={(value) => patchServices({ guideGender: value as GuideGender })}
                     />
-                    <div className="mt-4">
-                        <OptionCards
-                            legend="Preferred guide language"
-                            name="services-guideLanguage"
-                            options={guideLanguageOptions}
-                            value={services.guideLanguage}
-                            error={errors['services-guideLanguage']}
-                            onChange={(value) => patchServices({ guideLanguage: value })}
-                        />
-                    </div>
-                    {services.guideLanguage === 'other' ? (
-                        <div className="mt-4">
-                            <BookingTextField
-                                id="services-guideLanguageOther"
-                                label="Other language"
-                                required
-                                maxLength={80}
-                                value={services.guideLanguageOther}
-                                error={errors['services-guideLanguageOther']}
-                                onChange={(value) => patchServices({ guideLanguageOther: value })}
-                            />
-                        </div>
-                    ) : null}
-                    <div className="mt-4">
-                        <BookingTextareaField
-                            id="services-guideRequest"
-                            label="Guide-related request"
-                            hint="Optional. Share only what helps us assign a suitable guide."
-                            rows={3}
-                            maxLength={500}
-                            value={services.guideRequest}
-                            onChange={(value) => patchServices({ guideRequest: value })}
-                        />
-                    </div>
-                </StepSection>
-            ) : null}
+                </div>
+            </BookingAccordion>
 
-            {services.transportation ? (
-                <StepSection title="Transportation">
-                    <OptionCards
-                        legend="Vehicle preference"
-                        name="services-vehicle"
+            <BookingAccordion
+                title="Transportation"
+                forceOpen={Boolean(
+                    errors['services-vehicle'] ||
+                        errors['services-transportCoverage'] ||
+                        errors['services-airportPickup'] ||
+                        errors['services-domesticPreference'],
+                )}
+            >
+                <div className="space-y-4">
+                    <BookingChoiceDropdown
+                        id="services-vehicle"
+                        label="Type of Vehicle"
                         options={vehicleOptions}
-                        value={services.vehicle}
+                        values={services.vehicle === '' ? [] : [services.vehicle]}
+                        required
+                        placeholder="Select vehicle"
                         error={errors['services-vehicle']}
-                        onChange={(value) => patchServices({ vehicle: value })}
+                        onChange={(next) => patchServices({ vehicle: next[0] ?? '' })}
                     />
-                    <div className="mt-4">
-                        <OptionCards
-                            legend="Transportation coverage"
-                            name="services-transportCoverage"
-                            options={transportCoverageOptions}
-                            value={services.transportCoverage}
-                            columns={1}
-                            error={errors['services-transportCoverage']}
-                            hint="Agency vehicles include a professional driver."
-                            onChange={(value) => patchServices({ transportCoverage: value })}
-                        />
-                    </div>
-                    {services.transportCoverage === 'selected' ? (
-                        <div className="mt-4">
-                            <BookingTextareaField
-                                id="services-transportNotes"
-                                label="Where is transport required?"
-                                required
-                                rows={3}
-                                maxLength={500}
-                                value={services.transportNotes}
-                                error={errors['services-transportNotes']}
-                                onChange={(value) => patchServices({ transportNotes: value })}
-                            />
-                        </div>
-                    ) : null}
-                </StepSection>
-            ) : null}
-
-            {services.accommodation ? (
-                <StepSection title="Accommodation">
-                    <OptionCards
-                        legend="Accommodation level"
-                        name="services-accommodationLevel"
-                        options={accommodationLevelOptions}
-                        value={services.accommodationLevel}
-                        error={errors['services-accommodationLevel']}
-                        onChange={(value) => patchServices({ accommodationLevel: value })}
+                    <BookingChoiceDropdown
+                        id="services-transportCoverage"
+                        label="Transportation Coverage"
+                        options={transportCoverageOptions}
+                        values={services.transportCoverage === '' ? [] : [services.transportCoverage]}
+                        required
+                        placeholder="Select coverage"
+                        error={errors['services-transportCoverage']}
+                        onChange={(next) => patchServices({ transportCoverage: next[0] ?? '' })}
                     />
-                    <div className="mt-4">
-                        <OptionCards
-                            legend="Room preference"
-                            name="services-roomPreference"
-                            options={roomPreferenceOptions}
-                            value={services.roomPreference}
-                            error={errors['services-roomPreference']}
-                            onChange={(value) => {
-                                onChange(withRoomPreference(state, value as RoomPreference));
-                            }}
-                        />
-                    </div>
-                    <div className="mt-4">
-                        <BookingTextField
-                            id="services-roomCount"
-                            label="Number of rooms"
-                            type="number"
-                            inputMode="numeric"
-                            step={1}
-                            min={1}
-                            max={12}
-                            required
-                            value={String(services.roomCount)}
-                            error={errors['services-roomCount']}
-                            hint={`Suggested from travelers and room type: ${suggestedRooms}. Adjust if needed.`}
-                            onChange={(value) => {
-                                const parsed = Number(value);
-                                patchServices({
-                                    roomCount: Number.isFinite(parsed) ? parsed : 0,
-                                    roomsManual: true,
-                                });
-                            }}
-                        />
-                        {services.roomsManual && services.roomCount !== suggestedRooms ? (
-                            <button
-                                type="button"
-                                className="mt-2 text-xs font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                                onClick={() => {
-                                    patchServices({
-                                        roomCount: suggestedRooms,
-                                        roomsManual: false,
-                                    });
-                                }}
-                            >
-                                Use suggested ({suggestedRooms})
-                            </button>
-                        ) : null}
-                    </div>
-                    <div className="mt-4">
-                        <BookingTextareaField
-                            id="services-accommodationNotes"
-                            label="Accommodation notes"
-                            hint="Optional. One place for any stay preference that matters."
-                            rows={3}
-                            maxLength={500}
-                            value={services.accommodationNotes}
-                            onChange={(value) => patchServices({ accommodationNotes: value })}
-                        />
-                    </div>
-                </StepSection>
-            ) : null}
-
-            {services.airport ? (
-                <StepSection title="Airport pickup / drop-off">
-                    <OptionCards
-                        legend="Arrival assistance"
-                        name="services-arrivalAssistance"
-                        options={flightAssistanceOptions}
-                        value={services.arrivalAssistance}
-                        error={errors['services-arrivalAssistance']}
-                        onChange={(value) => patchServices({ arrivalAssistance: value })}
+                    <ExclusiveCheckboxes
+                        id="services-airportPickup"
+                        label="Airport Pickup / drop-off"
+                        value={services.airportPickup}
+                        options={[
+                            { value: 'yes', label: 'YES' },
+                            { value: 'no', label: 'NO' },
+                        ]}
+                        error={errors['services-airportPickup']}
+                        onChange={(value) =>
+                            patchServices({ airportPickup: value as FirstVisit })
+                        }
                     />
-                    {services.arrivalAssistance === 'yes' ? (
-                        <div className="mt-4 space-y-4">
-                            <label className="flex cursor-pointer items-start gap-3 text-sm text-foreground">
-                                <input
-                                    type="checkbox"
-                                    className="mt-0.5 size-4 rounded border-border text-secondary focus:outline-focus"
-                                    checked={services.arrivalDetailsLater}
-                                    onChange={(event) =>
-                                        patchServices({ arrivalDetailsLater: event.target.checked })
-                                    }
-                                />
-                                I will provide flight details later
-                            </label>
-                            {!services.arrivalDetailsLater ? (
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <BookingTextField
-                                        id="services-arrivalAirport"
-                                        label="Arrival airport"
-                                        required
-                                        maxLength={80}
-                                        value={services.arrivalAirport}
-                                        error={errors['services-arrivalAirport']}
-                                        onChange={(value) => patchServices({ arrivalAirport: value })}
-                                    />
-                                    <BookingTextField
-                                        id="services-arrivalDate"
-                                        label="Arrival date"
-                                        type="date"
-                                        value={services.arrivalDate}
-                                        error={errors['services-arrivalDate']}
-                                        onChange={(value) => patchServices({ arrivalDate: value })}
-                                    />
-                                    <BookingTextField
-                                        id="services-arrivalTime"
-                                        label="Arrival time"
-                                        type="time"
-                                        value={services.arrivalTime}
-                                        error={errors['services-arrivalTime']}
-                                        onChange={(value) => patchServices({ arrivalTime: value })}
-                                    />
-                                    <BookingTextField
-                                        id="services-arrivalFlight"
-                                        label="Flight number"
-                                        maxLength={12}
-                                        autoCapitalize="characters"
-                                        placeholder="TK 712"
-                                        value={services.arrivalFlight}
-                                        error={errors['services-arrivalFlight']}
-                                        onChange={(value) => patchServices({ arrivalFlight: value })}
-                                    />
-                                </div>
-                            ) : null}
-                        </div>
-                    ) : null}
-
-                    <div className="mt-6">
-                        <OptionCards
-                            legend="Departure assistance"
-                            name="services-departureAssistance"
-                            options={flightAssistanceOptions}
-                            value={services.departureAssistance}
-                            error={errors['services-departureAssistance']}
-                            onChange={(value) => patchServices({ departureAssistance: value })}
-                        />
-                    </div>
-                    {services.departureAssistance === 'yes' ? (
-                        <div className="mt-4 space-y-4">
-                            <label className="flex cursor-pointer items-start gap-3 text-sm text-foreground">
-                                <input
-                                    type="checkbox"
-                                    className="mt-0.5 size-4 rounded border-border text-secondary focus:outline-focus"
-                                    checked={services.departureDetailsLater}
-                                    onChange={(event) =>
-                                        patchServices({ departureDetailsLater: event.target.checked })
-                                    }
-                                />
-                                I will provide flight details later
-                            </label>
-                            {!services.departureDetailsLater ? (
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <BookingTextField
-                                        id="services-departureAirport"
-                                        label="Departure airport"
-                                        required
-                                        maxLength={80}
-                                        value={services.departureAirport}
-                                        error={errors['services-departureAirport']}
-                                        onChange={(value) => patchServices({ departureAirport: value })}
-                                    />
-                                    <BookingTextField
-                                        id="services-departureDate"
-                                        label="Departure date"
-                                        type="date"
-                                        value={services.departureDate}
-                                        error={errors['services-departureDate']}
-                                        onChange={(value) => patchServices({ departureDate: value })}
-                                    />
-                                    <BookingTextField
-                                        id="services-departureTime"
-                                        label="Departure time"
-                                        type="time"
-                                        value={services.departureTime}
-                                        error={errors['services-departureTime']}
-                                        onChange={(value) => patchServices({ departureTime: value })}
-                                    />
-                                    <BookingTextField
-                                        id="services-departureFlight"
-                                        label="Flight number"
-                                        maxLength={12}
-                                        autoCapitalize="characters"
-                                        placeholder="TK 712"
-                                        value={services.departureFlight}
-                                        error={errors['services-departureFlight']}
-                                        onChange={(value) => patchServices({ departureFlight: value })}
-                                    />
-                                </div>
-                            ) : null}
-                        </div>
-                    ) : null}
-                </StepSection>
-            ) : null}
-
-            {services.domestic ? (
-                <StepSection title="Domestic travel arrangements">
-                    <OptionCards
-                        legend="Preferred domestic travel arrangement"
-                        name="services-domesticPreference"
+                    <BookingChoiceDropdown
+                        id="services-domesticPreference"
+                        label="Domestic Transportation"
                         options={domesticTravelOptions}
-                        value={services.domesticPreference}
-                        columns={1}
+                        values={services.domesticPreference === '' ? [] : [services.domesticPreference]}
+                        required
+                        placeholder="Select domestic transportation"
                         error={errors['services-domesticPreference']}
-                        onChange={(value) => patchServices({ domesticPreference: value })}
+                        onChange={(next) => patchServices({ domesticPreference: next[0] ?? '' })}
                     />
-                </StepSection>
-            ) : null}
+                </div>
+            </BookingAccordion>
+
+            <BookingAccordion
+                title="Accommodation"
+                forceOpen={Boolean(
+                    errors['services-accommodationLevel'] ||
+                        errors['services-roomPreference'] ||
+                        errors['services-roomCount'],
+                )}
+            >
+                <div className="space-y-4">
+                    <BookingChoiceDropdown
+                        id="services-accommodationLevel"
+                        label="Accommodation Level"
+                        options={accommodationLevelOptions}
+                        values={services.accommodationLevel === '' ? [] : [services.accommodationLevel]}
+                        required
+                        placeholder="Select accommodation level"
+                        error={errors['services-accommodationLevel']}
+                        onChange={(next) => patchServices({ accommodationLevel: next[0] ?? '' })}
+                    />
+                    <BookingChoiceDropdown
+                        id="services-roomPreference"
+                        label="Room type"
+                        options={roomPreferenceOptions}
+                        values={services.roomPreference === '' ? [] : [services.roomPreference]}
+                        required
+                        placeholder="Select room type"
+                        error={errors['services-roomPreference']}
+                        onChange={(next) => patchServices({ roomPreference: next[0] ?? '' })}
+                    />
+                    <BookingTextField
+                        id="services-roomCount"
+                        label="Number of rooms"
+                        type="number"
+                        inputMode="numeric"
+                        step={1}
+                        min={1}
+                        max={12}
+                        required
+                        value={services.roomCount > 0 ? String(services.roomCount) : ''}
+                        error={errors['services-roomCount']}
+                        onChange={(value) => {
+                            const parsed = Number(value);
+                            patchServices({
+                                roomCount: Number.isFinite(parsed) ? parsed : 0,
+                                roomsManual: true,
+                            });
+                        }}
+                    />
+                </div>
+            </BookingAccordion>
         </div>
     );
 }

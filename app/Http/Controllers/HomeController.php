@@ -8,6 +8,8 @@ use App\Support\Destinations\DestinationPresenter;
 use App\Support\Faq\FaqItemPresenter;
 use App\Support\Gallery\GalleryPhotoPresenter;
 use App\Support\HeroSectionPresenter;
+use App\Support\Media\PublicDecorativeImage;
+use App\Support\Seo\SeoPresenter;
 use App\Support\Services\ServiceOfferingPresenter;
 use App\Support\Testimonials\TestimonialPresenter;
 use App\Support\Tours\TourFilterOptionPresenter;
@@ -24,9 +26,11 @@ class HomeController extends Controller
         ]);
 
         return Inertia::render('public/Home', [
+            'seo' => SeoPresenter::home(),
             'hero' => HeroSectionPresenter::forPublicHome($section),
             'finderOptions' => TourFilterOptionPresenter::forPublicHomeFinder(),
             'homeServices' => ServiceOfferingPresenter::forPublicHomePreview(),
+            'homeServicesImage' => PublicDecorativeImage::resolve(),
             'featuredTours' => Inertia::defer(fn () => TourPresenter::forPublicHomePreview(3)),
             'featuredDestinations' => Inertia::defer(fn () => DestinationPresenter::forPublicHomePreview(4)),
             'galleryPreview' => Inertia::defer(fn () => GalleryPhotoPresenter::forPublicHomePreview(6)),

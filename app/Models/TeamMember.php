@@ -29,6 +29,9 @@ class TeamMember extends Model
     {
         return [
             'status' => TeamMemberStatus::class,
+            'name' => 'array',
+            'role' => 'array',
+            'bio' => 'array',
             'avatar_media' => 'array',
             'sort_order' => 'integer',
         ];

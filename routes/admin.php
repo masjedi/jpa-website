@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\Admin\AboutPageController as AdminAboutPageController;
+use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\AdminFeedController;
 use App\Http\Controllers\Admin\ArticlesController;
 use App\Http\Controllers\Admin\Auth\LoginController;
+use App\Http\Controllers\Admin\ChatConversationsController;
 use App\Http\Controllers\Admin\CustomBookingsController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DestinationsController;
@@ -97,6 +99,14 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         Route::post('feed/messages/read', [AdminFeedController::class, 'markMessagesRead'])->name('feed.messages.read');
         Route::get('inquiries', [InquiriesController::class, 'index'])->name('inquiries.index');
         Route::delete('inquiries/{inquiry}', [InquiriesController::class, 'destroy'])->name('inquiries.destroy');
+        Route::get('chat', [ChatConversationsController::class, 'index'])->name('chat.index');
+        Route::get('chat/{chatConversation}', [ChatConversationsController::class, 'show'])->name('chat.show');
+        Route::post('chat/{chatConversation}/messages', [ChatConversationsController::class, 'storeMessage'])->name('chat.messages.store');
+        Route::post('chat/{chatConversation}/typing', [ChatConversationsController::class, 'typing'])
+            ->middleware('throttle:30,1')
+            ->name('chat.typing');
+        Route::patch('chat/{chatConversation}/read', [ChatConversationsController::class, 'markRead'])->name('chat.read');
+        Route::patch('chat/{chatConversation}', [ChatConversationsController::class, 'update'])->name('chat.update');
         Route::get('invoices', [InvoicesController::class, 'index'])->name('invoices.index');
         Route::post('invoices', [InvoicesController::class, 'store'])->name('invoices.store');
         Route::patch('invoices/{invoice}', [InvoicesController::class, 'update'])->name('invoices.update');
@@ -110,6 +120,8 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         Route::delete('bookings/{customBooking}', [CustomBookingsController::class, 'destroy'])->name('bookings.destroy');
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::patch('settings', [SettingsController::class, 'update'])->name('settings.update');
+        Route::get('account', [AccountController::class, 'index'])->name('account.index');
+        Route::patch('account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
         Route::get('media/{profile}/{id}', [ProtectedMediaController::class, 'show'])
             ->where('profile', '[a-z_]+')
             ->whereUuid('id')

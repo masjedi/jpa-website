@@ -2,6 +2,7 @@ import { usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
 import { Footer } from '@/components/public/Footer';
+import { ChatLauncher } from '@/components/public/ChatLauncher';
 import { Navbar } from '@/components/public/Navbar';
 import { WhatsAppFloat } from '@/components/public/WhatsAppFloat';
 import { useTranslations } from '@/hooks/use-translations';
@@ -38,6 +39,7 @@ export function PublicLayout({ children, transparentHeader = false }: PublicLayo
                 {children}
             </main>
             <Footer />
+            <ChatLauncher />
             <WhatsAppFloat />
         </div>
     );

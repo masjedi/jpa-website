@@ -1,20 +1,46 @@
-import { type FormEvent, useId, useState } from 'react';
+import { type FormEvent, useId, useMemo, useState } from 'react';
 
 import {
     aboutContentToFormValues,
+    aboutContentTranslatableFields,
+    validateAboutContentFormValues,
+    type AboutContentFormErrors,
     type AboutContentFormValues,
 } from '@/components/admin/aboutPageForm';
 import { AdminCollapsibleSection } from '@/components/admin/AdminCollapsibleSection';
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField } from '@/components/admin/AdminFormField';
 import { adminFieldClass } from '@/components/admin/adminForm';
-import type { AboutPageContent } from '@/types/aboutPage';
+import {
+    buildInitialLocaleMap,
+    localeMapToTranslatedRecord,
+    useLocaleFormFields,
+} from '@/hooks/use-locale-form-fields';
+import type { AdminAboutPageContent } from '@/types/aboutPage';
 
 interface AboutContentEditorProps {
     formId: string;
-    content: AboutPageContent;
+    content: AdminAboutPageContent;
     onCancel: () => void;
     onSave: (values: AboutContentFormValues) => void | Promise<void>;
 }
+
+const aboutContentEmptyFields = {
+    introEyebrow: '',
+    introTitle: '',
+    introDescription: '',
+    missionSectionEyebrow: '',
+    missionSectionTitle: '',
+    missionTitle: '',
+    missionDescription: '',
+    visionTitle: '',
+    visionDescription: '',
+    ctaEyebrow: '',
+    ctaTitle: '',
+    ctaDescription: '',
+    ctaPrimaryLabel: '',
+    ctaSecondaryLabel: '',
+};
 
 export function AboutContentEditor({
     formId,
@@ -39,17 +65,52 @@ export function AboutContentEditor({
     const ctaSecondaryLabelId = useId();
     const ctaSecondaryHrefId = useId();
 
-    const [values, setValues] = useState<AboutContentFormValues>(() =>
-        aboutContentToFormValues(content),
+    const startingValues = aboutContentToFormValues(content);
+    const initialByLocale = useMemo(
+        () => buildInitialLocaleMap(aboutContentTranslatableFields, startingValues),
+        [startingValues],
     );
+
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setField,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormFields({
+        initialByLocale,
+        emptyFields: aboutContentEmptyFields,
+    });
+
+    const [ctaPrimaryHref, setCtaPrimaryHref] = useState(startingValues.ctaPrimaryHref);
+    const [ctaSecondaryHref, setCtaSecondaryHref] = useState(startingValues.ctaSecondaryHref);
+    const [errors, setErrors] = useState<AboutContentFormErrors>({});
     const [submitting, setSubmitting] = useState(false);
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        const localeValues = commitAllLocales();
+        const translated = localeMapToTranslatedRecord(aboutContentTranslatableFields, localeValues);
+        const payloadValues: AboutContentFormValues = {
+            ...translated,
+            ctaPrimaryHref,
+            ctaSecondaryHref,
+        };
+
+        const nextErrors = validateAboutContentFormValues(payloadValues);
+        setErrors(nextErrors);
+
+        if (Object.keys(nextErrors).length > 0) {
+            return;
+        }
+
         setSubmitting(true);
 
         try {
-            await onSave(values);
+            await onSave(payloadValues);
         } finally {
             setSubmitting(false);
         }
@@ -63,6 +124,13 @@ export function AboutContentEditor({
             className="flex min-h-0 flex-1 flex-col"
         >
             <div className="space-y-2 p-4">
+                <AdminLocaleSelector
+                    activeLocale={activeLocale}
+                    completion={completion}
+                    onChange={switchLocale}
+                    disabled={submitting}
+                />
+
                 <AdminCollapsibleSection
                     title="Journey intro"
                     description="Eyebrow, title, and lead paragraph above the timeline."
@@ -71,28 +139,20 @@ export function AboutContentEditor({
                         <AdminFormField id={introEyebrowId} label="Eyebrow">
                             <input
                                 id={introEyebrowId}
-                                value={values.introEyebrow}
+                                value={draft.introEyebrow}
+                                dir={direction}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        introEyebrow: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => setField('introEyebrow', event.target.value)}
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
-                        <AdminFormField id={introTitleId} label="Title">
+                        <AdminFormField id={introTitleId} label="Title" error={errors.introTitle}>
                             <input
                                 id={introTitleId}
-                                value={values.introTitle}
+                                value={draft.introTitle}
+                                dir={direction}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        introTitle: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => setField('introTitle', event.target.value)}
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
@@ -100,82 +160,78 @@ export function AboutContentEditor({
                             id={introDescriptionId}
                             label="Description"
                             className="sm:col-span-2"
+                            error={errors.introDescription}
                         >
                             <textarea
                                 id={introDescriptionId}
-                                value={values.introDescription}
+                                value={draft.introDescription}
+                                dir={direction}
                                 disabled={submitting}
-                                rows={2}
+                                rows={4}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        introDescription: event.target.value,
-                                    }))
+                                    setField('introDescription', event.target.value)
                                 }
-                                className={`${adminFieldClass} resize-y`}
+                                className={adminFieldClass}
                             />
                         </AdminFormField>
                     </div>
                 </AdminCollapsibleSection>
 
                 <AdminCollapsibleSection
-                    title="Mission & vision"
-                    description="Section heading plus mission and vision cards."
+                    title="Mission section"
+                    description="Section heading above mission and vision blocks."
                 >
                     <div className="grid gap-3 sm:grid-cols-2">
-                        <AdminFormField id={missionSectionEyebrowId} label="Section eyebrow">
+                        <AdminFormField id={missionSectionEyebrowId} label="Eyebrow">
                             <input
                                 id={missionSectionEyebrowId}
-                                value={values.missionSectionEyebrow}
+                                value={draft.missionSectionEyebrow}
+                                dir={direction}
                                 disabled={submitting}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        missionSectionEyebrow: event.target.value,
-                                    }))
+                                    setField('missionSectionEyebrow', event.target.value)
                                 }
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
-                        <AdminFormField id={missionSectionTitleId} label="Section title">
+                        <AdminFormField
+                            id={missionSectionTitleId}
+                            label="Title"
+                            error={errors.missionSectionTitle}
+                        >
                             <input
                                 id={missionSectionTitleId}
-                                value={values.missionSectionTitle}
+                                value={draft.missionSectionTitle}
+                                dir={direction}
                                 disabled={submitting}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        missionSectionTitle: event.target.value,
-                                    }))
+                                    setField('missionSectionTitle', event.target.value)
                                 }
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
-                        <AdminFormField id={missionTitleId} label="Mission title">
+                    </div>
+                </AdminCollapsibleSection>
+
+                <AdminCollapsibleSection title="Mission & vision">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <AdminFormField id={missionTitleId} label="Mission title" error={errors.missionTitle}>
                             <input
                                 id={missionTitleId}
-                                value={values.missionTitle}
+                                value={draft.missionTitle}
+                                dir={direction}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        missionTitle: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => setField('missionTitle', event.target.value)}
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
-                        <AdminFormField id={visionTitleId} label="Vision title">
+                        <AdminFormField id={visionTitleId} label="Vision title" error={errors.visionTitle}>
                             <input
                                 id={visionTitleId}
-                                value={values.visionTitle}
+                                value={draft.visionTitle}
+                                dir={direction}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        visionTitle: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => setField('visionTitle', event.target.value)}
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
@@ -183,73 +239,60 @@ export function AboutContentEditor({
                             id={missionDescriptionId}
                             label="Mission description"
                             className="sm:col-span-2"
+                            error={errors.missionDescription}
                         >
                             <textarea
                                 id={missionDescriptionId}
-                                value={values.missionDescription}
+                                value={draft.missionDescription}
+                                dir={direction}
                                 disabled={submitting}
-                                rows={2}
+                                rows={3}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        missionDescription: event.target.value,
-                                    }))
+                                    setField('missionDescription', event.target.value)
                                 }
-                                className={`${adminFieldClass} resize-y`}
+                                className={adminFieldClass}
                             />
                         </AdminFormField>
                         <AdminFormField
                             id={visionDescriptionId}
                             label="Vision description"
                             className="sm:col-span-2"
+                            error={errors.visionDescription}
                         >
                             <textarea
                                 id={visionDescriptionId}
-                                value={values.visionDescription}
+                                value={draft.visionDescription}
+                                dir={direction}
                                 disabled={submitting}
-                                rows={2}
+                                rows={3}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        visionDescription: event.target.value,
-                                    }))
+                                    setField('visionDescription', event.target.value)
                                 }
-                                className={`${adminFieldClass} resize-y`}
+                                className={adminFieldClass}
                             />
                         </AdminFormField>
                     </div>
                 </AdminCollapsibleSection>
 
-                <AdminCollapsibleSection
-                    title="Call to action"
-                    description="Closing prompt and button labels shown at the bottom of the page."
-                >
+                <AdminCollapsibleSection title="Call to action">
                     <div className="grid gap-3 sm:grid-cols-2">
                         <AdminFormField id={ctaEyebrowId} label="Eyebrow">
                             <input
                                 id={ctaEyebrowId}
-                                value={values.ctaEyebrow}
+                                value={draft.ctaEyebrow}
+                                dir={direction}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        ctaEyebrow: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => setField('ctaEyebrow', event.target.value)}
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
-                        <AdminFormField id={ctaTitleId} label="Title">
+                        <AdminFormField id={ctaTitleId} label="Title" error={errors.ctaTitle}>
                             <input
                                 id={ctaTitleId}
-                                value={values.ctaTitle}
+                                value={draft.ctaTitle}
+                                dir={direction}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        ctaTitle: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => setField('ctaTitle', event.target.value)}
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
@@ -257,74 +300,65 @@ export function AboutContentEditor({
                             id={ctaDescriptionId}
                             label="Description"
                             className="sm:col-span-2"
+                            error={errors.ctaDescription}
                         >
                             <textarea
                                 id={ctaDescriptionId}
-                                value={values.ctaDescription}
+                                value={draft.ctaDescription}
+                                dir={direction}
                                 disabled={submitting}
-                                rows={2}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        ctaDescription: event.target.value,
-                                    }))
-                                }
-                                className={`${adminFieldClass} resize-y`}
+                                rows={3}
+                                onChange={(event) => setField('ctaDescription', event.target.value)}
+                                className={adminFieldClass}
                             />
                         </AdminFormField>
-                        <AdminFormField id={ctaPrimaryLabelId} label="Primary button label">
+                        <AdminFormField
+                            id={ctaPrimaryLabelId}
+                            label="Primary label"
+                            error={errors.ctaPrimaryLabel}
+                        >
                             <input
                                 id={ctaPrimaryLabelId}
-                                value={values.ctaPrimaryLabel}
+                                value={draft.ctaPrimaryLabel}
+                                dir={direction}
                                 disabled={submitting}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        ctaPrimaryLabel: event.target.value,
-                                    }))
+                                    setField('ctaPrimaryLabel', event.target.value)
                                 }
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
-                        <AdminFormField id={ctaPrimaryHrefId} label="Primary button link">
+                        <AdminFormField id={ctaPrimaryHrefId} label="Primary link">
                             <input
                                 id={ctaPrimaryHrefId}
-                                value={values.ctaPrimaryHref}
+                                value={ctaPrimaryHref}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        ctaPrimaryHref: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => setCtaPrimaryHref(event.target.value)}
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
-                        <AdminFormField id={ctaSecondaryLabelId} label="Secondary button label">
+                        <AdminFormField
+                            id={ctaSecondaryLabelId}
+                            label="Secondary label"
+                            error={errors.ctaSecondaryLabel}
+                        >
                             <input
                                 id={ctaSecondaryLabelId}
-                                value={values.ctaSecondaryLabel}
+                                value={draft.ctaSecondaryLabel}
+                                dir={direction}
                                 disabled={submitting}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        ctaSecondaryLabel: event.target.value,
-                                    }))
+                                    setField('ctaSecondaryLabel', event.target.value)
                                 }
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
-                        <AdminFormField id={ctaSecondaryHrefId} label="Secondary button link">
+                        <AdminFormField id={ctaSecondaryHrefId} label="Secondary link">
                             <input
                                 id={ctaSecondaryHrefId}
-                                value={values.ctaSecondaryHref}
+                                value={ctaSecondaryHref}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        ctaSecondaryHref: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => setCtaSecondaryHref(event.target.value)}
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
@@ -346,7 +380,7 @@ export function AboutContentEditor({
                     disabled={submitting}
                     className="inline-flex items-center justify-center rounded-lg bg-accent px-3.5 py-1.5 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                    {submitting ? 'Saving…' : 'Save page content'}
+                    {submitting ? 'Saving…' : 'Save content'}
                 </button>
             </footer>
         </form>

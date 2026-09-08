@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\Translatable;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateHeroSectionRequest extends FormRequest
@@ -12,12 +13,10 @@ class UpdateHeroSectionRequest extends FormRequest
     }
 
     /**
-     * @return array<string, array<int, string>>
+     * @return array<string, array<int, mixed>>
      */
     public function rules(): array
     {
-        return [
-            'eyebrow' => ['required', 'string', 'max:255'],
-        ];
+        return Translatable::validationRules('eyebrow', maxLength: 255);
     }
 }

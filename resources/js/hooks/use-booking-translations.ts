@@ -67,15 +67,13 @@ export function useBookingTranslations() {
         ] as const;
 
         const dateFlexibilityOptions = mapOptions<DateFlexibility>(DATE_FLEXIBILITY_OPTIONS, {
-            exact: t('booking.options.exactDate'),
-            plus_minus_3: t('booking.options.flex3Days'),
-            plus_minus_week: t('booking.options.flexWeek'),
-            within_month: t('booking.options.flexMonth'),
-            unsure: t('booking.options.unsure'),
+            known: t('booking.options.no'),
+            unsure: t('booking.options.yes'),
         });
 
         const travelInterestOptions = mapOptions<TravelInterest>(TRAVEL_INTEREST_OPTIONS, {
             culture: t('booking.options.culture'),
+            architecture: t('booking.options.architecture'),
             nature: t('booking.options.nature'),
             adventure: t('booking.options.adventure'),
             photography: t('booking.options.photography'),
@@ -98,11 +96,8 @@ export function useBookingTranslations() {
         );
 
         const groupTypeOptions = mapOptions<GroupType>(GROUP_TYPE_OPTIONS, {
-            solo: t('booking.options.solo'),
-            couple: t('booking.options.couple'),
-            family: t('booking.options.family'),
-            friends: t('booking.options.friends'),
-            private_group: t('booking.options.privateGroup'),
+            private: t('booking.options.private'),
+            group: t('booking.options.group'),
         });
 
         const serviceOptions = SERVICE_OPTIONS.map((option) => {
@@ -143,11 +138,9 @@ export function useBookingTranslations() {
         });
 
         const vehicleOptions = mapOptions<VehiclePreference>(VEHICLE_OPTIONS, {
-            standard: t('booking.options.standardCar'),
-            suv: t('booking.options.suv'),
-            minivan: t('booking.options.minivan'),
-            larger: t('booking.options.largerVehicle'),
-            recommend: t('booking.options.recommendVehicle'),
+            suv_group: 'SUV / 4x4 large Group Vehicle',
+            land_cruiser: 'Land Cruiser',
+            corolla: 'Corolla type car',
         });
 
         const transportCoverageOptions = mapOptions<TransportCoverage>(TRANSPORT_COVERAGE_OPTIONS, {

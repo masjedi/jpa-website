@@ -1,6 +1,7 @@
 import { usePage } from '@inertiajs/react';
-import { type FormEvent, useEffect, useId, useState } from 'react';
+import { type FormEvent, useEffect, useId, useMemo, useState } from 'react';
 
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
@@ -22,6 +23,11 @@ import {
     MultiImageUploadField,
     type SelectedGalleryImage,
 } from '@/components/admin/MultiImageUploadField';
+import {
+    buildInitialLocaleMap,
+    localeMapToTranslatedRecord,
+    useLocaleFormFields,
+} from '@/hooks/use-locale-form-fields';
 import { mediaProfiles } from '@/lib/mediaProfiles';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +39,13 @@ interface GalleryEntityFormProps {
     onSubmitBulk: (payload: GalleryBulkFormSubmitPayload) => void | Promise<void>;
     onSubmitEdit: (payload: GalleryEditFormSubmitPayload) => void | Promise<void>;
 }
+
+const galleryEditTranslatableFields = ['alt', 'caption'] as const;
+
+const emptyGalleryEditFields = {
+    alt: '',
+    caption: '',
+};
 
 export function GalleryEntityForm({
     formId,
@@ -49,12 +62,35 @@ export function GalleryEntityForm({
     const sortOrderFieldId = useId();
     const multiImageFieldId = useId();
 
+    const startingEditValues = initialEditValues ?? createEmptyGalleryEditFormValues();
+    const initialByLocale = useMemo(
+        () =>
+            buildInitialLocaleMap(galleryEditTranslatableFields, {
+                alt: startingEditValues.alt,
+                caption: startingEditValues.caption,
+            }),
+        [startingEditValues.alt, startingEditValues.caption],
+    );
+
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setField,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormFields({
+        initialByLocale,
+        emptyFields: emptyGalleryEditFields,
+    });
+
     const [bulkValues, setBulkValues] = useState<GalleryBulkFormValues>(
         createEmptyGalleryBulkFormValues,
     );
-    const [editValues, setEditValues] = useState<GalleryEditFormValues>(
-        () => initialEditValues ?? createEmptyGalleryEditFormValues(),
-    );
+    const [editStatus, setEditStatus] = useState(startingEditValues.status);
+    const [editImage, setEditImage] = useState(startingEditValues.image);
+    const [editSortOrder, setEditSortOrder] = useState(startingEditValues.sortOrder);
     const [selectedImages, setSelectedImages] = useState<SelectedGalleryImage[]>([]);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(
@@ -78,7 +114,7 @@ export function GalleryEntityForm({
         }
     }, [serverErrors]);
 
-    const hasEditImage = Boolean(imageFile) || Boolean(editValues.image.trim());
+    const hasEditImage = Boolean(imageFile) || Boolean(editImage.trim());
     const submitLabel =
         mode === 'edit'
             ? submitting
@@ -109,6 +145,19 @@ export function GalleryEntityForm({
                 return;
             }
 
+            const localeValues = commitAllLocales();
+            const translated = localeMapToTranslatedRecord(
+                galleryEditTranslatableFields,
+                localeValues,
+            );
+            const editValues: GalleryEditFormValues = {
+                alt: translated.alt,
+                caption: translated.caption,
+                image: editImage.trim(),
+                status: editStatus,
+                sortOrder: editSortOrder,
+            };
+
             const nextErrors = validateGalleryEditFormValues(editValues, hasEditImage);
             setEditErrors(nextErrors);
 
@@ -117,12 +166,7 @@ export function GalleryEntityForm({
             }
 
             await onSubmitEdit({
-                values: {
-                    ...editValues,
-                    alt: editValues.alt.trim(),
-                    caption: editValues.caption.trim(),
-                    image: editValues.image.trim(),
-                },
+                values: editValues,
                 galleryImage: imageFile,
             });
         } finally {
@@ -166,10 +210,9 @@ export function GalleryEntityForm({
                             onChange={(file, preview) => {
                                 setImageFile(file);
                                 setImagePreview(preview);
-                                setEditValues((current) => ({
-                                    ...current,
-                                    image: preview ? current.image : '',
-                                }));
+                                if (!preview) {
+                                    setEditImage('');
+                                }
                                 setEditErrors((current) => ({ ...current, image: undefined }));
                             }}
                             error={editErrors.image}
@@ -180,7 +223,7 @@ export function GalleryEntityForm({
                         <AdminFormField id={statusFieldId} label="Publish status" required>
                             <select
                                 id={statusFieldId}
-                                value={mode === 'create' ? bulkValues.status : editValues.status}
+                                value={mode === 'create' ? bulkValues.status : editStatus}
                                 disabled={submitting}
                                 onChange={(event) => {
                                     const status = event.target.value as GalleryBulkFormValues['status'];
@@ -188,7 +231,7 @@ export function GalleryEntityForm({
                                     if (mode === 'create') {
                                         setBulkValues((current) => ({ ...current, status }));
                                     } else {
-                                        setEditValues((current) => ({ ...current, status }));
+                                        setEditStatus(status);
                                     }
                                 }}
                                 className={adminFieldClass}
@@ -211,99 +254,104 @@ export function GalleryEntityForm({
                             </p>
                         </div>
                     ) : (
-                        <div className="grid gap-3 sm:grid-cols-2">
-                            <AdminFormField
-                                id={captionFieldId}
-                                label="Caption"
-                                required
-                                error={editErrors.caption}
-                            >
-                                <input
+                        <>
+                            <AdminLocaleSelector
+                                activeLocale={activeLocale}
+                                completion={completion}
+                                onChange={switchLocale}
+                                disabled={submitting}
+                            />
+
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <AdminFormField
                                     id={captionFieldId}
-                                    value={editValues.caption}
-                                    disabled={submitting}
-                                    onChange={(event) => {
-                                        setEditValues((current) => ({
-                                            ...current,
-                                            caption: event.target.value,
-                                        }));
-                                        setEditErrors((current) => ({
-                                            ...current,
-                                            caption: undefined,
-                                        }));
-                                    }}
-                                    placeholder="Band-e Amir, Bamiyan"
-                                    aria-invalid={Boolean(editErrors.caption)}
-                                    aria-describedby={adminFieldDescribedBy(
-                                        captionFieldId,
-                                        editErrors.caption,
-                                    )}
-                                    className={cn(
-                                        adminFieldClass,
-                                        editErrors.caption && adminFieldErrorClass,
-                                    )}
-                                />
-                            </AdminFormField>
+                                    label="Caption"
+                                    required
+                                    error={editErrors.caption}
+                                >
+                                    <input
+                                        id={captionFieldId}
+                                        value={draft.caption}
+                                        dir={direction}
+                                        disabled={submitting}
+                                        onChange={(event) => {
+                                            setField('caption', event.target.value);
+                                            setEditErrors((current) => ({
+                                                ...current,
+                                                caption: undefined,
+                                            }));
+                                        }}
+                                        placeholder="Band-e Amir, Bamiyan"
+                                        aria-invalid={Boolean(editErrors.caption)}
+                                        aria-describedby={adminFieldDescribedBy(
+                                            captionFieldId,
+                                            editErrors.caption,
+                                        )}
+                                        className={cn(
+                                            adminFieldClass,
+                                            editErrors.caption && adminFieldErrorClass,
+                                        )}
+                                    />
+                                </AdminFormField>
 
-                            <AdminFormField
-                                id={altFieldId}
-                                label="Alt text"
-                                required
-                                error={editErrors.alt}
-                            >
-                                <input
+                                <AdminFormField
                                     id={altFieldId}
-                                    value={editValues.alt}
-                                    disabled={submitting}
-                                    onChange={(event) => {
-                                        setEditValues((current) => ({
-                                            ...current,
-                                            alt: event.target.value,
-                                        }));
-                                        setEditErrors((current) => ({ ...current, alt: undefined }));
-                                    }}
-                                    placeholder="Band-e Amir lakes at sunset, Bamiyan"
-                                    aria-invalid={Boolean(editErrors.alt)}
-                                    aria-describedby={adminFieldDescribedBy(
-                                        altFieldId,
-                                        editErrors.alt,
-                                    )}
-                                    className={cn(
-                                        adminFieldClass,
-                                        editErrors.alt && adminFieldErrorClass,
-                                    )}
-                                />
-                            </AdminFormField>
+                                    label="Alt text"
+                                    required
+                                    error={editErrors.alt}
+                                >
+                                    <input
+                                        id={altFieldId}
+                                        value={draft.alt}
+                                        dir={direction}
+                                        disabled={submitting}
+                                        onChange={(event) => {
+                                            setField('alt', event.target.value);
+                                            setEditErrors((current) => ({
+                                                ...current,
+                                                alt: undefined,
+                                            }));
+                                        }}
+                                        placeholder="Band-e Amir lakes at sunset, Bamiyan"
+                                        aria-invalid={Boolean(editErrors.alt)}
+                                        aria-describedby={adminFieldDescribedBy(
+                                            altFieldId,
+                                            editErrors.alt,
+                                        )}
+                                        className={cn(
+                                            adminFieldClass,
+                                            editErrors.alt && adminFieldErrorClass,
+                                        )}
+                                    />
+                                </AdminFormField>
 
-                            <AdminFormField
-                                id={sortOrderFieldId}
-                                label="Sort order"
-                                error={editErrors.sortOrder}
-                                className="sm:col-span-2"
-                            >
-                                <input
+                                <AdminFormField
                                     id={sortOrderFieldId}
-                                    type="number"
-                                    min={0}
-                                    value={editValues.sortOrder}
-                                    disabled={submitting}
-                                    onChange={(event) => {
-                                        setEditValues((current) => ({
-                                            ...current,
-                                            sortOrder: Number(event.target.value),
-                                        }));
-                                        setEditErrors((current) => ({
-                                            ...current,
-                                            sortOrder: undefined,
-                                        }));
-                                    }}
-                                    className={cn(
-                                        adminFieldClass,
-                                        editErrors.sortOrder && adminFieldErrorClass,
-                                    )}
-                                />
-                            </AdminFormField>
-                        </div>
+                                    label="Sort order"
+                                    error={editErrors.sortOrder}
+                                    className="sm:col-span-2"
+                                >
+                                    <input
+                                        id={sortOrderFieldId}
+                                        type="number"
+                                        min={0}
+                                        value={editSortOrder}
+                                        disabled={submitting}
+                                        onChange={(event) => {
+                                            setEditSortOrder(Number(event.target.value));
+                                            setEditErrors((current) => ({
+                                                ...current,
+                                                sortOrder: undefined,
+                                            }));
+                                        }}
+                                        className={cn(
+                                            adminFieldClass,
+                                            editErrors.sortOrder && adminFieldErrorClass,
+                                        )}
+                                    />
+                                </AdminFormField>
+                            </div>
+                        </>
                     )}
                 </div>
             </div>

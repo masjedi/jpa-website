@@ -1,16 +1,21 @@
 import type { ContentRecordViewModel } from '@/components/admin/contentRecordViewModel';
+import { primaryTranslation } from '@/lib/translations';
 import type { TeamMember } from '@/types/team';
 
 export function buildTeamViewModel(member: TeamMember): ContentRecordViewModel {
+    const name = primaryTranslation(member.name);
+    const role = primaryTranslation(member.role);
+    const bio = primaryTranslation(member.bio);
+
     return {
-        title: member.name,
-        subtitle: member.role,
+        title: name,
+        subtitle: role,
         status: member.status,
         imageUrl: member.image,
-        imageAlt: member.name,
+        imageAlt: name,
         showCardPreview: true,
         showContentSection: true,
-        bodyPlain: member.bio,
+        bodyPlain: bio,
         metaFields: [
             { id: 'email', label: 'Email', value: member.email },
             { id: 'whatsapp', label: 'WhatsApp', value: member.whatsapp },

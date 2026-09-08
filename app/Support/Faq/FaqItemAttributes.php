@@ -3,7 +3,7 @@
 namespace App\Support\Faq;
 
 use App\Enums\FaqItemStatus;
-use App\Models\FaqItem;
+use App\Support\Translatable;
 
 class FaqItemAttributes
 {
@@ -15,8 +15,8 @@ class FaqItemAttributes
     {
         return [
             'status' => FaqItemStatus::fromFrontend((string) $validated['status']),
-            'question' => (string) $validated['question'],
-            'answer' => (string) $validated['answer'],
+            'question' => Translatable::sanitize($validated['question']),
+            'answer' => Translatable::sanitize($validated['answer']),
         ];
     }
 }

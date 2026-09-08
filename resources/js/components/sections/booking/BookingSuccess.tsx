@@ -39,7 +39,7 @@ export function BookingSuccess({ summary }: BookingSuccessProps) {
                     </dd>
                 </div>
                 <div className="flex items-baseline justify-between gap-4 border-b border-border pb-2">
-                    <dt className="text-muted-foreground">Travelers</dt>
+                    <dt className="text-muted-foreground">Tourists</dt>
                     <dd className="font-medium text-foreground">{summary.travelerCount}</dd>
                 </div>
                 <div className="flex items-baseline justify-between gap-4">

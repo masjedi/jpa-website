@@ -6,4 +6,5 @@ enum AdminNotificationType: string
 {
     case NewsletterSubscription = 'newsletter_subscription';
     case CustomBooking = 'custom_booking';
+    case ChatConversation = 'chat_conversation';
 }

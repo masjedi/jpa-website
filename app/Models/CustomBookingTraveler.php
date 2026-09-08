@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'email',
     'phone',
     'country_of_residence',
+    'is_first_visit',
 ])]
 class CustomBookingTraveler extends Model
 {
@@ -28,6 +29,7 @@ class CustomBookingTraveler extends Model
     {
         return [
             'is_primary' => 'boolean',
+            'is_first_visit' => 'boolean',
             'date_of_birth' => 'date',
         ];
     }

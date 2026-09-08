@@ -27,35 +27,26 @@ export const CUSTOM_BOOKING_STATUS_LABELS: Record<CustomBookingStatus, string> =
     confirmed: 'Confirmed',
 };
 
-export type DateFlexibility =
-    | 'exact'
-    | 'plus_minus_3'
-    | 'plus_minus_week'
-    | 'within_month'
-    | 'unsure';
+export type DateFlexibility = 'known' | 'unsure';
 
 export type RoutePreference = 'know' | 'recommend' | 'mix';
 
 export type TravelInterest =
     | 'culture'
+    | 'architecture'
     | 'nature'
     | 'adventure'
     | 'photography'
     | 'communities'
     | 'food';
 
-export type GroupType = 'solo' | 'couple' | 'family' | 'friends' | 'private_group';
+export type GroupType = 'private' | 'group';
 
 export type GuideLanguage = 'english' | 'dari' | 'pashto' | 'german' | 'other';
 
 export type GuideGender = 'male' | 'female';
 
-export type VehiclePreference =
-    | 'standard'
-    | 'suv'
-    | 'minivan'
-    | 'larger'
-    | 'recommend';
+export type VehiclePreference = 'suv_group' | 'land_cruiser' | 'corolla';
 
 export type TransportCoverage = 'entire' | 'selected' | 'airport_only';
 
@@ -82,6 +73,8 @@ export type DietaryRequirement =
 
 export type MedicalNeed = 'no' | 'yes';
 
+export type FirstVisit = 'yes' | 'no';
+
 export type PreferredContactMethod = 'email' | 'whatsapp' | 'phone';
 
 export interface CompanionTraveler {
@@ -89,6 +82,10 @@ export interface CompanionTraveler {
     lastName: string;
     dateOfBirth: string;
     nationality: string;
+    email: string;
+    phone: string;
+    countryOfResidence: string;
+    isFirstVisit: FirstVisit | '';
 }
 
 export interface PrimaryTraveler extends CompanionTraveler {
@@ -104,6 +101,7 @@ export interface TravelerDocument {
 
 export interface TripPreferences {
     startDate: string;
+    endDate: string;
     flexibility: DateFlexibility | '';
     season: string;
     durationDays: number;
@@ -129,7 +127,9 @@ export interface ServicesState {
     accommodation: boolean;
     airport: boolean;
     domestic: boolean;
+    guideCount: number;
     guideGender: GuideGender | '';
+    guideLanguages: GuideLanguage[];
     guideLanguage: GuideLanguage | '';
     guideLanguageOther: string;
     guideRequest: string;
@@ -141,6 +141,7 @@ export interface ServicesState {
     roomCount: number;
     roomsManual: boolean;
     accommodationNotes: string;
+    airportPickup: 'yes' | 'no' | '';
     arrivalAssistance: FlightAssistance | '';
     arrivalDetailsLater: boolean;
     arrivalAirport: string;
@@ -166,7 +167,7 @@ export interface RequirementsState {
     emergencyName: string;
     emergencyRelationship: string;
     emergencyPhone: string;
-    dietary: DietaryRequirement | '';
+    dietary: DietaryRequirement[];
     dietaryDetails: string;
     medical: MedicalNeed | '';
     medicalDetails: string;
@@ -208,10 +209,10 @@ export type BookingErrors = Record<string, string>;
 
 export const CUSTOM_BOOKING_STEPS = [
     { id: 'trip', title: 'Trip Preferences', shortTitle: 'Trip' },
-    { id: 'travelers', title: 'Travelers', shortTitle: 'Travelers' },
+    { id: 'travelers', title: 'Tourists', shortTitle: 'Tourists' },
     { id: 'services', title: 'Services', shortTitle: 'Services' },
     { id: 'documents', title: 'Travel Documents', shortTitle: 'Documents' },
-    { id: 'requirements', title: 'Requirements & Contact', shortTitle: 'Requirements' },
+    { id: 'requirements', title: 'Emergency Contact', shortTitle: 'Emergency' },
     { id: 'review', title: 'Review & Request', shortTitle: 'Review' },
 ] as const;
 

@@ -90,6 +90,8 @@ return [
         'en' => ['label' => 'English', 'native' => 'English'],
         'fa' => ['label' => 'Dari', 'native' => 'دری'],
         'ps' => ['label' => 'Pashto', 'native' => 'پښتو'],
+        'de' => ['label' => 'German', 'native' => 'Deutsch'],
+        'fr' => ['label' => 'French', 'native' => 'Français'],
     ],
 
     /*

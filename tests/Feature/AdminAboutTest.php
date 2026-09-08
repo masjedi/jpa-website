@@ -6,6 +6,7 @@ use App\Enums\AboutJourneyStepStatus;
 use App\Models\AboutJourneyStep;
 use App\Models\AboutPage;
 use App\Models\User;
+use App\Support\Translatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -46,30 +47,31 @@ class AdminAboutTest extends TestCase
 
         $this->actingAs($user)
             ->patch('/admin/about', [
-                'intro_eyebrow' => 'JPA Tours',
-                'intro_title' => 'Our story',
-                'intro_description' => 'Updated intro copy.',
-                'mission_section_eyebrow' => 'JPA',
-                'mission_section_title' => 'Mission & Vision',
-                'mission_title' => 'Mission',
-                'mission_description' => 'Updated mission.',
-                'vision_title' => 'Vision',
-                'vision_description' => 'Updated vision.',
-                'cta_eyebrow' => 'Plan now',
-                'cta_title' => 'Ready to travel?',
-                'cta_description' => 'Updated CTA.',
-                'cta_primary_label' => 'Contact us',
+                'intro_eyebrow' => $this->translation('JPA Tours'),
+                'intro_title' => $this->translation('Our story'),
+                'intro_description' => $this->translation('Updated intro copy.'),
+                'mission_section_eyebrow' => $this->translation('JPA'),
+                'mission_section_title' => $this->translation('Mission & Vision'),
+                'mission_title' => $this->translation('Mission'),
+                'mission_description' => $this->translation('Updated mission.'),
+                'vision_title' => $this->translation('Vision'),
+                'vision_description' => $this->translation('Updated vision.'),
+                'cta_eyebrow' => $this->translation('Plan now'),
+                'cta_title' => $this->translation('Ready to travel?'),
+                'cta_description' => $this->translation('Updated CTA.'),
+                'cta_primary_label' => $this->translation('Contact us'),
                 'cta_primary_href' => '/contact',
-                'cta_secondary_label' => 'View tours',
+                'cta_secondary_label' => $this->translation('View tours'),
                 'cta_secondary_href' => '/tours',
             ])
             ->assertRedirect(route('admin.about.index'))
             ->assertSessionHas('success');
 
-        $this->assertDatabaseHas('about_pages', [
-            'intro_title' => 'Our story',
-            'cta_title' => 'Ready to travel?',
-        ]);
+        $page = AboutPage::query()->first();
+
+        $this->assertNotNull($page);
+        $this->assertSame('Our story', Translatable::resolve($page->intro_title));
+        $this->assertSame('Ready to travel?', Translatable::resolve($page->cta_title));
     }
 
     public function test_admin_can_create_update_and_delete_journey_step(): void
@@ -78,9 +80,9 @@ class AdminAboutTest extends TestCase
 
         $this->actingAs($user)
             ->post('/admin/about/journey-steps', [
-                'title' => 'Local guiding roots',
-                'description' => 'We began guiding researchers and photographers.',
-                'image_alt' => 'Mountain landscape',
+                'title' => $this->translation('Local guiding roots'),
+                'description' => $this->translation('We began guiding researchers and photographers.'),
+                'image_alt' => $this->translation('Mountain landscape'),
                 'icon_key' => 'compass',
                 'status' => 'Published',
                 'image' => $this->makeJourneyUpload(),
@@ -91,15 +93,15 @@ class AdminAboutTest extends TestCase
         $step = AboutJourneyStep::query()->first();
 
         $this->assertNotNull($step);
-        $this->assertSame('Local guiding roots', $step->title);
+        $this->assertSame('Local guiding roots', Translatable::resolve($step->title));
         $this->assertSame(AboutJourneyStepStatus::Published, $step->status);
         $this->assertNotNull($step->image_media);
 
         $this->actingAs($user)
             ->patch("/admin/about/journey-steps/{$step->id}", [
-                'title' => 'Updated guiding roots',
-                'description' => 'Updated description.',
-                'image_alt' => 'Updated alt text',
+                'title' => $this->translation('Updated guiding roots'),
+                'description' => $this->translation('Updated description.'),
+                'image_alt' => $this->translation('Updated alt text'),
                 'icon_key' => 'users',
                 'status' => 'Draft',
             ])
@@ -108,7 +110,7 @@ class AdminAboutTest extends TestCase
         $step->refresh();
 
         $this->assertSame(AboutJourneyStepStatus::Draft, $step->status);
-        $this->assertSame('Updated guiding roots', $step->title);
+        $this->assertSame('Updated guiding roots', Translatable::resolve($step->title));
 
         $this->actingAs($user)
             ->delete("/admin/about/journey-steps/{$step->id}")
@@ -123,20 +125,20 @@ class AdminAboutTest extends TestCase
 
         AboutJourneyStep::query()->create([
             'status' => AboutJourneyStepStatus::Published,
-            'title' => 'Published step',
-            'description' => 'Published description.',
+            'title' => Translatable::normalize('Published step'),
+            'description' => Translatable::normalize('Published description.'),
             'image_media' => null,
-            'image_alt' => 'Published image',
+            'image_alt' => Translatable::normalize('Published image'),
             'icon_key' => 'compass',
             'sort_order' => 1,
         ]);
 
         AboutJourneyStep::query()->create([
             'status' => AboutJourneyStepStatus::Draft,
-            'title' => 'Draft step',
-            'description' => 'Draft description.',
+            'title' => Translatable::normalize('Draft step'),
+            'description' => Translatable::normalize('Draft description.'),
             'image_media' => null,
-            'image_alt' => 'Draft image',
+            'image_alt' => Translatable::normalize('Draft image'),
             'icon_key' => 'users',
             'sort_order' => 2,
         ]);

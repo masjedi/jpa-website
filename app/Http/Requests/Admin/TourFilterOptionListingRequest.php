@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\TourFilterOptionType;
 use App\Models\TourFilterOption;
+use App\Support\Translatable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,15 +15,6 @@ abstract class TourFilterOptionListingRequest extends FormRequest
         return $this->user() !== null;
     }
 
-    protected function prepareForValidation(): void
-    {
-        if ($this->has('name')) {
-            $this->merge([
-                'name' => trim((string) $this->input('name')),
-            ]);
-        }
-    }
-
     /**
      * @return array<string, array<int, mixed>>
      */
@@ -30,18 +22,39 @@ abstract class TourFilterOptionListingRequest extends FormRequest
     {
         $option = $this->route('tourFilterOption');
 
-        return [
-            'type' => ['required', 'string', Rule::in(TourFilterOptionType::frontendValues())],
-            'name' => [
-                'required',
-                'string',
-                'max:120',
-                Rule::unique((new TourFilterOption)->getTable(), 'name')
-                    ->where('type', $this->typeValue() ?? '__invalid__')
-                    ->ignore($option instanceof TourFilterOption ? $option->id : null),
+        return array_merge(
+            Translatable::validationRules('name', maxLength: 120),
+            [
+                'type' => ['required', 'string', Rule::in(TourFilterOptionType::frontendValues())],
+                'status' => ['required', 'string', Rule::in(['Published', 'Draft'])],
+                'value' => [
+                    'required',
+                    'string',
+                    'max:120',
+                    Rule::unique((new TourFilterOption)->getTable(), 'value')
+                        ->where('type', $this->typeValue() ?? '__invalid__')
+                        ->ignore($option instanceof TourFilterOption ? $option->id : null),
+                ],
             ],
-            'status' => ['required', 'string', Rule::in(['Published', 'Draft'])],
-        ];
+        );
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $name = $this->input('name');
+
+        if (is_string($name)) {
+            $name = Translatable::normalize($name);
+            $this->merge(['name' => $name]);
+        }
+
+        $englishName = is_array($name)
+            ? trim((string) ($name['en'] ?? ''))
+            : trim((string) $name);
+
+        $this->merge([
+            'value' => $englishName,
+        ]);
     }
 
     private function typeValue(): ?string

@@ -1,9 +1,11 @@
+import type { TranslatedString } from '@/types/locale';
+
 export type FaqStatus = 'Published' | 'Draft';
 
 export interface FaqItem {
     id: number;
-    question: string;
-    answer: string;
+    question: TranslatedString;
+    answer: TranslatedString;
     order: number;
     status: FaqStatus;
     updated: string;

@@ -88,7 +88,7 @@ export function Footer() {
     );
 
     return (
-        <footer className="bg-background px-4 py-10 text-start sm:px-6 lg:px-8 lg:py-12">
+        <footer className="bg-background px-4 pb-24 pt-10 text-start sm:px-6 sm:pb-28 lg:px-8 lg:py-12 lg:pb-28">
             <div className="mx-auto max-w-7xl">
                 <div className="rounded-[2rem] border border-border bg-surface px-6 py-6 shadow-sm sm:px-10 sm:py-8 lg:px-12">
                     <div id="contact">
@@ -102,7 +102,7 @@ export function Footer() {
                             <BrandLogo
                                 variant={logoVariant}
                                 className="inline-flex items-start leading-none"
-                                imageClassName="h-9 w-auto max-w-full object-contain object-left sm:h-10"
+                                imageClassName="h-9 w-auto max-w-full object-contain object-start sm:h-10"
                             />
                             <p className="mt-6 max-w-sm text-sm leading-relaxed text-muted-foreground">
                                 {t('footer.tagline')}

@@ -1,15 +1,13 @@
 import {
-    MAX_ADULTS,
-    MAX_CHILDREN,
+    AFGHANISTAN_PROVINCE_NAMES,
     MAX_DURATION_DAYS,
+    MAX_GUIDES,
     MAX_TRAVELERS,
     MIN_DURATION_DAYS,
-    OTHER_DESTINATION_VALUE,
 } from '@/components/sections/booking/bookingOptions';
 import {
-    companionCount,
     destinationsNeeded,
-    inferredGroupType,
+    durationDaysFromRange,
     todayIsoDate,
     travelerCount,
 } from '@/components/sections/booking/bookingModel';
@@ -18,10 +16,7 @@ import type { BookingErrors, CustomBookingState } from '@/types/customBooking';
 const EMAIL_PATTERN = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 const PHONE_PATTERN = /^\+[1-9]\d{6,14}$/;
 const NAME_PATTERN = /^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u;
-const PLACE_PATTERN = /^[\p{L}\p{M}\d][\p{L}\p{M}\d\s.'()\-/]*$/u;
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/;
-const FLIGHT_PATTERN = /^[A-Z]{1,3}\d{1,4}[A-Z]?$/i;
 
 function compactPhone(value: string): string {
     return value.replace(/[\s()-]/g, '');
@@ -75,14 +70,6 @@ function isIsoDate(value: string): boolean {
     return ISO_DATE_PATTERN.test(value) && !Number.isNaN(new Date(`${value}T00:00:00`).getTime());
 }
 
-function isValidTime(value: string): boolean {
-    return TIME_PATTERN.test(value.trim());
-}
-
-function isValidFlightNumber(value: string): boolean {
-    return FLIGHT_PATTERN.test(value.replace(/\s+/g, ''));
-}
-
 function requireEmail(errors: BookingErrors, key: string, value: string): void {
     const trimmed = value.trim();
 
@@ -106,51 +93,6 @@ function requirePhone(errors: BookingErrors, key: string, value: string): void {
 
     if (!PHONE_PATTERN.test(compact)) {
         errors[key] = 'Enter a valid phone number with country code, for example +49 177 668 7088.';
-    }
-}
-
-function requireOptionalIsoDate(errors: BookingErrors, key: string, value: string, message: string): void {
-    if (value.trim() === '') {
-        return;
-    }
-
-    if (!isIsoDate(value)) {
-        errors[key] = message;
-    }
-}
-
-function requireOptionalTime(errors: BookingErrors, key: string, value: string): void {
-    if (value.trim() === '') {
-        return;
-    }
-
-    if (!isValidTime(value)) {
-        errors[key] = 'Enter a valid time, for example 14:30.';
-    }
-}
-
-function requireOptionalFlight(errors: BookingErrors, key: string, value: string): void {
-    const trimmed = value.trim();
-
-    if (trimmed === '') {
-        return;
-    }
-
-    if (trimmed.length > 12 || !isValidFlightNumber(trimmed)) {
-        errors[key] = 'Enter a valid flight number, for example TK 712.';
-    }
-}
-
-function requirePlaceName(errors: BookingErrors, key: string, value: string, emptyMessage: string): void {
-    const trimmed = value.trim();
-
-    if (trimmed === '') {
-        errors[key] = emptyMessage;
-        return;
-    }
-
-    if (trimmed.length > 80 || !PLACE_PATTERN.test(trimmed)) {
-        errors[key] = 'Enter a valid airport or city name.';
     }
 }
 
@@ -197,45 +139,59 @@ export function validateTripPreferences(
     const errors: BookingErrors = {};
     const { trip } = state;
 
-    if (trip.flexibility === '') {
-        errors['trip-flexibility'] = 'Choose how flexible your start date is.';
+    if (trip.flexibility !== 'known' && trip.flexibility !== 'unsure') {
+        errors['trip-flexibility'] = 'Choose whether you are sure about your travel dates.';
     }
 
-    const needsStartDate = trip.flexibility !== '' && trip.flexibility !== 'unsure';
+    const datesUnknown = trip.flexibility === 'unsure';
 
-    if (needsStartDate) {
-        required(errors, 'trip-startDate', trip.startDate, 'Choose a preferred start date.');
-    }
+    if (!datesUnknown) {
+        required(errors, 'trip-startDate', trip.startDate, 'Choose a starting date.');
+        required(errors, 'trip-endDate', trip.endDate, 'Choose an ending date.');
 
-    if (trip.startDate !== '') {
-        if (!isIsoDate(trip.startDate) || trip.startDate < today) {
-            errors['trip-startDate'] = 'Choose a start date today or in the future.';
+        if (trip.startDate !== '') {
+            if (!isIsoDate(trip.startDate) || trip.startDate < today) {
+                errors['trip-startDate'] = 'Choose a start date today or in the future.';
+            }
         }
-    }
 
-    if (trip.flexibility === 'unsure' && trip.season === '') {
-        errors['trip-season'] = 'Choose a preferred season, or ask us to recommend one.';
-    }
+        if (trip.endDate !== '') {
+            if (!isIsoDate(trip.endDate) || trip.endDate < today) {
+                errors['trip-endDate'] = 'Choose an end date today or in the future.';
+            } else if (trip.startDate !== '' && trip.endDate < trip.startDate) {
+                errors['trip-endDate'] = 'The ending date must be on or after the starting date.';
+            }
+        }
 
-    if (
-        !Number.isInteger(trip.durationDays) ||
-        trip.durationDays < MIN_DURATION_DAYS ||
-        trip.durationDays > MAX_DURATION_DAYS
-    ) {
-        errors['trip-durationDays'] =
-            `Enter a whole number of days between ${MIN_DURATION_DAYS} and ${MAX_DURATION_DAYS}.`;
+        const calculatedDuration = durationDaysFromRange(trip.startDate, trip.endDate);
+
+        if (calculatedDuration !== null) {
+            if (calculatedDuration < MIN_DURATION_DAYS) {
+                errors['trip-endDate'] = 'The ending date must be on or after the starting date.';
+            } else if (calculatedDuration > MAX_DURATION_DAYS) {
+                errors['trip-endDate'] =
+                    `Choose dates within ${MAX_DURATION_DAYS} days, or ask us for a longer itinerary.`;
+            }
+        } else if (
+            !Number.isInteger(trip.durationDays) ||
+            trip.durationDays < MIN_DURATION_DAYS ||
+            trip.durationDays > MAX_DURATION_DAYS
+        ) {
+            errors['trip-durationDays'] =
+                `Enter a whole number of days between ${MIN_DURATION_DAYS} and ${MAX_DURATION_DAYS}.`;
+        }
     }
 
     if (destinationsNeeded(trip.recommendDestinations, trip.routePreference) && trip.destinations.length === 0) {
         errors['trip-destinations'] = 'Select at least one destination, or ask us to recommend them.';
     }
 
-    if (trip.destinations.includes(OTHER_DESTINATION_VALUE) && trip.otherDestination.trim() === '') {
-        errors['trip-otherDestination'] = 'Tell us which other destination you have in mind.';
+    if (trip.destinations.some((name) => !AFGHANISTAN_PROVINCE_NAMES.includes(name))) {
+        errors['trip-destinations'] = 'Choose provinces from the list.';
     }
 
     if (trip.interests.length === 0) {
-        errors['trip-interests'] = 'Select at least one travel interest.';
+        errors['trip-interests'] = 'Select at least one tour interest.';
     }
 
     if (trip.routePreference === '') {
@@ -249,21 +205,21 @@ export function validateTravelers(state: CustomBookingState, today = todayIsoDat
     const errors: BookingErrors = {};
     const { travelers } = state;
     const { primary } = travelers;
+    const isGroup = travelers.groupType === 'group';
+    const total = isGroup ? travelers.adults : 1;
+    const revealed = 1 + travelers.companions.length;
 
-    if (!Number.isInteger(travelers.adults) || travelers.adults < 1 || travelers.adults > MAX_ADULTS) {
-        errors['travelers-adults'] = `Enter a whole number between 1 and ${MAX_ADULTS} adults.`;
+    if (travelers.groupType === '') {
+        errors['travelers-groupType'] = 'Choose a group type.';
     }
 
-    if (
-        !Number.isInteger(travelers.children) ||
-        travelers.children < 0 ||
-        travelers.children > MAX_CHILDREN
-    ) {
-        errors['travelers-children'] = `Enter a whole number between 0 and ${MAX_CHILDREN} children.`;
-    }
-
-    if (travelers.adults + travelers.children > MAX_TRAVELERS) {
-        errors['travelers-adults'] = `The group cannot exceed ${MAX_TRAVELERS} travelers.`;
+    if (isGroup) {
+        if (!Number.isInteger(travelers.adults) || travelers.adults < 2 || travelers.adults > MAX_TRAVELERS) {
+            errors['travelers-adults'] = `Enter the number of tourists, between 2 and ${MAX_TRAVELERS}.`;
+        } else if (revealed !== total) {
+            errors['travelers-adults'] =
+                `Add a tourist form for each person. You have ${revealed} of ${total} open.`;
+        }
     }
 
     requireName(errors, 'primary-firstName', primary.firstName, 'Enter the first name from the travel document.');
@@ -279,9 +235,8 @@ export function validateTravelers(state: CustomBookingState, today = todayIsoDat
 
     requireName(errors, 'primary-nationality', primary.nationality, 'Enter a nationality.');
     requireName(errors, 'primary-countryOfResidence', primary.countryOfResidence, 'Enter a country of residence.');
-
-    if (travelers.companions.length !== companionCount(travelers.adults, travelers.children)) {
-        errors['travelers-adults'] = 'Traveler details do not match the selected traveler count. Please adjust the numbers.';
+    if (primary.isFirstVisit !== 'yes' && primary.isFirstVisit !== 'no') {
+        errors['primary-isFirstVisit'] = 'Choose YES or NO.';
     }
 
     travelers.companions.forEach((companion, index) => {
@@ -297,6 +252,8 @@ export function validateTravelers(state: CustomBookingState, today = todayIsoDat
             companion.lastName,
             'Enter the last name from the travel document.',
         );
+        requireEmail(errors, `companion-${index}-email`, companion.email);
+        requirePhone(errors, `companion-${index}-phone`, companion.phone);
         required(errors, `companion-${index}-dateOfBirth`, companion.dateOfBirth, 'Enter a date of birth.');
         if (
             companion.dateOfBirth !== '' &&
@@ -305,11 +262,16 @@ export function validateTravelers(state: CustomBookingState, today = todayIsoDat
             errors[`companion-${index}-dateOfBirth`] = 'Enter a valid date of birth in the past.';
         }
         requireName(errors, `companion-${index}-nationality`, companion.nationality, 'Enter a nationality.');
+        requireName(
+            errors,
+            `companion-${index}-countryOfResidence`,
+            companion.countryOfResidence,
+            'Enter a country of residence.',
+        );
+        if (companion.isFirstVisit !== 'yes' && companion.isFirstVisit !== 'no') {
+            errors[`companion-${index}-isFirstVisit`] = 'Choose YES or NO.';
+        }
     });
-
-    if (inferredGroupType(travelers.adults, travelers.children) === null && travelers.groupType === '') {
-        errors['travelers-groupType'] = 'Choose a group type.';
-    }
 
     return errors;
 }
@@ -318,105 +280,44 @@ export function validateServices(state: CustomBookingState): BookingErrors {
     const errors: BookingErrors = {};
     const { services } = state;
 
-    if (
-        !services.complete &&
-        !services.guide &&
-        !services.transportation &&
-        !services.accommodation &&
-        !services.airport &&
-        !services.domestic
-    ) {
-        errors['services-arrangement'] = 'Select at least one service, or choose a complete custom package.';
+    if (!Number.isInteger(services.guideCount) || services.guideCount < 1 || services.guideCount > MAX_GUIDES) {
+        errors['services-guideCount'] = `Enter the number of guides, between 1 and ${MAX_GUIDES}.`;
     }
 
-    if (services.guide) {
-        if (services.guideGender === '') {
-            errors['services-guideGender'] = 'Choose a male or female guide.';
-        }
-
-        if (services.guideLanguage === '') {
-            errors['services-guideLanguage'] = 'Choose a preferred guide language.';
-        }
-
-        if (services.guideLanguage === 'other' && services.guideLanguageOther.trim() === '') {
-            errors['services-guideLanguageOther'] = 'Tell us which language you prefer.';
-        }
+    if (services.guideLanguages.length === 0) {
+        errors['services-guideLanguages'] = 'Choose at least one language.';
     }
 
-    if (services.transportation) {
-        if (services.vehicle === '') {
-            errors['services-vehicle'] = 'Choose a vehicle preference.';
-        }
-
-        if (services.transportCoverage === '') {
-            errors['services-transportCoverage'] = 'Choose how much of the trip needs transport.';
-        }
-
-        if (services.transportCoverage === 'selected' && services.transportNotes.trim() === '') {
-            errors['services-transportNotes'] = 'Describe where transport is needed.';
-        }
+    if (services.guideGender === '') {
+        errors['services-guideGender'] = 'Choose male or female.';
     }
 
-    if (services.accommodation) {
-        if (services.accommodationLevel === '') {
-            errors['services-accommodationLevel'] = 'Choose an accommodation level.';
-        }
-
-        if (services.roomPreference === '') {
-            errors['services-roomPreference'] = 'Choose a room preference.';
-        }
-
-        if (!Number.isInteger(services.roomCount) || services.roomCount < 1 || services.roomCount > 12) {
-            errors['services-roomCount'] = 'Enter a whole number between 1 and 12 rooms.';
-        }
+    if (services.vehicle === '') {
+        errors['services-vehicle'] = 'Choose a type of vehicle.';
     }
 
-    if (services.airport) {
-        if (services.arrivalAssistance === '') {
-            errors['services-arrivalAssistance'] = 'Tell us whether you need arrival assistance.';
-        }
-
-        if (services.arrivalAssistance === 'yes' && !services.arrivalDetailsLater) {
-            requirePlaceName(
-                errors,
-                'services-arrivalAirport',
-                services.arrivalAirport,
-                'Enter the arrival airport.',
-            );
-            requireOptionalIsoDate(
-                errors,
-                'services-arrivalDate',
-                services.arrivalDate,
-                'Enter a valid arrival date.',
-            );
-            requireOptionalTime(errors, 'services-arrivalTime', services.arrivalTime);
-            requireOptionalFlight(errors, 'services-arrivalFlight', services.arrivalFlight);
-        }
-
-        if (services.departureAssistance === '') {
-            errors['services-departureAssistance'] = 'Tell us whether you need departure assistance.';
-        }
-
-        if (services.departureAssistance === 'yes' && !services.departureDetailsLater) {
-            requirePlaceName(
-                errors,
-                'services-departureAirport',
-                services.departureAirport,
-                'Enter the departure airport.',
-            );
-            requireOptionalIsoDate(
-                errors,
-                'services-departureDate',
-                services.departureDate,
-                'Enter a valid departure date.',
-            );
-            requireOptionalTime(errors, 'services-departureTime', services.departureTime);
-            requireOptionalFlight(errors, 'services-departureFlight', services.departureFlight);
-        }
+    if (services.transportCoverage === '') {
+        errors['services-transportCoverage'] = 'Choose transportation coverage.';
     }
 
-    if (services.domestic && services.domesticPreference === '') {
-        errors['services-domesticPreference'] = 'Choose a preferred domestic travel arrangement.';
+    if (services.airportPickup !== 'yes' && services.airportPickup !== 'no') {
+        errors['services-airportPickup'] = 'Choose YES or NO.';
+    }
+
+    if (services.domesticPreference === '') {
+        errors['services-domesticPreference'] = 'Choose domestic transportation.';
+    }
+
+    if (services.accommodationLevel === '') {
+        errors['services-accommodationLevel'] = 'Choose an accommodation level.';
+    }
+
+    if (services.roomPreference === '') {
+        errors['services-roomPreference'] = 'Choose a room type.';
+    }
+
+    if (!Number.isInteger(services.roomCount) || services.roomCount < 1 || services.roomCount > 12) {
+        errors['services-roomCount'] = 'Enter a whole number between 1 and 12 rooms.';
     }
 
     return errors;
@@ -444,11 +345,7 @@ export function validateDocuments(state: CustomBookingState, today = todayIsoDat
     });
 
     if (state.documents.visaStatus === '') {
-        errors['documents-visaStatus'] = 'Choose your Afghanistan visa status.';
-    }
-
-    if (state.documents.insuranceStatus === '') {
-        errors['documents-insuranceStatus'] = 'Choose your travel insurance status.';
+        errors['documents-visaStatus'] = 'Choose your visa status.';
     }
 
     return errors;
@@ -468,24 +365,19 @@ export function validateRequirements(state: CustomBookingState): BookingErrors {
 
     requirePhone(errors, 'requirements-emergencyPhone', requirements.emergencyPhone);
 
-    if (requirements.dietary === '') {
-        errors['requirements-dietary'] = 'Choose a dietary option, including None if there are no requirements.';
+    if (requirements.dietary.length === 0) {
+        errors['requirements-dietary'] = 'Choose a dietary requirement.';
     }
 
     if (
-        (requirements.dietary === 'allergy' || requirements.dietary === 'other') &&
+        (requirements.dietary.includes('allergy') || requirements.dietary.includes('other')) &&
         requirements.dietaryDetails.trim() === ''
     ) {
         errors['requirements-dietaryDetails'] = 'Please add a short detail for this dietary requirement.';
     }
 
     if (requirements.medical === '') {
-        errors['requirements-medical'] = 'Tell us whether there is a medical or accessibility requirement.';
-    }
-
-    if (requirements.medical === 'yes' && requirements.medicalDetails.trim() === '') {
-        errors['requirements-medicalDetails'] =
-            'Share only the information needed to plan the journey safely.';
+        errors['requirements-medical'] = 'Choose YES or NO.';
     }
 
     if (requirements.contactMethod === '') {

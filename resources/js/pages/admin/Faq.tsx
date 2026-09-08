@@ -15,6 +15,8 @@ import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
+import { TranslationLocaleBadges } from '@/components/admin/TranslationLocaleBadges';
+import { primaryTranslation } from '@/lib/translations';
 import type { FaqItem } from '@/types/faq';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 
@@ -27,17 +29,18 @@ const columns: DataTableColumn<FaqItem>[] = [
     {
         id: 'faq',
         header: 'Question',
-        accessor: (row) => row.question,
+        accessor: (row) => primaryTranslation(row.question),
         render: (row) => (
             <div className="max-w-md">
-                <p className="font-medium text-foreground">{row.question}</p>
+                <p className="font-medium text-foreground">{primaryTranslation(row.question)}</p>
                 <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                    {row.answer}
+                    {primaryTranslation(row.answer)}
                 </p>
+                <TranslationLocaleBadges value={row.question} />
             </div>
         ),
     },
-    { id: 'question', header: 'Question', accessor: (row) => row.question },
+    { id: 'question', header: 'Question (EN)', accessor: (row) => row.question.en },
     {
         id: 'status',
         header: 'Status',
@@ -176,7 +179,7 @@ export default function Faq({ items }: FaqPageProps) {
                     data={items}
                     columns={columns}
                     rowKey={(row) => row.id}
-                    selectionLabel={(row) => row.question}
+                    selectionLabel={(row) => primaryTranslation(row.question)}
                     initialPageSize={5}
                     onView={openViewDialog}
                     onEdit={openEditForm}
@@ -187,7 +190,7 @@ export default function Faq({ items }: FaqPageProps) {
             <ContentRecordViewDialog
                 open={viewOpen}
                 title="View FAQ"
-                description={viewingItem?.question}
+                description={viewingItem ? primaryTranslation(viewingItem.question) : undefined}
                 model={viewingItem ? buildFaqViewModel(viewingItem) : null}
                 onClose={closeView}
                 onEdit={openEditFromView}

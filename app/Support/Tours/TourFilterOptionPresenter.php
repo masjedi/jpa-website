@@ -4,9 +4,13 @@ namespace App\Support\Tours;
 
 use App\Enums\TourFilterOptionType;
 use App\Models\TourFilterOption;
+use App\Support\Translatable;
 
 class TourFilterOptionPresenter
 {
+    /** @var array<string, array<string, string>> */
+    private static array $labelMaps = [];
+
     /**
      * @return array{
      *     regions: list<array<string, mixed>>,
@@ -65,32 +69,49 @@ class TourFilterOptionPresenter
 
     /**
      * @return array{
-     *     destinations: list<string>,
-     *     travelStyles: list<string>,
-     *     seasons: list<string>,
-     *     groupTypes: list<string>
+     *     destinations: list<array{value: string, label: string}>,
+     *     travelStyles: list<array{value: string, label: string}>,
+     *     seasons: list<array{value: string, label: string}>,
+     *     groupTypes: list<array{value: string, label: string}>
      * }
      */
     public static function forPublicHomeFinder(): array
     {
         return [
-            'destinations' => TourFilterOption::namesFor(TourFilterOptionType::Destination, true),
-            'travelStyles' => TourFilterOption::namesFor(TourFilterOptionType::TravelStyle, true),
-            'seasons' => TourFilterOption::namesFor(TourFilterOptionType::Season, true),
-            'groupTypes' => TourFilterOption::namesFor(TourFilterOptionType::GroupType, true),
+            'destinations' => self::resolvedChoicesFor(TourFilterOptionType::Destination, true),
+            'travelStyles' => self::resolvedChoicesFor(TourFilterOptionType::TravelStyle, true),
+            'seasons' => self::resolvedChoicesFor(TourFilterOptionType::Season, true),
+            'groupTypes' => self::resolvedChoicesFor(TourFilterOptionType::GroupType, true),
         ];
     }
 
     /**
-     * @return array{regions: list<string>, travelStyles: list<string>, difficulties: list<string>}
+     * @return array{
+     *     regions: list<array{value: string, label: string}>,
+     *     travelStyles: list<array{value: string, label: string}>,
+     *     difficulties: list<array{value: string, label: string}>
+     * }
      */
     public static function forPublicFilters(): array
     {
         return [
-            'regions' => TourFilterOption::namesFor(TourFilterOptionType::Region, true),
-            'travelStyles' => TourFilterOption::namesFor(TourFilterOptionType::TravelStyle, true),
-            'difficulties' => TourFilterOption::namesFor(TourFilterOptionType::Difficulty, true),
+            'regions' => self::resolvedChoicesFor(TourFilterOptionType::Region, true),
+            'travelStyles' => self::resolvedChoicesFor(TourFilterOptionType::TravelStyle, true),
+            'difficulties' => self::resolvedChoicesFor(TourFilterOptionType::Difficulty, true),
         ];
+    }
+
+    public static function labelFor(TourFilterOptionType $type, ?string $value): string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        $map = self::labelMapFor($type);
+
+        return $map[$value] ?? $value;
     }
 
     /**
@@ -101,11 +122,63 @@ class TourFilterOptionPresenter
         return [
             'id' => $option->id,
             'type' => $option->type->frontendValue(),
-            'name' => (string) $option->name,
+            'value' => (string) $option->value,
+            'name' => Translatable::normalize($option->name),
             'order' => (int) $option->sort_order,
             'status' => $option->status->frontendLabel(),
             'updated' => $option->updated_at?->timezone(config('app.timezone'))->diffForHumans() ?? '',
         ];
+    }
+
+    /**
+     * @return list<array{value: string, label: string}>
+     */
+    private static function resolvedChoicesFor(TourFilterOptionType $type, bool $publishedOnly = false): array
+    {
+        $query = TourFilterOption::query()->ofType($type)->ordered();
+
+        if ($publishedOnly) {
+            $query->published();
+        }
+
+        return $query
+            ->get()
+            ->map(function (TourFilterOption $option): array {
+                $value = (string) $option->value;
+                $label = Translatable::resolve($option->name);
+
+                return [
+                    'value' => $value,
+                    'label' => $label !== '' ? $label : $value,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function labelMapFor(TourFilterOptionType $type): array
+    {
+        $cacheKey = $type->value.'|'.app()->getLocale();
+
+        if (isset(self::$labelMaps[$cacheKey])) {
+            return self::$labelMaps[$cacheKey];
+        }
+
+        self::$labelMaps[$cacheKey] = TourFilterOption::query()
+            ->ofType($type)
+            ->get()
+            ->mapWithKeys(function (TourFilterOption $option): array {
+                $value = (string) $option->value;
+                $label = Translatable::resolve($option->name);
+
+                return [$value => $label !== '' ? $label : $value];
+            })
+            ->all();
+
+        return self::$labelMaps[$cacheKey];
     }
 
     /**

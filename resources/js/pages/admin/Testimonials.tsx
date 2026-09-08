@@ -6,16 +6,18 @@ import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
 import { ContentRecordViewDialog } from '@/components/admin/ContentRecordViewDialog';
 import { TestimonialFormDialog } from '@/components/admin/TestimonialFormDialog';
 import {
-    buildTestimonialPayload,
+    buildTestimonialFormData,
     testimonialToFormValues,
-    type TestimonialFormValues,
+    type TestimonialFormSubmitPayload,
 } from '@/components/admin/testimonialForm';
 import { buildTestimonialViewModel } from '@/components/admin/testimonialView';
 import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
-import type { Testimonial } from '@/types/testimonials';
+import { TranslationLocaleBadges } from '@/components/admin/TranslationLocaleBadges';
+import { primaryTranslation } from '@/lib/translations';
+import type { Testimonial, TestimonialAvatarSpec } from '@/types/testimonials';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 import { cn } from '@/lib/utils';
 
@@ -45,14 +47,22 @@ const columns: DataTableColumn<Testimonial>[] = [
     {
         id: 'testimonial',
         header: 'Testimonial',
-        accessor: (row) => row.name,
+        accessor: (row) => primaryTranslation(row.name),
         render: (row) => (
-            <div className="max-w-md">
-                <p className="font-medium text-foreground">{row.name}</p>
-                <p className="mt-1 text-xs text-secondary">{row.journey}</p>
-                <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                    {row.text}
-                </p>
+            <div className="flex items-center gap-3 max-w-md">
+                <img
+                    src={row.image}
+                    alt=""
+                    className="size-10 shrink-0 rounded-full border-2 border-accent/40 bg-surface-muted object-cover object-center"
+                />
+                <div>
+                    <p className="font-medium text-foreground">{primaryTranslation(row.name)}</p>
+                    <p className="mt-1 text-xs text-secondary">{primaryTranslation(row.journey)}</p>
+                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                        {primaryTranslation(row.text)}
+                    </p>
+                    <TranslationLocaleBadges value={row.name} />
+                </div>
             </div>
         ),
     },
@@ -80,16 +90,18 @@ const columns: DataTableColumn<Testimonial>[] = [
 
 interface TestimonialsPageProps {
     testimonials: Testimonial[];
+    avatarSpec: TestimonialAvatarSpec;
 }
 
 function submitTestimonialForm(
-    values: TestimonialFormValues,
+    payload: TestimonialFormSubmitPayload,
     editingTestimonialId: number | null,
 ): Promise<void> {
-    const payload = buildTestimonialPayload(values);
+    const formData = buildTestimonialFormData(payload);
 
     return new Promise((resolve, reject) => {
         const options = {
+            forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
                 router.flush('/testimonials');
@@ -99,16 +111,17 @@ function submitTestimonialForm(
         };
 
         if (editingTestimonialId !== null) {
-            router.patch(`/admin/testimonials/${editingTestimonialId}`, payload, options);
+            formData.append('_method', 'patch');
+            router.post(`/admin/testimonials/${editingTestimonialId}`, formData, options);
 
             return;
         }
 
-        router.post('/admin/testimonials', payload, options);
+        router.post('/admin/testimonials', formData, options);
     });
 }
 
-export default function Testimonials({ testimonials }: TestimonialsPageProps) {
+export default function Testimonials({ testimonials, avatarSpec }: TestimonialsPageProps) {
     const { flash } = usePage().props;
     const [formOpen, setFormOpen] = useState(false);
     const [viewOpen, setViewOpen] = useState(false);
@@ -160,8 +173,8 @@ export default function Testimonials({ testimonials }: TestimonialsPageProps) {
         setFormOpen(true);
     };
 
-    const handleSubmitTestimonial = async (values: TestimonialFormValues) => {
-        await submitTestimonialForm(values, editingTestimonialId);
+    const handleSubmitTestimonial = async (payload: TestimonialFormSubmitPayload) => {
+        await submitTestimonialForm(payload, editingTestimonialId);
         closeForm();
     };
 
@@ -207,7 +220,7 @@ export default function Testimonials({ testimonials }: TestimonialsPageProps) {
                     data={testimonials}
                     columns={columns}
                     rowKey={(row) => row.id}
-                    selectionLabel={(row) => row.name}
+                    selectionLabel={(row) => primaryTranslation(row.name)}
                     initialPageSize={5}
                     onView={openViewDialog}
                     onEdit={openEditForm}
@@ -218,7 +231,7 @@ export default function Testimonials({ testimonials }: TestimonialsPageProps) {
             <ContentRecordViewDialog
                 open={viewOpen}
                 title="View testimonial"
-                description={viewingTestimonial?.name}
+                description={viewingTestimonial ? primaryTranslation(viewingTestimonial.name) : undefined}
                 model={viewingTestimonial ? buildTestimonialViewModel(viewingTestimonial) : null}
                 onClose={closeView}
                 onEdit={openEditFromView}
@@ -231,6 +244,7 @@ export default function Testimonials({ testimonials }: TestimonialsPageProps) {
                 initialValues={
                     editingTestimonial ? testimonialToFormValues(editingTestimonial) : undefined
                 }
+                uploadHint={avatarSpec.hint}
                 onClose={closeForm}
                 onSubmit={handleSubmitTestimonial}
             />

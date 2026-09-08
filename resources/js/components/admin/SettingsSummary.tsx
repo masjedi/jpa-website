@@ -1,10 +1,10 @@
 import { Pencil } from 'lucide-react';
 
-import { countConfiguredSocialLinks, normalizeSocialLinks } from '@/components/admin/settingsForm';
-import type { SiteSettings } from '@/components/public/brand';
+import { countConfiguredSocialLinks, normalizeSocialLinks, type AdminSiteSettings } from '@/components/admin/settingsForm';
+import { primaryTranslation } from '@/lib/translations';
 
 interface SettingsSummaryProps {
-    settings: SiteSettings;
+    settings: AdminSiteSettings;
     onEdit: () => void;
 }
 
@@ -41,17 +41,17 @@ export function SettingsSummary({ settings, onEdit }: SettingsSummaryProps) {
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 <SummaryBlock
                     label="Brand"
-                    title={settings.brandName}
+                    title={primaryTranslation(settings.brandName)}
                     preview={settings.contactEmail}
                 />
                 <SummaryBlock
                     label="WhatsApp"
-                    title={settings.whatsappDisplay}
+                    title={primaryTranslation(settings.whatsappDisplay)}
                     preview={settings.whatsappHref}
                 />
                 <SummaryBlock
                     label="Office"
-                    title={settings.officeLocation}
+                    title={primaryTranslation(settings.officeLocation)}
                     preview={mapsConfigured ? 'Maps link and embed configured' : 'Maps not configured yet'}
                 />
             </div>

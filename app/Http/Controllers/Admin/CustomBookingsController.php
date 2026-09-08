@@ -13,6 +13,7 @@ use App\Support\Booking\CustomBookingPresenter;
 use App\Support\Booking\UpdateCustomBookingStatusAction;
 use App\Support\Media\DocumentAttachment;
 use App\Support\Media\MediaValidationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -28,9 +29,15 @@ class CustomBookingsController extends Controller
         return Inertia::render('admin/Bookings', CustomBookingPresenter::forAdminIndex($request));
     }
 
-    public function show(CustomBooking $customBooking): Response
+    public function show(Request $request, CustomBooking $customBooking): Response|JsonResponse
     {
-        return Inertia::render('admin/BookingDetail', CustomBookingPresenter::forAdminShow($customBooking));
+        $payload = CustomBookingPresenter::forAdminShow($customBooking);
+
+        if ($request->expectsJson() && $request->header('X-Inertia') === null) {
+            return response()->json($payload);
+        }
+
+        return Inertia::render('admin/BookingDetail', $payload);
     }
 
     public function updateStatus(

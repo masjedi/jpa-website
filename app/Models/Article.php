@@ -36,6 +36,9 @@ class Article extends Model
     {
         return [
             'status' => ArticleStatus::class,
+            'title' => 'array',
+            'summary' => 'array',
+            'content' => 'array',
             'cover_media' => 'array',
             'related_tour_slugs' => 'array',
             'is_featured' => 'boolean',

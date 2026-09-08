@@ -22,6 +22,9 @@ class DatabaseSeeder extends Seeder
             AboutPageSeeder::class,
             TourFilterOptionSeeder::class,
             TourSeeder::class,
+            DestinationSeeder::class,
+            TeamMemberSeeder::class,
+            FaqItemSeeder::class,
             ServiceOfferingSeeder::class,
         ]);
     }

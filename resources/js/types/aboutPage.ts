@@ -1,3 +1,5 @@
+import type { TranslatedString } from '@/types/locale';
+
 export interface AboutIntroContent {
     eyebrow: string;
     title: string;
@@ -36,14 +38,52 @@ export interface AboutPageContent {
     cta: AboutCtaContent;
 }
 
+export interface AdminAboutIntroContent {
+    eyebrow: TranslatedString;
+    title: TranslatedString;
+    description: TranslatedString;
+}
+
+export interface AdminAboutMissionSectionContent {
+    eyebrow: TranslatedString;
+    title: TranslatedString;
+}
+
+export interface AdminAboutMissionVisionBlock {
+    title: TranslatedString;
+    description: TranslatedString;
+}
+
+export interface AdminAboutMissionVisionContent {
+    mission: AdminAboutMissionVisionBlock;
+    vision: AdminAboutMissionVisionBlock;
+}
+
+export interface AdminAboutCtaContent {
+    eyebrow: TranslatedString;
+    title: TranslatedString;
+    description: TranslatedString;
+    primaryLabel: TranslatedString;
+    primaryHref: string;
+    secondaryLabel: TranslatedString;
+    secondaryHref: string;
+}
+
+export interface AdminAboutPageContent {
+    intro: AdminAboutIntroContent;
+    missionSection: AdminAboutMissionSectionContent;
+    missionVision: AdminAboutMissionVisionContent;
+    cta: AdminAboutCtaContent;
+}
+
 export type AboutJourneyStepStatus = 'Published' | 'Draft';
 
 export interface AboutJourneyStep {
     id: number;
-    title: string;
-    description: string;
+    title: TranslatedString;
+    description: TranslatedString;
     image: string;
-    imageAlt: string;
+    imageAlt: TranslatedString;
     iconKey: string;
     order: number;
     status: AboutJourneyStepStatus;

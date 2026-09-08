@@ -14,7 +14,7 @@ class AdminAuthTest extends TestCase
     {
         $this->get('/admin/login')
             ->assertOk()
-            ->assertSee('<meta name="robots" content="noindex, nofollow">', false)
+            ->assertSee('noindex, nofollow, noarchive, nosnippet', false)
             ->assertSee('<meta name="referrer" content="no-referrer">', false)
             ->assertHeader('Referrer-Policy', 'no-referrer')
             ->assertDontSee('Administrator sign in', false)

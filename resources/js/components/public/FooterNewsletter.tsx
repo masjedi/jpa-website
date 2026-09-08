@@ -75,7 +75,7 @@ export function FooterNewsletter() {
                             name="email"
                             value={data.email}
                             onChange={(event) => setData('email', event.target.value)}
-                            placeholder={t('footer.emailPlaceholder')}
+                            placeholder="you@example.com"
                             required
                             minLength={5}
                             maxLength={255}

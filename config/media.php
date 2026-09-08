@@ -99,6 +99,29 @@ return [
             ],
         ],
 
+        'testimonial_avatar' => [
+            'type' => 'image',
+            'disk' => 'public',
+            'directory' => 'media/testimonials/avatars',
+            'allowed_mimes' => ['image/jpeg', 'image/png', 'image/webp'],
+            'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp'],
+            'max_upload_kilobytes' => 4096,
+            'max_source_width' => 4000,
+            'max_source_height' => 4000,
+            'max_source_pixels' => 12_000_000,
+            'aspect_ratio' => '1:1',
+            'fit' => 'cover',
+            'output_format' => 'webp',
+            'fallback_format' => 'jpg',
+            'quality' => 84,
+            'retain_original' => false,
+            'visibility' => 'public',
+            'variants' => [
+                'thumb' => ['width' => 200, 'height' => 200],
+                'card' => ['width' => 400, 'height' => 400],
+            ],
+        ],
+
         'about_journey_image' => [
             'type' => 'image',
             'disk' => 'public',
@@ -142,6 +165,29 @@ return [
             'variants' => [
                 'thumb' => ['width' => 400, 'height' => 400],
                 'display' => ['width' => 1600, 'height' => 1600],
+            ],
+        ],
+
+        'hero_slide' => [
+            'type' => 'image',
+            'disk' => 'public',
+            'directory' => 'media/hero/slides',
+            'allowed_mimes' => ['image/jpeg', 'image/png', 'image/webp'],
+            'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp'],
+            'max_upload_kilobytes' => 8192,
+            'max_source_width' => 3840,
+            'max_source_height' => 2160,
+            'max_source_pixels' => 16_000_000,
+            'aspect_ratio' => '16:9',
+            'fit' => 'cover',
+            'output_format' => 'webp',
+            'fallback_format' => 'jpg',
+            'quality' => 84,
+            'retain_original' => false,
+            'visibility' => 'public',
+            'variants' => [
+                'thumb' => ['width' => 640, 'height' => 360],
+                'hero_md' => ['width' => 1920, 'height' => 1080],
             ],
         ],
 

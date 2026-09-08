@@ -6,6 +6,7 @@ use App\Enums\ServiceOfferingCategory;
 use App\Enums\ServiceOfferingStatus;
 use App\Models\ServiceOffering;
 use App\Models\User;
+use App\Support\Translatable;
 use Database\Seeders\ServiceOfferingSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -34,7 +35,7 @@ class ServicesTest extends TestCase
 
         $this->actingAs($user)
             ->post('/admin/services', $this->payload([
-                'title' => 'Guided tours',
+                'title' => $this->translation('Guided tours'),
                 'status' => 'Published',
                 'is_featured' => '1',
                 'show_on_home' => '1',
@@ -45,7 +46,7 @@ class ServicesTest extends TestCase
         $offering = ServiceOffering::query()->first();
 
         $this->assertNotNull($offering);
-        $this->assertSame('Guided tours', $offering->title);
+        $this->assertSame('Guided tours', Translatable::resolve($offering->title));
         $this->assertSame('guided-tours', $offering->slug);
         $this->assertSame(ServiceOfferingCategory::Journey, $offering->category);
         $this->assertSame(ServiceOfferingStatus::Published, $offering->status);
@@ -55,11 +56,11 @@ class ServicesTest extends TestCase
         $this->assertSame([
             'English-speaking Afghan lead guide',
             'Permits and regional logistics included',
-        ], $offering->features);
+        ], Translatable::resolveStringList($offering->features));
 
         $this->actingAs($user)
             ->patch("/admin/services/{$offering->id}", $this->payload([
-                'title' => 'Small-group guided tours',
+                'title' => $this->translation('Small-group guided tours'),
                 'status' => 'Draft',
                 'is_featured' => '0',
                 'show_on_home' => '0',
@@ -68,7 +69,7 @@ class ServicesTest extends TestCase
 
         $offering->refresh();
 
-        $this->assertSame('Small-group guided tours', $offering->title);
+        $this->assertSame('Small-group guided tours', Translatable::resolve($offering->title));
         $this->assertSame('small-group-guided-tours', $offering->slug);
         $this->assertSame(ServiceOfferingStatus::Draft, $offering->status);
         $this->assertFalse($offering->is_featured);
@@ -85,11 +86,11 @@ class ServicesTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->createOffering(['slug' => 'guided-tours', 'title' => 'Guided tours']);
+        $this->createOffering(['slug' => 'guided-tours', 'title' => Translatable::normalize('Guided tours')]);
 
         $this->actingAs($user)
             ->post('/admin/services', $this->payload([
-                'title' => 'Guided tours',
+                'title' => $this->translation('Guided tours'),
             ]))
             ->assertSessionHasErrors('slug');
     }
@@ -98,14 +99,14 @@ class ServicesTest extends TestCase
     {
         $this->createOffering([
             'slug' => 'guided-tours',
-            'title' => 'Guided tours',
+            'title' => Translatable::normalize('Guided tours'),
             'status' => ServiceOfferingStatus::Published,
             'is_featured' => true,
         ]);
 
         $this->createOffering([
             'slug' => 'draft-service',
-            'title' => 'Draft service',
+            'title' => Translatable::normalize('Draft service'),
             'status' => ServiceOfferingStatus::Draft,
         ]);
 
@@ -122,22 +123,22 @@ class ServicesTest extends TestCase
     {
         $this->createOffering([
             'slug' => 'guided-tours',
-            'title' => 'Guided tours',
-            'tagline' => 'Small-group journeys with experienced local guides.',
+            'title' => Translatable::normalize('Guided tours'),
+            'tagline' => Translatable::normalize('Small-group journeys with experienced local guides.'),
             'status' => ServiceOfferingStatus::Published,
             'show_on_home' => true,
         ]);
 
         $this->createOffering([
             'slug' => 'visa-permits',
-            'title' => 'Visa & permit support',
+            'title' => Translatable::normalize('Visa & permit support'),
             'status' => ServiceOfferingStatus::Published,
             'show_on_home' => false,
         ]);
 
         $this->createOffering([
             'slug' => 'draft-home',
-            'title' => 'Draft home service',
+            'title' => Translatable::normalize('Draft home service'),
             'status' => ServiceOfferingStatus::Draft,
             'show_on_home' => true,
         ]);
@@ -185,18 +186,18 @@ class ServicesTest extends TestCase
 
     /**
      * @param  array<string, mixed>  $overrides
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     private function payload(array $overrides = []): array
     {
         return array_merge([
-            'title' => 'Guided tours',
+            'title' => $this->translation('Guided tours'),
             'slug' => '',
-            'tagline' => 'Small-group journeys with experienced local guides.',
-            'description' => 'Join curated departures across Bamiyan, Herat and Kabul.',
+            'tagline' => $this->translation('Small-group journeys with experienced local guides.'),
+            'description' => $this->translation('Join curated departures across Bamiyan, Herat and Kabul.'),
             'category' => 'Journey',
             'icon_key' => 'users',
-            'features_text' => "English-speaking Afghan lead guide\nPermits and regional logistics included",
+            'features_text' => $this->stringListText("English-speaking Afghan lead guide\nPermits and regional logistics included"),
             'is_featured' => '0',
             'show_on_home' => '0',
             'status' => 'Published',
@@ -210,16 +211,16 @@ class ServicesTest extends TestCase
     {
         return ServiceOffering::query()->create(array_merge([
             'status' => ServiceOfferingStatus::Published,
-            'title' => 'Guided tours',
+            'title' => Translatable::normalize('Guided tours'),
             'slug' => 'guided-tours',
-            'tagline' => 'Small-group journeys with experienced local guides.',
-            'description' => 'Join curated departures across Bamiyan, Herat and Kabul.',
+            'tagline' => Translatable::normalize('Small-group journeys with experienced local guides.'),
+            'description' => Translatable::normalize('Join curated departures across Bamiyan, Herat and Kabul.'),
             'category' => ServiceOfferingCategory::Journey,
             'icon_key' => 'users',
-            'features' => [
+            'features' => Translatable::normalizeStringListStorage([
                 'English-speaking Afghan lead guide',
                 'Permits and regional logistics included',
-            ],
+            ]),
             'is_featured' => false,
             'show_on_home' => false,
             'sort_order' => 1,

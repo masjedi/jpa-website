@@ -18,7 +18,7 @@ class PublicInquiryTest extends TestCase
             ->post('/inquiries/contact', [
                 'name' => '  Sara Ahmad  ',
                 'email' => 'Sara@Example.com',
-                'topic' => 'Plan a custom trip',
+                'subject' => 'Plan a custom trip',
                 'message' => 'We would like a private itinerary for spring travel.',
             ])
             ->assertRedirect('/contact')
@@ -34,16 +34,16 @@ class PublicInquiryTest extends TestCase
         ]);
     }
 
-    public function test_contact_inquiry_rejects_invalid_topic(): void
+    public function test_contact_inquiry_rejects_short_subject(): void
     {
         $this->from('/contact')
             ->post('/inquiries/contact', [
                 'name' => 'Sara Ahmad',
                 'email' => 'sara@example.com',
-                'topic' => 'Spam topic',
+                'subject' => 'Hi',
                 'message' => 'This should not be accepted by validation.',
             ])
-            ->assertSessionHasErrors('topic');
+            ->assertSessionHasErrors('subject');
 
         $this->assertDatabaseCount('inquiries', 0);
     }
@@ -54,7 +54,7 @@ class PublicInquiryTest extends TestCase
             ->post('/inquiries/contact', [
                 'name' => 'Sara Ahmad',
                 'email' => 'sara@example.com',
-                'topic' => 'General question',
+                'subject' => 'General question',
                 'message' => 'Too short',
             ])
             ->assertSessionHasErrors('message');
@@ -68,7 +68,7 @@ class PublicInquiryTest extends TestCase
             ->post('/inquiries/contact', [
                 'name' => 'A',
                 'email' => 'not-an-email',
-                'topic' => 'General question',
+                'subject' => 'General question',
                 'message' => 'This message is long enough to pass validation.',
             ])
             ->assertSessionHasErrors(['name', 'email']);
@@ -82,7 +82,7 @@ class PublicInquiryTest extends TestCase
             ->post('/inquiries/contact', [
                 'name' => 'Sara Ahmad',
                 'email' => 'sara@example.com',
-                'topic' => 'General question',
+                'subject' => 'General question',
                 'message' => 'This message is long enough to pass validation.',
                 'status' => 'read',
                 'source' => 'tour_inquiry',

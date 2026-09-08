@@ -24,6 +24,7 @@ interface HomePageProps extends SharedPageProps {
     testimonials?: PublicTestimonial[];
     finderOptions: HomeFinderOptions;
     homeServices: HomeServicePreview[];
+    homeServicesImage: string;
 }
 
 export default function Home() {
@@ -39,21 +40,21 @@ export default function Home() {
         testimonials,
         finderOptions,
         homeServices,
-        appName,
+        homeServicesImage,
     } = usePage<HomePageProps>().props;
-    const leadSlide = hero.slides[0];
-    const description =
-        leadSlide?.subtitle?.trim() ||
-        'Discover Afghanistan through premium guided travel, local expertise and thoughtfully planned journeys. Inquiries are reviewed personally — not instant bookings.';
 
     return (
         <>
-            <PageMeta title={appName} description={description} />
+            <PageMeta />
+
             <HomeLanding
-                key={`hero-${hero.eyebrow}-${hero.slides.map((slide) => slide.id).join('-')}`}
+                key={`hero-${hero.eyebrow}-${hero.slides
+                    .map((slide) => slide.id)
+                    .join('-')}`}
                 hero={hero}
                 finderOptions={finderOptions}
                 homeServices={homeServices}
+                homeServicesImage={homeServicesImage}
                 featuredTours={featuredTours}
                 featuredDestinations={featuredDestinations}
                 galleryPreview={galleryPreview}

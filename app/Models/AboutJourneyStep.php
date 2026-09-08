@@ -27,6 +27,9 @@ class AboutJourneyStep extends Model
     {
         return [
             'status' => AboutJourneyStepStatus::class,
+            'title' => 'array',
+            'description' => 'array',
+            'image_alt' => 'array',
             'image_media' => 'array',
             'sort_order' => 'integer',
         ];

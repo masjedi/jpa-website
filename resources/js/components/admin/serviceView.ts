@@ -1,15 +1,20 @@
 import type { ContentRecordViewModel } from '@/components/admin/contentRecordViewModel';
+import { primaryTranslation } from '@/lib/translations';
 import type { ServiceOffering } from '@/types/services';
 
 export function buildServiceViewModel(offering: ServiceOffering): ContentRecordViewModel {
+    const title = primaryTranslation(offering.title);
+    const tagline = primaryTranslation(offering.tagline);
+    const description = primaryTranslation(offering.description);
+
     return {
-        title: offering.title,
-        subtitle: offering.tagline,
+        title,
+        subtitle: tagline,
         status: offering.status,
         badgeLabel: offering.category,
         showCardPreview: false,
         showContentSection: true,
-        bodyPlain: offering.description,
+        bodyPlain: description,
         highlights: offering.features,
         metaFields: [
             { id: 'slug', label: 'Slug', value: offering.slug },

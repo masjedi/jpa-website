@@ -19,6 +19,15 @@
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+/public/*-once.php
+/public/diag-*.php
+/public/check-paths.php
+/public/clear-cache.php
+/public/fix-white-screen.php
+/public/verify-build.php
+/public/debug-boot.php
+/public/ping.php
+/public/check.php
 /storage/*.key
 /storage/pail
 /storage/inertia-devtools

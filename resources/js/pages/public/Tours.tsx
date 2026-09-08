@@ -1,27 +1,48 @@
 import { setLayoutProps } from '@inertiajs/react';
 
 import { PageMeta } from '@/components/public/PageMeta';
-import { ToursLanding } from '@/components/sections/tours/ToursLanding';
+import {
+    type DestinationFilterOption,
+} from '@/components/sections/tours/discovery/discoveryQuery';
+import { ToursDiscoveryLanding } from '@/components/sections/tours/discovery/ToursDiscoveryLanding';
 import { PublicLayout } from '@/layouts/PublicLayout';
+import type { Destination } from '@/types/destinations';
 import type { TourFilterFieldOptions } from '@/types/tourFilterOptions';
 import type { Tour, TourPackage } from '@/types/tours';
 
 interface ToursPageProps {
-    tours: Tour[];
-    packages: TourPackage[];
-    filterOptions: TourFilterFieldOptions;
+    view?: 'tours' | 'packages' | 'destinations';
+    tours?: Tour[];
+    packages?: TourPackage[];
+    destinations?: Destination[];
+    filterOptions?: TourFilterFieldOptions;
+    destinationFilters?: DestinationFilterOption[];
+    heroImage?: string | null;
 }
 
-export default function Tours({ tours, packages, filterOptions }: ToursPageProps) {
+export default function Tours({
+    view = 'tours',
+    tours = [],
+    packages = [],
+    destinations = [],
+    filterOptions = { regions: [], travelStyles: [], difficulties: [] },
+    destinationFilters = [],
+    heroImage = null,
+}: ToursPageProps) {
     setLayoutProps({ transparentHeader: true });
 
     return (
         <>
-            <PageMeta
-                title="Tours and Packages"
-                description="Explore curated Afghan tour packages, small group departures and tailored itineraries across Bamiyan, Herat, Kabul, Wakhan and Mazar-i-Sharif. Inquiry only — no instant booking."
+            <PageMeta />
+            <ToursDiscoveryLanding
+                view={view}
+                tours={tours}
+                packages={packages}
+                destinations={destinations}
+                filterOptions={filterOptions}
+                destinationFilters={destinationFilters}
+                heroImage={heroImage}
             />
-            <ToursLanding tours={tours} packages={packages} filterOptions={filterOptions} />
         </>
     );
 }

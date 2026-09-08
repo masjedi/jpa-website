@@ -9,6 +9,7 @@ use App\Enums\TourListingType;
 use App\Models\Tour;
 use App\Models\TourFilterOption;
 use App\Models\User;
+use App\Support\Translatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -33,7 +34,7 @@ class FilterPlacementTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('admin/FilterPlacement')
                 ->has('regions', 1)
-                ->where('regions.0.name', 'Central Highlands')
+                ->where('regions.0.name.en', 'Central Highlands')
                 ->has('travelStyles', 0)
                 ->has('difficulties', 0));
     }
@@ -45,7 +46,7 @@ class FilterPlacementTest extends TestCase
         $this->actingAs($user)
             ->post('/admin/filter-placement', [
                 'type' => 'region',
-                'name' => 'Wakhan Corridor',
+                'name' => $this->translation('Wakhan Corridor'),
                 'status' => 'Published',
             ])
             ->assertRedirect(route('admin.filter-placement.index'))
@@ -54,7 +55,8 @@ class FilterPlacementTest extends TestCase
         $option = TourFilterOption::query()->first();
 
         $this->assertNotNull($option);
-        $this->assertSame('Wakhan Corridor', $option->name);
+        $this->assertSame('Wakhan Corridor', Translatable::resolve($option->name));
+        $this->assertSame('Wakhan Corridor', $option->value);
         $this->assertSame(TourFilterOptionType::Region, $option->type);
         $this->assertSame(TourFilterOptionStatus::Published, $option->status);
         $this->assertSame(1, $option->sort_order);
@@ -62,14 +64,15 @@ class FilterPlacementTest extends TestCase
         $this->actingAs($user)
             ->patch("/admin/filter-placement/{$option->id}", [
                 'type' => 'region',
-                'name' => 'Wakhan & Pamir',
+                'name' => $this->translation('Wakhan & Pamir'),
                 'status' => 'Draft',
             ])
             ->assertRedirect(route('admin.filter-placement.index'));
 
         $option->refresh();
 
-        $this->assertSame('Wakhan & Pamir', $option->name);
+        $this->assertSame('Wakhan & Pamir', Translatable::resolve($option->name));
+        $this->assertSame('Wakhan Corridor', $option->value);
         $this->assertSame(TourFilterOptionStatus::Draft, $option->status);
 
         $this->actingAs($user)
@@ -93,15 +96,15 @@ class FilterPlacementTest extends TestCase
         $this->actingAs($user)
             ->post('/admin/filter-placement', [
                 'type' => 'region',
-                'name' => 'Central Highlands',
+                'name' => $this->translation('Central Highlands'),
                 'status' => 'Published',
             ])
-            ->assertSessionHasErrors('name');
+            ->assertSessionHasErrors('value');
 
         $this->actingAs($user)
             ->post('/admin/filter-placement', [
                 'type' => 'travelStyle',
-                'name' => 'Central Highlands',
+                'name' => $this->translation('Central Highlands'),
                 'status' => 'Published',
             ])
             ->assertRedirect(route('admin.filter-placement.index'));
@@ -123,12 +126,16 @@ class FilterPlacementTest extends TestCase
         $this->actingAs($user)
             ->patch("/admin/filter-placement/{$option->id}", [
                 'type' => 'region',
-                'name' => 'Highland Core',
+                'name' => $this->translation('Highland Core'),
                 'status' => 'Published',
             ])
             ->assertRedirect(route('admin.filter-placement.index'));
 
-        $this->assertSame('Highland Core', $tour->refresh()->region);
+        $option->refresh();
+
+        $this->assertSame('Highland Core', Translatable::resolve($option->name));
+        $this->assertSame('Central Highlands', $option->value);
+        $this->assertSame('Central Highlands', $tour->refresh()->region);
     }
 
     public function test_filter_option_used_by_tours_cannot_be_deleted(): void
@@ -165,13 +172,13 @@ class FilterPlacementTest extends TestCase
 
         $this->post('/admin/filter-placement', [
             'type' => 'region',
-            'name' => 'Southern Plains',
+            'name' => $this->translation('Southern Plains'),
             'status' => 'Published',
         ])->assertRedirect(route('admin.login'));
 
         $this->patch("/admin/filter-placement/{$option->id}", [
             'type' => 'region',
-            'name' => 'Updated',
+            'name' => $this->translation('Updated'),
             'status' => 'Published',
         ])->assertRedirect(route('admin.login'));
 
@@ -188,20 +195,20 @@ class FilterPlacementTest extends TestCase
             'slug' => 'existing-tour',
             'listing_type' => TourListingType::Tour,
             'status' => TourListingStatus::Published,
-            'title' => 'Bamiyan Heritage Circuit',
-            'summary' => 'Summary copy.',
-            'destination' => 'Bamiyan',
+            'title' => Translatable::normalize('Bamiyan Heritage Circuit'),
+            'summary' => Translatable::normalize('Summary copy.'),
+            'destination' => Translatable::normalize('Bamiyan'),
             'region' => 'Central Highlands',
             'duration_days' => 7,
-            'duration_label' => '7 Days / 6 Nights',
+            'duration_label' => Translatable::normalize('7 Days / 6 Nights'),
             'travel_style' => 'Cultural & Heritage',
             'difficulty' => 'Moderate',
-            'highlights' => ['Highlight one'],
-            'content' => '<p>Content</p>',
-            'inclusions' => ['Guide'],
-            'estimated_starting_price' => 'Custom inquiry basis',
-            'next_departure_date' => 'On request',
-            'next_departure_status' => 'Open for Inquiries',
+            'highlights' => Translatable::normalizeStringListStorage(['Highlight one']),
+            'content' => Translatable::normalize('<p>Content</p>'),
+            'inclusions' => Translatable::normalizeStringListStorage(['Guide']),
+            'estimated_starting_price' => Translatable::normalize('Custom inquiry basis'),
+            'next_departure_date' => Translatable::normalize('On request'),
+            'next_departure_status' => Translatable::normalize('Open for Inquiries'),
             'cover_media' => null,
         ], $overrides));
     }

@@ -4,15 +4,21 @@ import type {
     ServiceOffering,
     ServiceOfferingStatus,
 } from '@/types/services';
+import type { TranslatedString } from '@/types/locale';
+import {
+    createEmptyTranslatedString,
+    normalizeTranslatedString,
+} from '@/lib/translations';
+import { buildTranslatableFieldMap, mapTranslatableServerErrors, validateEnglishRequired, type AdminJsonPayload } from '@/lib/translatableForm';
 
 export interface ServiceFormValues {
-    title: string;
+    title: TranslatedString;
     slug: string;
-    tagline: string;
-    description: string;
+    tagline: TranslatedString;
+    description: TranslatedString;
     category: ServiceCategory;
     iconKey: string;
-    featuresText: string;
+    featuresText: TranslatedString;
     isFeatured: boolean;
     showOnHome: boolean;
     status: ServiceOfferingStatus;
@@ -23,13 +29,13 @@ export function createEmptyServiceFormValues(
     categoryOptions: readonly ServiceCategory[],
 ): ServiceFormValues {
     return {
-        title: '',
+        title: createEmptyTranslatedString(),
         slug: '',
-        tagline: '',
-        description: '',
+        tagline: createEmptyTranslatedString(),
+        description: createEmptyTranslatedString(),
         category: categoryOptions[0] ?? 'Journey',
         iconKey: iconOptions[0]?.value ?? 'users',
-        featuresText: '',
+        featuresText: createEmptyTranslatedString(),
         isFeatured: false,
         showOnHome: false,
         status: 'Draft',
@@ -38,13 +44,13 @@ export function createEmptyServiceFormValues(
 
 export function serviceToFormValues(offering: ServiceOffering): ServiceFormValues {
     return {
-        title: offering.title,
+        title: normalizeTranslatedString(offering.title),
         slug: offering.slug,
-        tagline: offering.tagline,
-        description: offering.description,
+        tagline: normalizeTranslatedString(offering.tagline),
+        description: normalizeTranslatedString(offering.description),
         category: offering.category,
         iconKey: offering.iconKey,
-        featuresText: offering.features.join('\n'),
+        featuresText: normalizeTranslatedString(offering.featuresText),
         isFeatured: offering.isFeatured,
         showOnHome: offering.showOnHome,
         status: offering.status,
@@ -55,37 +61,56 @@ export type ServiceFormField = 'title' | 'tagline' | 'description' | 'featuresTe
 
 export type ServiceFormErrors = Partial<Record<ServiceFormField, string>>;
 
+const serverFieldMap = buildTranslatableFieldMap('', ['title', 'tagline', 'description', 'features_text']);
+
+export function mapServerServiceFormErrors(
+    errors: Record<string, string | string[] | undefined>,
+): ServiceFormErrors {
+    const mapped = mapTranslatableServerErrors(errors, serverFieldMap);
+
+    if (errors.features_text && !mapped.featuresText) {
+        mapped.featuresText = Array.isArray(errors.features_text)
+            ? errors.features_text[0]
+            : errors.features_text;
+    }
+
+    return mapped;
+}
+
 export function validateServiceFormValues(values: ServiceFormValues): ServiceFormErrors {
     const errors: ServiceFormErrors = {};
 
-    if (!values.title.trim()) {
-        errors.title = 'Required';
+    const titleError = validateEnglishRequired(values.title, 'Title');
+    if (titleError) {
+        errors.title = titleError;
     }
 
-    if (!values.tagline.trim()) {
-        errors.tagline = 'Required';
+    const taglineError = validateEnglishRequired(values.tagline, 'Tagline');
+    if (taglineError) {
+        errors.tagline = taglineError;
     }
 
-    if (!values.description.trim()) {
-        errors.description = 'Required';
+    const descriptionError = validateEnglishRequired(values.description, 'Description');
+    if (descriptionError) {
+        errors.description = descriptionError;
     }
 
-    if (!values.featuresText.trim()) {
-        errors.featuresText = 'Add at least one feature';
+    if (!values.featuresText.en.trim()) {
+        errors.featuresText = 'English features are required';
     }
 
     return errors;
 }
 
-export function buildServicePayload(values: ServiceFormValues): Record<string, string> {
+export function buildServicePayload(values: ServiceFormValues): AdminJsonPayload {
     return {
-        title: values.title.trim(),
+        title: values.title,
         slug: values.slug.trim(),
-        tagline: values.tagline.trim(),
-        description: values.description.trim(),
+        tagline: values.tagline,
+        description: values.description,
         category: values.category,
         icon_key: values.iconKey,
-        features_text: values.featuresText.trim(),
+        features_text: values.featuresText,
         is_featured: values.isFeatured ? '1' : '0',
         show_on_home: values.showOnHome ? '1' : '0',
         status: values.status,

@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 
 import { FadeIn } from '@/components/motion/FadeIn';
 import { useTranslations } from '@/hooks/use-translations';
+import { cardSummaryClass, cardTitleClass } from '@/lib/cardText';
 
 export function ServicesImpactSection() {
     const { t } = useTranslations();
@@ -50,15 +51,15 @@ export function ServicesImpactSection() {
                         const Icon = point.icon;
 
                         return (
-                            <FadeIn key={point.title} delay={index * 0.04}>
-                                <article className="rounded-xl border border-border bg-surface p-4 text-center">
+                            <FadeIn key={point.title} delay={index * 0.04} className="h-full">
+                                <article className="flex h-full flex-col rounded-xl border border-border bg-surface p-4 text-center">
                                     <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-secondary/10 text-secondary">
                                         <Icon className="size-5" aria-hidden />
                                     </div>
-                                    <h3 className="font-heading mt-3 text-sm font-semibold text-foreground">
+                                    <h3 className={`font-heading mt-3 text-sm font-semibold text-foreground ${cardTitleClass}`}>
                                         {point.title}
                                     </h3>
-                                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                                    <p className={`mt-1 text-xs leading-relaxed text-muted-foreground ${cardSummaryClass}`}>
                                         {point.description}
                                     </p>
                                 </article>

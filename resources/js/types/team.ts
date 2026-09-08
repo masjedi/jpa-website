@@ -1,10 +1,12 @@
+import type { TranslatedString } from '@/types/locale';
+
 export type TeamMemberStatus = 'Published' | 'Draft';
 
 export interface TeamMember {
     id: number;
-    name: string;
-    role: string;
-    bio: string;
+    name: TranslatedString;
+    role: TranslatedString;
+    bio: TranslatedString;
     email: string;
     whatsapp: string;
     whatsappHref: string;

@@ -1,3 +1,4 @@
+import { usePage } from '@inertiajs/react';
 import { useId } from 'react';
 
 import { ArticleEntityForm } from '@/components/admin/ArticleEntityForm';
@@ -29,6 +30,7 @@ export function ArticleFormDialog({
     onSubmit,
 }: ArticleFormDialogProps) {
     const formId = useId();
+    const defaultAuthorName = usePage().props.auth.user?.name ?? '';
     const dialogTitle = mode === 'edit' ? 'Edit article' : 'New article';
     const dialogDescription =
         mode === 'edit'
@@ -54,7 +56,9 @@ export function ArticleFormDialog({
                     formId={formId}
                     mode={mode}
                     teamMembers={teamMembers}
-                    initialValues={initialValues ?? createEmptyArticleFormValues(teamMembers)}
+                    initialValues={
+                        initialValues ?? createEmptyArticleFormValues(teamMembers, defaultAuthorName)
+                    }
                     onCancel={onClose}
                     onSubmit={handleSubmit}
                 />

@@ -1,101 +1,22 @@
 import { Link, router, useForm, usePage } from '@inertiajs/react';
-import { ClipboardList, Download, Trash2 } from 'lucide-react';
+import { ClipboardList, Download, Printer, Trash2 } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
 import { adminFieldClass } from '@/components/admin/adminForm';
+import {
+    BOOKING_PRINT_STYLES,
+    BookingPrintDocument,
+    startBookingPrint,
+} from '@/components/admin/BookingPrintDocument';
 import { FileUploadField, type SelectedUploadFile } from '@/components/admin/FileUploadField';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 import { mediaProfiles } from '@/lib/mediaProfiles';
+import type { AdminBookingDetail } from '@/types/adminBooking';
 import type { SharedPageProps } from '@/types/inertia';
 
-interface BookingDetail {
-    id: number;
-    reference: string;
-    status: string;
-    travelerName: string;
-    email: string;
-    preferredDate: string;
-    travelerCount: number;
-    receivedAt: string;
-    adults: number;
-    children: number;
-    groupType: string;
-    flexibility: string;
-    season: string;
-    durationDays: number;
-    otherDestination: string;
-    recommendDestinations: boolean;
-    routePreference: string;
-    destinations: string[];
-    interests: string[];
-    visaStatus: string;
-    insuranceStatus: string;
-    emergencyName: string;
-    emergencyRelationship: string;
-    emergencyPhone: string;
-    dietary: string;
-    dietaryDetails: string;
-    medical: string;
-    medicalDetails: string;
-    contactMethod: string;
-    specialRequests: string;
-    wantsComplete: boolean;
-    wantsGuide: boolean;
-    guideGender: string;
-    wantsTransportation: boolean;
-    wantsAccommodation: boolean;
-    wantsAirport: boolean;
-    wantsDomestic: boolean;
-    guideLanguage: string;
-    guideLanguageOther: string;
-    guideRequest: string;
-    vehicle: string;
-    transportCoverage: string;
-    transportNotes: string;
-    accommodationLevel: string;
-    roomPreference: string;
-    roomCount: number | null;
-    accommodationNotes: string;
-    arrivalAssistance: string;
-    arrivalDetailsLater: boolean;
-    arrivalAirport: string;
-    arrivalDate: string;
-    arrivalTime: string;
-    arrivalFlight: string;
-    departureAssistance: string;
-    departureDetailsLater: boolean;
-    departureAirport: string;
-    departureDate: string;
-    departureTime: string;
-    departureFlight: string;
-    domesticPreference: string;
-    travelers: {
-        id: number;
-        isPrimary: boolean;
-        name: string;
-        dateOfBirth: string;
-        nationality: string;
-        email: string;
-        phone: string;
-        countryOfResidence: string;
-    }[];
-    documents: { issuingCountry: string; expiryDate: string }[];
-    attachments?: {
-        id: number;
-        name: string;
-        sizeLabel: string;
-        uploadedBy: string;
-        uploadedAt: string;
-        downloadUrl: string;
-    }[];
-    history: { from: string | null; to: string; by: string; at: string }[];
-    nextStatus: string | null;
-    nextStatusLabel: string | null;
-}
-
 interface BookingDetailPageProps extends SharedPageProps {
-    booking: BookingDetail;
+    booking: AdminBookingDetail;
     attachmentUpload?: {
         hint: string;
         accept: string;
@@ -175,7 +96,12 @@ export default function BookingDetail() {
 
     return (
         <>
-            <div className="space-y-4">
+            <style>{BOOKING_PRINT_STYLES}</style>
+            <div className="booking-print-root space-y-4">
+                <div className="booking-print-only">
+                    <BookingPrintDocument booking={booking} />
+                </div>
+                <div className="booking-no-print space-y-4">
                 {flash.success ? (
                     <div
                         role="status"
@@ -191,12 +117,22 @@ export default function BookingDetail() {
                     description={`${booking.travelerName} · ${booking.status} · inquiry only, not a confirmed reservation.`}
                     icon={ClipboardList}
                     actions={
-                        <Link
-                            href="/admin/bookings"
-                            className="inline-flex rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-muted"
-                        >
-                            Back to list
-                        </Link>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={startBookingPrint}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-muted"
+                            >
+                                <Printer className="size-4" aria-hidden />
+                                Print
+                            </button>
+                            <Link
+                                href="/admin/bookings"
+                                className="inline-flex rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-muted"
+                            >
+                                Back to list
+                            </Link>
+                        </div>
                     }
                 />
 
@@ -229,28 +165,44 @@ export default function BookingDetail() {
                 ) : null}
 
                 <Section title="Trip preferences">
-                    <Row label="Preferred date" value={booking.preferredDate} />
-                    <Row label="Flexibility" value={booking.flexibility} />
+                    <Row label="Preferred dates" value={booking.preferredDate} />
+                    <Row label="I am not sure yet" value={booking.flexibility} />
                     <Row label="Season" value={booking.season} />
-                    <Row label="Duration" value={`${booking.durationDays} days`} />
-                    <Row label="Destinations" value={booking.destinations.join(', ')} />
-                    <Row label="Other destination" value={booking.otherDestination} />
-                    <Row label="Recommend destinations" value={booking.recommendDestinations} />
-                    <Row label="Interests" value={booking.interests.join(', ')} />
+                    <Row
+                        label="Duration"
+                        value={booking.durationDays > 0 ? `${booking.durationDays} days` : 'To be decided'}
+                    />
+                    <Row
+                        label="Destinations"
+                        value={
+                            booking.recommendDestinations
+                                ? booking.destinations.length > 0
+                                    ? `${booking.destinations.join(', ')} · Recommend destinations`
+                                    : 'Recommend destinations'
+                                : booking.destinations.join(', ')
+                        }
+                    />
+                    <Row label="Tour interests" value={booking.interests.join(', ')} />
                     <Row label="Route" value={booking.routePreference} />
                 </Section>
 
-                <Section title="Travelers">
-                    <Row label="Count" value={`${booking.travelerCount} (${booking.adults} adults, ${booking.children} children)`} />
+                <Section title="Tourists">
                     <Row label="Group type" value={booking.groupType} />
-                    {booking.travelers.map((traveler) => (
+                    <Row label="Number of tourists" value={booking.travelerCount} />
+                    {booking.travelers.map((traveler, index) => (
                         <div key={traveler.id} className="border-b border-border/70 py-3 last:border-b-0">
                             <p className="text-sm font-medium text-foreground">
-                                {traveler.name}
-                                {traveler.isPrimary ? ' · Primary' : ''}
+                                {traveler.isPrimary ? 'Tourist 1' : `Tourist ${index + 1}`}: {traveler.name}
                             </p>
                             <p className="mt-1 text-xs text-muted-foreground">
-                                {[traveler.nationality, traveler.dateOfBirth, traveler.email, traveler.phone, traveler.countryOfResidence]
+                                {[
+                                    traveler.email,
+                                    traveler.phone,
+                                    traveler.dateOfBirth,
+                                    traveler.nationality,
+                                    traveler.countryOfResidence,
+                                    traveler.isFirstVisit ? `First visit: ${traveler.isFirstVisit}` : '',
+                                ]
                                     .filter(Boolean)
                                     .join(' · ')}
                             </p>
@@ -259,46 +211,19 @@ export default function BookingDetail() {
                 </Section>
 
                 <Section title="Services">
-                    <Row label="Complete package" value={booking.wantsComplete} />
-                    <Row label="Guide" value={booking.wantsGuide} />
-                    <Row label="Preferred guide" value={booking.guideGender} />
-                    <Row label="Guide language" value={booking.guideLanguageOther || booking.guideLanguage} />
-                    <Row label="Guide notes" value={booking.guideRequest} />
-                    <Row label="Transportation" value={booking.wantsTransportation} />
-                    <Row label="Vehicle" value={booking.vehicle} />
-                    <Row label="Transport coverage" value={booking.transportCoverage} />
-                    <Row label="Transport notes" value={booking.transportNotes} />
-                    <Row label="Accommodation" value={booking.wantsAccommodation} />
-                    <Row label="Level" value={booking.accommodationLevel} />
-                    <Row
-                        label="Rooms"
-                        value={
-                            booking.roomCount
-                                ? `${booking.roomCount} × ${booking.roomPreference}`
-                                : booking.roomPreference
-                        }
-                    />
-                    <Row label="Accommodation notes" value={booking.accommodationNotes} />
-                    <Row label="Airport assistance" value={booking.wantsAirport} />
-                    <Row label="Arrival" value={booking.arrivalAssistance} />
-                    <Row label="Arrival later" value={booking.arrivalDetailsLater} />
-                    <Row
-                        label="Arrival details"
-                        value={[booking.arrivalAirport, booking.arrivalDate, booking.arrivalTime, booking.arrivalFlight]
-                            .filter(Boolean)
-                            .join(' · ')}
-                    />
-                    <Row label="Departure" value={booking.departureAssistance} />
-                    <Row
-                        label="Departure details"
-                        value={[booking.departureAirport, booking.departureDate, booking.departureTime, booking.departureFlight]
-                            .filter(Boolean)
-                            .join(' · ')}
-                    />
-                    <Row label="Domestic travel" value={booking.domesticPreference} />
+                    <Row label="Number of guides" value={booking.guideCount} />
+                    <Row label="Languages" value={booking.guideLanguages} />
+                    <Row label="Male and female" value={booking.guideGender} />
+                    <Row label="Type of Vehicle" value={booking.vehicle} />
+                    <Row label="Transportation Coverage" value={booking.transportCoverage} />
+                    <Row label="Airport Pickup / drop-off" value={booking.airportPickup} />
+                    <Row label="Domestic Transportation" value={booking.domesticPreference} />
+                    <Row label="Accommodation Level" value={booking.accommodationLevel} />
+                    <Row label="Room type" value={booking.roomPreference} />
+                    <Row label="Number of rooms" value={booking.roomCount} />
                 </Section>
 
-                <Section title="Travel documents">
+                <Section title="Passport Information">
                     {booking.documents.map((document, index) => (
                         <Row
                             key={`${document.issuingCountry}-${index}`}
@@ -306,8 +231,7 @@ export default function BookingDetail() {
                             value={`${document.issuingCountry} · expiry ${document.expiryDate}`}
                         />
                     ))}
-                    <Row label="Visa" value={booking.visaStatus} />
-                    <Row label="Insurance" value={booking.insuranceStatus} />
+                    <Row label="Visa status" value={booking.visaStatus} />
                 </Section>
 
                 <section className="rounded-xl border border-border bg-surface p-5">
@@ -389,15 +313,24 @@ export default function BookingDetail() {
                     </div>
                 </section>
 
-                <Section title="Requirements">
+                <Section title="Emergency Contact">
                     <Row
                         label="Emergency contact"
                         value={`${booking.emergencyName} (${booking.emergencyRelationship}) · ${booking.emergencyPhone}`}
                     />
-                    <Row label="Dietary" value={booking.dietaryDetails || booking.dietary} />
-                    <Row label="Medical / accessibility" value={booking.medicalDetails || booking.medical} />
-                    <Row label="Preferred contact" value={booking.contactMethod} />
-                    <Row label="Special requests" value={booking.specialRequests} />
+                    <Row
+                        label="Dietary requirement"
+                        value={
+                            booking.dietaryDetails
+                                ? [booking.dietary, booking.dietaryDetails].filter(Boolean).join(' · ')
+                                : booking.dietary
+                        }
+                    />
+                    <Row
+                        label="Do you have any medical accessibility requirement?"
+                        value={booking.medical}
+                    />
+                    <Row label="Preferred contact method" value={booking.contactMethod} />
                 </Section>
 
                 <Section title="Workflow">
@@ -418,6 +351,7 @@ export default function BookingDetail() {
                         </button>
                     </div>
                 </Section>
+                </div>
             </div>
         </>
     );

@@ -135,8 +135,8 @@ export function AdminNavbar({ title, onMenuToggle }: AdminNavbarProps) {
                     />
 
                     <Link
-                        href="/admin/settings"
-                        aria-label="Profile"
+                        href="/admin/account"
+                        aria-label="Account"
                         className="inline-flex size-9 items-center justify-center rounded-xl border border-border bg-surface text-foreground transition-colors hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                     >
                         <UserRound className="size-4" aria-hidden />

@@ -4,6 +4,7 @@ import { ArrowRight, Check, MapPin } from 'lucide-react';
 import { destinationShowHref } from '@/components/public/navigation';
 import { BorderGlow } from '@/components/react-bits/BorderGlow/BorderGlow';
 import { FadeIn } from '@/components/motion/FadeIn';
+import { cardSummaryClass, cardTitleClass } from '@/lib/cardText';
 import { isRichTextHtml } from '@/lib/richText';
 import type {
     Destination,
@@ -191,7 +192,7 @@ export function DestinationDetailBody({
                                     </h2>
                                 </div>
                                 <Link
-                                    href="/destinations"
+                                    href="/tours?view=destinations"
                                     className="hidden text-sm font-medium text-secondary hover:underline sm:inline"
                                 >
                                     View all
@@ -201,12 +202,12 @@ export function DestinationDetailBody({
 
                         <div className="mt-6 grid gap-5 sm:grid-cols-2">
                             {relatedDestinations.map((related, index) => (
-                                <FadeIn key={related.id} delay={index * 0.05}>
+                                <FadeIn key={related.id} delay={index * 0.05} className="h-full">
                                     <Link
                                         href={destinationShowHref(related.slug)}
-                                        className="group flex overflow-hidden rounded-xl border border-border bg-surface shadow-sm transition-shadow hover:shadow-md"
+                                        className="group flex h-full overflow-hidden rounded-xl border border-border bg-surface shadow-sm transition-shadow hover:shadow-md"
                                     >
-                                        <div className="relative w-32 shrink-0 overflow-hidden bg-surface-muted sm:w-36">
+                                        <div className="relative w-24 shrink-0 overflow-hidden bg-surface-muted sm:w-36">
                                             <img
                                                 src={related.image}
                                                 alt={related.name}
@@ -218,10 +219,10 @@ export function DestinationDetailBody({
                                             <p className="text-xs font-medium text-secondary">
                                                 {related.region}
                                             </p>
-                                            <h3 className="font-heading mt-1 text-sm font-semibold text-foreground">
+                                            <h3 className={`font-heading mt-1 text-sm font-semibold text-foreground ${cardTitleClass}`}>
                                                 {related.name}
                                             </h3>
-                                            <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                                            <p className={`mt-1 text-xs text-muted-foreground ${cardSummaryClass}`}>
                                                 {related.tagline}
                                             </p>
                                             <p className="mt-auto flex items-center gap-1 pt-3 text-xs font-medium text-secondary">

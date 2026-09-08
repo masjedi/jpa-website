@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\ServiceOfferingCategory;
 use App\Enums\ServiceOfferingStatus;
 use App\Models\ServiceOffering;
+use App\Support\Translatable;
 use Illuminate\Database\Seeder;
 
 class ServiceOfferingSeeder extends Seeder
@@ -16,12 +17,12 @@ class ServiceOfferingSeeder extends Seeder
                 ['slug' => $offering['slug']],
                 [
                     'status' => ServiceOfferingStatus::Published,
-                    'title' => $offering['title'],
-                    'tagline' => $offering['tagline'],
-                    'description' => $offering['description'],
+                    'title' => Translatable::normalize($offering['title']),
+                    'tagline' => Translatable::normalize($offering['tagline']),
+                    'description' => Translatable::normalize($offering['description']),
                     'category' => $offering['category'],
                     'icon_key' => $offering['icon_key'],
-                    'features' => $offering['features'],
+                    'features' => Translatable::normalizeStringListStorage($offering['features']),
                     'is_featured' => $offering['is_featured'],
                     'show_on_home' => $offering['show_on_home'],
                     'sort_order' => $index + 1,

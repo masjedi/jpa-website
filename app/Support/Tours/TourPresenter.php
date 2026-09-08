@@ -2,7 +2,11 @@
 
 namespace App\Support\Tours;
 
+use App\Enums\TourFilterOptionType;
+use App\Models\Destination;
 use App\Models\Tour;
+use App\Support\Destinations\DestinationPresenter;
+use App\Support\Translatable;
 use Illuminate\Support\Collection;
 
 class TourPresenter
@@ -36,14 +40,7 @@ class TourPresenter
     public static function forPublicIndex(): array
     {
         return [
-            'tours' => Tour::query()
-                ->published()
-                ->tours()
-                ->latestFirst()
-                ->get()
-                ->map(fn (Tour $tour): array => self::publicTourPayload($tour))
-                ->values()
-                ->all(),
+            ...self::forPublicDiscovery('tours'),
             'packages' => Tour::query()
                 ->published()
                 ->packages()
@@ -52,8 +49,115 @@ class TourPresenter
                 ->map(fn (Tour $tour): array => self::publicPackagePayload($tour))
                 ->values()
                 ->all(),
-            'filterOptions' => TourFilterOptionPresenter::forPublicFilters(),
         ];
+    }
+
+    /**
+     * Unified tours discovery payload for a single catalog view.
+     *
+     * @return array{
+     *     view: 'tours'|'packages'|'destinations',
+     *     tours: list<array<string, mixed>>,
+     *     packages: list<array<string, mixed>>,
+     *     destinations: list<array<string, mixed>>,
+     *     filterOptions: array{regions: list<string>, travelStyles: list<string>, difficulties: list<string>},
+     *     destinationFilters: list<array{slug: string, name: string}>,
+     *     heroImage: string|null
+     * }
+     */
+    public static function forPublicDiscovery(string $view): array
+    {
+        $normalized = match ($view) {
+            'packages', 'destinations' => $view,
+            default => 'tours',
+        };
+
+        $emptyFilters = [
+            'regions' => [],
+            'travelStyles' => [],
+            'difficulties' => [],
+        ];
+
+        $payload = [
+            'view' => $normalized,
+            'tours' => [],
+            'packages' => [],
+            'destinations' => [],
+            'filterOptions' => $emptyFilters,
+            'destinationFilters' => [],
+            'heroImage' => self::discoveryHeroImage(),
+        ];
+
+        if ($normalized === 'packages') {
+            $payload['packages'] = Tour::query()
+                ->published()
+                ->packages()
+                ->latestFirst()
+                ->get()
+                ->map(fn (Tour $tour): array => self::publicPackagePayload($tour))
+                ->values()
+                ->all();
+
+            return $payload;
+        }
+
+        if ($normalized === 'destinations') {
+            $payload['destinations'] = DestinationPresenter::forPublicIndex()['destinations'];
+
+            return $payload;
+        }
+
+        $destinationSlugMap = DestinationPresenter::tourDestinationSlugMap();
+
+        $payload['tours'] = Tour::query()
+            ->published()
+            ->tours()
+            ->latestFirst()
+            ->get()
+            ->map(fn (Tour $tour): array => self::publicTourPayload(
+                $tour,
+                $destinationSlugMap[$tour->slug] ?? [],
+            ))
+            ->values()
+            ->all();
+        $payload['filterOptions'] = TourFilterOptionPresenter::forPublicFilters();
+        $payload['destinationFilters'] = DestinationPresenter::forTourDiscoveryFilters();
+
+        return $payload;
+    }
+
+    private static function discoveryHeroImage(): ?string
+    {
+        $tour = Tour::query()
+            ->published()
+            ->tours()
+            ->whereNotNull('cover_media')
+            ->latestFirst()
+            ->first();
+
+        if ($tour !== null) {
+            $url = self::coverDetailUrl($tour);
+
+            if ($url !== '') {
+                return $url;
+            }
+        }
+
+        $destination = Destination::query()
+            ->published()
+            ->whereNotNull('cover_media')
+            ->featuredFirst()
+            ->first();
+
+        if ($destination !== null) {
+            $url = $destination->coverAsset()?->detailUrl()
+                ?? $destination->coverImageUrl()
+                ?? '';
+
+            return $url !== '' ? $url : null;
+        }
+
+        return null;
     }
 
     /**
@@ -61,13 +165,18 @@ class TourPresenter
      */
     public static function forPublicHomePreview(int $limit = 3): array
     {
+        $destinationSlugMap = DestinationPresenter::tourDestinationSlugMap();
+
         return Tour::query()
             ->published()
             ->tours()
             ->latestFirst()
             ->limit($limit)
             ->get()
-            ->map(fn (Tour $tour): array => self::publicTourPayload($tour))
+            ->map(fn (Tour $tour): array => self::publicTourPayload(
+                $tour,
+                $destinationSlugMap[$tour->slug] ?? [],
+            ))
             ->values()
             ->all();
     }
@@ -108,34 +217,42 @@ class TourPresenter
      */
     public static function travelOfferFromTour(Tour $tour, array $related): array
     {
+        $itinerary = Translatable::resolveJsonList($tour->itinerary_overview);
+
         return [
             'kind' => 'tour',
             'slug' => $tour->slug,
-            'title' => $tour->title,
-            'tagline' => trim((string) $tour->travel_style).' · '.trim((string) $tour->destination),
+            'title' => Translatable::resolve($tour->title),
+            'tagline' => TourFilterOptionPresenter::labelFor(
+                TourFilterOptionType::TravelStyle,
+                (string) $tour->travel_style,
+            ).' · '.Translatable::resolve($tour->destination),
             'image' => self::coverDetailUrl($tour),
             'durationDays' => $tour->duration_days,
-            'durationLabel' => $tour->duration_label,
-            'badge' => $tour->badge,
-            'description' => $tour->summary,
-            'content' => $tour->content,
-            'highlights' => $tour->highlights,
-            'journeyOutline' => collect($tour->itinerary_overview ?? [])
-                ->map(fn (array $day): array => [
-                    'phase' => (string) ($day['day'] ?? ''),
-                    'title' => (string) ($day['title'] ?? ''),
-                    'summary' => (string) ($day['summary'] ?? ''),
+            'durationLabel' => Translatable::resolve($tour->duration_label),
+            'badge' => Translatable::resolve($tour->badge),
+            'description' => Translatable::resolve($tour->summary),
+            'content' => Translatable::resolve($tour->content),
+            'highlights' => Translatable::resolveStringList($tour->highlights),
+            'journeyOutline' => collect(is_array($itinerary) ? $itinerary : [])
+                ->map(fn (mixed $day): array => [
+                    'phase' => (string) (is_array($day) ? ($day['day'] ?? '') : ''),
+                    'title' => (string) (is_array($day) ? ($day['title'] ?? '') : ''),
+                    'summary' => (string) (is_array($day) ? ($day['summary'] ?? '') : ''),
                 ])
                 ->values()
                 ->all(),
-            'destinations' => array_values(array_filter([(string) $tour->destination])),
+            'destinations' => array_values(array_filter([Translatable::resolve($tour->destination)])),
             'sidebarIdealFor' => sprintf(
                 '%s · %s · Best %s',
-                (string) ($tour->group_size ?? 'Max 8 travelers / Private'),
-                (string) $tour->difficulty,
-                (string) ($tour->best_months ?? 'Year-round'),
+                Translatable::resolve($tour->group_size ?? []),
+                TourFilterOptionPresenter::labelFor(
+                    TourFilterOptionType::Difficulty,
+                    (string) $tour->difficulty,
+                ),
+                Translatable::resolve($tour->best_months ?? []),
             ),
-            'inclusions' => $tour->inclusions ?? [],
+            'inclusions' => Translatable::resolveStringList($tour->inclusions ?? []),
             'breadcrumbs' => [
                 'listLabel' => 'Tours',
                 'listHref' => '/tours#tour-catalog',
@@ -165,19 +282,19 @@ class TourPresenter
         return [
             'kind' => 'package',
             'slug' => $package->slug,
-            'title' => $package->title,
-            'tagline' => (string) $package->tagline,
+            'title' => Translatable::resolve($package->title),
+            'tagline' => Translatable::resolve($package->tagline),
             'image' => self::coverDetailUrl($package),
             'durationDays' => $package->duration_days,
-            'durationLabel' => $package->duration_label,
-            'badge' => $package->badge,
-            'priceLabel' => (string) ($package->price_estimate ?? 'Custom quotation'),
-            'description' => $package->summary,
-            'highlights' => $package->highlights,
-            'journeyOutline' => $package->journey_outline,
-            'destinations' => $package->key_destinations ?? [],
-            'sidebarIdealFor' => (string) $package->ideal_for,
-            'inclusions' => $package->included_services ?? [],
+            'durationLabel' => Translatable::resolve($package->duration_label),
+            'badge' => Translatable::resolve($package->badge),
+            'priceLabel' => Translatable::resolve($package->price_estimate ?? []) ?: 'Custom quotation',
+            'description' => Translatable::resolve($package->summary),
+            'highlights' => Translatable::resolveStringList($package->highlights),
+            'journeyOutline' => Translatable::resolveJsonList($package->journey_outline ?? []),
+            'destinations' => Translatable::resolveStringList($package->key_destinations ?? []),
+            'sidebarIdealFor' => Translatable::resolve($package->ideal_for),
+            'inclusions' => Translatable::resolveStringList($package->included_services ?? []),
             'breadcrumbs' => [
                 'listLabel' => 'Packages',
                 'listHref' => '/tours#packages',
@@ -208,69 +325,89 @@ class TourPresenter
             'slug' => $tour->slug,
             'listingType' => $tour->listing_type->frontendValue(),
             'status' => $tour->status->frontendLabel(),
-            'title' => (string) $tour->title,
+            'title' => Translatable::normalize($tour->title),
             'durationDays' => $tour->duration_days,
-            'duration' => (string) $tour->duration_label,
-            'badge' => (string) ($tour->badge ?? ''),
+            'duration' => Translatable::normalize($tour->duration_label),
+            'badge' => Translatable::normalize($tour->badge ?? []),
             'image' => self::coverCardUrl($tour),
-            'description' => (string) $tour->summary,
-            'highlights' => $tour->highlights ?? [],
-            'inclusions' => $tour->inclusions ?? [],
+            'description' => Translatable::normalize($tour->summary),
+            'highlightsText' => Translatable::stringListToTextMap($tour->highlights ?? []),
+            'highlights' => Translatable::resolveStringList($tour->highlights ?? []),
+            'inclusions' => Translatable::resolveStringList($tour->inclusions ?? []),
+            'includedServicesText' => Translatable::stringListToTextMap($tour->included_services ?? $tour->inclusions ?? []),
         ];
 
         if ($tour->isPackage()) {
             return array_merge($base, [
-                'destination' => (string) ($tour->destination ?? ''),
+                'destination' => Translatable::normalize($tour->destination ?? []),
                 'region' => (string) ($tour->region ?? 'Multiple Regions'),
-                'tagline' => (string) ($tour->tagline ?? ''),
-                'featuredPerks' => $tour->highlights ?? [],
-                'keyDestinations' => $tour->key_destinations ?? [],
-                'priceEstimate' => (string) ($tour->price_estimate ?? ''),
-                'idealFor' => (string) ($tour->ideal_for ?? ''),
-                'includedServices' => $tour->included_services ?? [],
-                'journeyOutline' => $tour->journey_outline ?? [],
+                'tagline' => Translatable::normalize($tour->tagline ?? []),
+                'featuredPerks' => Translatable::resolveStringList($tour->highlights ?? []),
+                'keyDestinations' => Translatable::resolveStringList($tour->key_destinations ?? []),
+                'keyDestinationsText' => Translatable::stringListToTextMap($tour->key_destinations ?? []),
+                'priceEstimate' => Translatable::normalize($tour->price_estimate ?? []),
+                'idealFor' => Translatable::normalize($tour->ideal_for ?? []),
+                'includedServices' => Translatable::resolveStringList($tour->included_services ?? []),
+                'journeyOutline' => Translatable::normalizeJsonListStorage($tour->journey_outline ?? []),
                 'isPopular' => (bool) $tour->is_popular,
             ]);
         }
 
         return array_merge($base, [
-            'destination' => (string) ($tour->destination ?? ''),
+            'destination' => Translatable::normalize($tour->destination ?? []),
             'region' => (string) ($tour->region ?? ''),
             'difficulty' => (string) ($tour->difficulty ?? 'Moderate'),
             'travelStyle' => (string) ($tour->travel_style ?? 'Cultural & Heritage'),
-            'season' => (string) ($tour->season ?? 'Year-round'),
-            'bestMonths' => (string) ($tour->best_months ?? 'Year-round'),
-            'groupSize' => (string) ($tour->group_size ?? 'Max 8 travelers / Private'),
-            'content' => (string) ($tour->content ?? ''),
-            'itineraryOverview' => $tour->itinerary_overview ?? [],
+            'season' => Translatable::normalize($tour->season ?? []),
+            'bestMonths' => Translatable::normalize($tour->best_months ?? []),
+            'groupSize' => Translatable::normalize($tour->group_size ?? []),
+            'content' => Translatable::normalize($tour->content ?? []),
+            'itineraryOverview' => Translatable::normalizeJsonListStorage($tour->itinerary_overview ?? []),
         ]);
     }
 
     /**
+     * @param  list<string>  $destinationSlugs
      * @return array<string, mixed>
      */
-    public static function publicTourPayload(Tour $tour): array
+    public static function publicTourPayload(Tour $tour, array $destinationSlugs = []): array
     {
+        $priceLabel = Translatable::resolve($tour->estimated_starting_price ?? []);
+
         return [
             'id' => $tour->slug,
             'slug' => $tour->slug,
-            'title' => $tour->title,
-            'destination' => (string) $tour->destination,
-            'region' => (string) $tour->region,
+            'title' => Translatable::resolve($tour->title),
+            'destination' => Translatable::resolve($tour->destination),
+            'region' => TourFilterOptionPresenter::labelFor(
+                TourFilterOptionType::Region,
+                (string) $tour->region,
+            ),
             'durationDays' => $tour->duration_days,
-            'duration' => $tour->duration_label,
-            'difficulty' => (string) $tour->difficulty,
-            'travelStyle' => (string) $tour->travel_style,
-            'season' => (string) ($tour->season ?? 'Year-round'),
-            'bestMonths' => (string) ($tour->best_months ?? 'Year-round'),
-            'groupSize' => (string) ($tour->group_size ?? 'Max 8 travelers / Private'),
+            'duration' => Translatable::resolve($tour->duration_label),
+            'difficulty' => TourFilterOptionPresenter::labelFor(
+                TourFilterOptionType::Difficulty,
+                (string) $tour->difficulty,
+            ),
+            'travelStyle' => TourFilterOptionPresenter::labelFor(
+                TourFilterOptionType::TravelStyle,
+                (string) $tour->travel_style,
+            ),
+            'regionValue' => (string) $tour->region,
+            'difficultyValue' => (string) $tour->difficulty,
+            'travelStyleValue' => (string) $tour->travel_style,
+            'season' => Translatable::resolve($tour->season ?? []),
+            'bestMonths' => Translatable::resolve($tour->best_months ?? []),
+            'groupSize' => Translatable::resolve($tour->group_size ?? []),
             'image' => self::coverCardUrl($tour),
-            'badge' => $tour->badge,
-            'description' => $tour->summary,
-            'content' => $tour->content,
-            'highlights' => $tour->highlights,
-            'itineraryOverview' => $tour->itinerary_overview ?? [],
-            'inclusions' => $tour->inclusions ?? [],
+            'badge' => Translatable::resolve($tour->badge),
+            'description' => Translatable::resolve($tour->summary),
+            'content' => Translatable::resolve($tour->content),
+            'highlights' => Translatable::resolveStringList($tour->highlights),
+            'itineraryOverview' => Translatable::resolveJsonList($tour->itinerary_overview ?? []),
+            'inclusions' => Translatable::resolveStringList($tour->inclusions ?? []),
+            'priceLabel' => $priceLabel !== '' ? $priceLabel : null,
+            'destinationSlugs' => array_values($destinationSlugs),
         ];
     }
 
@@ -282,19 +419,19 @@ class TourPresenter
         return [
             'id' => $package->slug,
             'slug' => $package->slug,
-            'title' => $package->title,
-            'tagline' => (string) $package->tagline,
-            'duration' => $package->duration_label,
+            'title' => Translatable::resolve($package->title),
+            'tagline' => Translatable::resolve($package->tagline),
+            'duration' => Translatable::resolve($package->duration_label),
             'durationDays' => $package->duration_days,
-            'badge' => (string) ($package->badge ?: 'Package'),
+            'badge' => Translatable::resolve($package->badge) ?: 'Package',
             'image' => self::coverCardUrl($package),
-            'description' => $package->summary,
-            'featuredPerks' => $package->highlights,
-            'keyDestinations' => $package->key_destinations ?? [],
-            'priceEstimate' => (string) ($package->price_estimate ?? 'Custom quotation'),
-            'idealFor' => (string) $package->ideal_for,
-            'includedServices' => $package->included_services ?? [],
-            'journeyOutline' => $package->journey_outline,
+            'description' => Translatable::resolve($package->summary),
+            'featuredPerks' => Translatable::resolveStringList($package->highlights),
+            'keyDestinations' => Translatable::resolveStringList($package->key_destinations ?? []),
+            'priceEstimate' => Translatable::resolve($package->price_estimate ?? []) ?: 'Custom quotation',
+            'idealFor' => Translatable::resolve($package->ideal_for),
+            'includedServices' => Translatable::resolveStringList($package->included_services ?? []),
+            'journeyOutline' => Translatable::resolveJsonList($package->journey_outline ?? []),
             'isPopular' => $package->is_popular,
         ];
     }
@@ -306,12 +443,12 @@ class TourPresenter
     {
         return [
             'slug' => $tour->slug,
-            'title' => $tour->title,
-            'tagline' => $tour->summary,
+            'title' => Translatable::resolve($tour->title),
+            'tagline' => Translatable::resolve($tour->summary),
             'image' => self::coverCardUrl($tour),
             'durationDays' => $tour->duration_days,
-            'durationLabel' => $tour->duration_label,
-            'badge' => $tour->badge,
+            'durationLabel' => Translatable::resolve($tour->duration_label),
+            'badge' => Translatable::resolve($tour->badge),
             'href' => '/tours/'.$tour->slug,
         ];
     }
@@ -323,13 +460,13 @@ class TourPresenter
     {
         return [
             'slug' => $package->slug,
-            'title' => $package->title,
-            'tagline' => (string) $package->tagline,
+            'title' => Translatable::resolve($package->title),
+            'tagline' => Translatable::resolve($package->tagline),
             'image' => self::coverCardUrl($package),
             'durationDays' => $package->duration_days,
-            'durationLabel' => $package->duration_label,
-            'badge' => $package->badge,
-            'priceLabel' => (string) ($package->price_estimate ?? 'Custom quotation'),
+            'durationLabel' => Translatable::resolve($package->duration_label),
+            'badge' => Translatable::resolve($package->badge),
+            'priceLabel' => Translatable::resolve($package->price_estimate ?? []) ?: 'Custom quotation',
             'href' => '/packages/'.$package->slug,
         ];
     }

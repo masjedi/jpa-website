@@ -1,6 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { Compass, MapPinned, X } from 'lucide-react';
-import { useReducedMotion } from 'motion/react';
+import { ChevronRight, Compass, MapPinned, X } from 'lucide-react';
 import { useEffect, useId, useRef } from 'react';
 
 import { customBookingHref, tourPackagesHref } from '@/components/public/navigation';
@@ -11,37 +10,12 @@ interface BookNowChoiceDialogProps {
     onClose: () => void;
 }
 
-function goToTourPackages(smooth: boolean): void {
-    const onToursPage = window.location.pathname.replace(/\/$/, '') === '/tours';
-
-    if (onToursPage) {
-        window.history.pushState(null, '', tourPackagesHref);
-        document.getElementById('packages')?.scrollIntoView({
-            block: 'start',
-            behavior: smooth ? 'smooth' : 'auto',
-        });
-        window.dispatchEvent(new Event('hashchange'));
-        return;
-    }
-
-    router.visit('/tours', {
-        onSuccess: () => {
-            window.history.replaceState(null, '', tourPackagesHref);
-            window.requestAnimationFrame(() => {
-                document.getElementById('packages')?.scrollIntoView({
-                    block: 'start',
-                    behavior: smooth ? 'smooth' : 'auto',
-                });
-            });
-        },
-    });
-}
+const choiceClassName =
+    'group flex w-full items-center gap-4 rounded-2xl border border-border bg-background px-4 py-4 text-start transition-[border-color,background-color] duration-200 hover:border-secondary/50 hover:bg-surface-muted/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none';
 
 export function BookNowChoiceDialog({ isOpen, onClose }: BookNowChoiceDialogProps) {
     const titleId = useId();
-    const descriptionId = useId();
     const firstChoiceRef = useRef<HTMLAnchorElement>(null);
-    const reducedMotion = useReducedMotion();
     const { t } = useTranslations();
 
     useEffect(() => {
@@ -75,29 +49,17 @@ export function BookNowChoiceDialog({ isOpen, onClose }: BookNowChoiceDialogProp
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            aria-describedby={descriptionId}
             className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm sm:p-6"
             onClick={onClose}
         >
             <div
-                className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl"
+                className="relative w-full max-w-md overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl"
                 onClick={(event) => event.stopPropagation()}
             >
-                <div className="flex items-start justify-between gap-4 border-b border-border px-6 py-4 sm:px-7">
-                    <div>
-                        <h2
-                            id={titleId}
-                            className="font-heading text-xl font-semibold text-foreground sm:text-2xl"
-                        >
-                            {t('bookNowDialog.title')}
-                        </h2>
-                        <p
-                            id={descriptionId}
-                            className="mt-1.5 text-sm leading-relaxed text-muted-foreground"
-                        >
-                            {t('bookNowDialog.description')}
-                        </p>
-                    </div>
+                <div className="flex items-center justify-between gap-4 border-b border-border px-6 py-5 sm:px-7">
+                    <h2 id={titleId} className="font-heading text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                        {t('bookNowDialog.title')}
+                    </h2>
                     <button
                         type="button"
                         onClick={onClose}
@@ -113,42 +75,39 @@ export function BookNowChoiceDialog({ isOpen, onClose }: BookNowChoiceDialogProp
                         ref={firstChoiceRef}
                         href={customBookingHref}
                         onClick={onClose}
-                        className="flex items-start gap-3 rounded-2xl border border-border bg-background px-4 py-4 text-start transition-colors hover:border-secondary/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                        className={choiceClassName}
                     >
-                        <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary/10 text-secondary">
+                        <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary/10 text-secondary">
                             <Compass className="size-5" aria-hidden />
                         </span>
-                        <span>
-                            <span className="block text-sm font-semibold text-foreground">
-                                {t('bookNowDialog.customTitle')}
-                            </span>
-                            <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
-                                {t('bookNowDialog.customDescription')}
-                            </span>
+                        <span className="min-w-0 flex-1 text-base font-semibold text-foreground">
+                            {t('bookNowDialog.customTitle')}
                         </span>
+                        <ChevronRight
+                            className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-secondary rtl:rotate-180"
+                            aria-hidden
+                        />
                     </Link>
 
-                    <a
-                        href={tourPackagesHref}
-                        onClick={(event) => {
-                            event.preventDefault();
+                    <button
+                        type="button"
+                        onClick={() => {
                             onClose();
-                            goToTourPackages(!reducedMotion);
+                            router.visit(tourPackagesHref);
                         }}
-                        className="flex items-start gap-3 rounded-2xl border border-border bg-background px-4 py-4 text-start transition-colors hover:border-secondary/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                        className={choiceClassName}
                     >
-                        <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary/10 text-secondary">
+                        <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary/10 text-secondary">
                             <MapPinned className="size-5" aria-hidden />
                         </span>
-                        <span>
-                            <span className="block text-sm font-semibold text-foreground">
-                                {t('bookNowDialog.fixedTitle')}
-                            </span>
-                            <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
-                                {t('bookNowDialog.fixedDescription')}
-                            </span>
+                        <span className="min-w-0 flex-1 text-base font-semibold text-foreground">
+                            {t('bookNowDialog.fixedTitle')}
                         </span>
-                    </a>
+                        <ChevronRight
+                            className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-secondary rtl:rotate-180"
+                            aria-hidden
+                        />
+                    </button>
                 </div>
             </div>
         </div>

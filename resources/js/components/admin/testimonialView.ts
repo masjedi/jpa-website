@@ -1,10 +1,15 @@
 import type { ContentRecordViewModel } from '@/components/admin/contentRecordViewModel';
+import { primaryTranslation } from '@/lib/translations';
 import type { Testimonial } from '@/types/testimonials';
 
 export function buildTestimonialViewModel(testimonial: Testimonial): ContentRecordViewModel {
+    const name = primaryTranslation(testimonial.name);
+    const journey = primaryTranslation(testimonial.journey);
+    const text = primaryTranslation(testimonial.text);
+
     return {
-        title: testimonial.name,
-        subtitle: testimonial.journey,
+        title: name,
+        subtitle: journey,
         status: testimonial.status,
         showCardPreview: false,
         showContentSection: false,
@@ -18,7 +23,7 @@ export function buildTestimonialViewModel(testimonial: Testimonial): ContentReco
             {
                 id: 'quote',
                 heading: 'Testimonial',
-                paragraphs: [testimonial.text],
+                paragraphs: [text],
             },
         ],
     };

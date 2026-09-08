@@ -2,12 +2,14 @@ import { useId } from 'react';
 
 import { DataTableDialog } from '@/components/admin/DataTableDialog';
 import { TeamEntityForm } from '@/components/admin/TeamEntityForm';
+import type { TeamAvatarSpec } from '@/types/team';
 import type { TeamFormSubmitPayload, TeamFormValues } from '@/components/admin/teamForm';
 
 interface TeamFormDialogProps {
     open: boolean;
     mode: 'create' | 'edit';
     resetKey: string;
+    avatarSpec: TeamAvatarSpec;
     initialValues?: TeamFormValues;
     onClose: () => void;
     onSubmit: (payload: TeamFormSubmitPayload) => void | Promise<void>;
@@ -17,6 +19,7 @@ export function TeamFormDialog({
     open,
     mode,
     resetKey,
+    avatarSpec,
     initialValues,
     onClose,
     onSubmit,
@@ -46,6 +49,7 @@ export function TeamFormDialog({
                     key={resetKey}
                     formId={formId}
                     mode={mode}
+                    avatarSpec={avatarSpec}
                     initialValues={initialValues}
                     onCancel={onClose}
                     onSubmit={handleSubmit}

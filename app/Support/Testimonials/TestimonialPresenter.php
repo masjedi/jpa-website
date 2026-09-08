@@ -3,11 +3,15 @@
 namespace App\Support\Testimonials;
 
 use App\Models\Testimonial;
+use App\Support\Media\TestimonialAvatarImage;
+use App\Support\Translatable;
 
 class TestimonialPresenter
 {
+    private const PLACEHOLDER_AVATAR = '/brand/logo-color-h.png';
+
     /**
-     * @return array{testimonials: list<array<string, mixed>>}
+     * @return array{testimonials: list<array<string, mixed>>, avatarSpec: array<string, mixed>}
      */
     public static function forAdminIndex(): array
     {
@@ -18,6 +22,7 @@ class TestimonialPresenter
                 ->map(fn (Testimonial $testimonial): array => self::adminPayload($testimonial))
                 ->values()
                 ->all(),
+            'avatarSpec' => TestimonialAvatarImage::spec(),
         ];
     }
 
@@ -42,9 +47,10 @@ class TestimonialPresenter
     {
         return [
             'id' => $testimonial->id,
-            'name' => (string) $testimonial->name,
-            'journey' => (string) $testimonial->journey,
-            'text' => (string) $testimonial->text,
+            'name' => Translatable::normalize($testimonial->name),
+            'journey' => Translatable::normalize($testimonial->journey),
+            'text' => Translatable::normalize($testimonial->text),
+            'image' => self::avatarUrl($testimonial),
             'rating' => (int) $testimonial->rating,
             'order' => (int) $testimonial->sort_order,
             'status' => $testimonial->status->frontendLabel(),
@@ -59,10 +65,17 @@ class TestimonialPresenter
     {
         return [
             'id' => $testimonial->id,
-            'name' => (string) $testimonial->name,
-            'journey' => (string) $testimonial->journey,
-            'text' => (string) $testimonial->text,
+            'name' => Translatable::resolve($testimonial->name),
+            'journey' => Translatable::resolve($testimonial->journey),
+            'text' => Translatable::resolve($testimonial->text),
+            'image' => self::avatarUrl($testimonial),
             'rating' => (int) $testimonial->rating,
         ];
+    }
+
+    public static function avatarUrl(Testimonial $testimonial): string
+    {
+        return $testimonial->avatarAsset()?->cardUrl()
+            ?? self::PLACEHOLDER_AVATAR;
     }
 }

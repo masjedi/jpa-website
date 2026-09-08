@@ -24,6 +24,13 @@ export const mediaProfiles = {
         maxUploadKilobytes: 4096,
         hint: 'Square or portrait photos work best. Images are shown in a circular team card (up to 480 × 600 px). Max 4096 KB.',
     },
+    testimonial_avatar: {
+        aspectRatio: '1:1',
+        thumb: { width: 200, height: 200 },
+        card: { width: 400, height: 400 },
+        maxUploadKilobytes: 4096,
+        hint: 'Square portrait photos work best. Shown in a circular testimonial carousel (up to 400 × 400 px). Max 4096 KB.',
+    },
     about_journey_image: {
         aspectRatio: '4:3',
         card: { width: 900, height: 675 },
@@ -51,6 +58,13 @@ export const mediaProfiles = {
         detail: { width: 1600, height: 1200 },
         maxUploadKilobytes: 8192,
         hint: 'Target 1600 × 1200 px (4:3). Larger uploads are cropped/resized automatically. Max 8192 KB.',
+    },
+    hero_slide: {
+        aspectRatio: '16:9',
+        thumb: { width: 640, height: 360 },
+        hero_md: { width: 1920, height: 1080 },
+        maxUploadKilobytes: 8192,
+        hint: 'Full-screen hero backgrounds. Target 1920 × 1080 px (1080p). Larger uploads are resized automatically. Max 8192 KB.',
     },
     document_attachment: {
         maxUploadKilobytes: 12288,

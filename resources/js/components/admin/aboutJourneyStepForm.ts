@@ -1,10 +1,17 @@
 import type { AboutIconOption, AboutJourneyStep, AboutJourneyStepStatus } from '@/types/aboutPage';
+import type { TranslatedString } from '@/types/locale';
+import {
+    appendTranslatedStringToFormData,
+    createEmptyTranslatedString,
+    normalizeTranslatedString,
+} from '@/lib/translations';
+import { buildTranslatableFieldMap, mapTranslatableServerErrors, validateEnglishRequired } from '@/lib/translatableForm';
 
 export interface AboutJourneyStepFormValues {
-    title: string;
-    description: string;
+    title: TranslatedString;
+    description: TranslatedString;
     image: string;
-    imageAlt: string;
+    imageAlt: TranslatedString;
     iconKey: string;
     status: AboutJourneyStepStatus;
 }
@@ -13,10 +20,10 @@ export function createEmptyAboutJourneyStepFormValues(
     iconOptions: readonly AboutIconOption[],
 ): AboutJourneyStepFormValues {
     return {
-        title: '',
-        description: '',
+        title: createEmptyTranslatedString(),
+        description: createEmptyTranslatedString(),
         image: '',
-        imageAlt: '',
+        imageAlt: createEmptyTranslatedString(),
         iconKey: iconOptions[0]?.value ?? 'compass',
         status: 'Draft',
     };
@@ -24,10 +31,10 @@ export function createEmptyAboutJourneyStepFormValues(
 
 export function aboutJourneyStepToFormValues(step: AboutJourneyStep): AboutJourneyStepFormValues {
     return {
-        title: step.title,
-        description: step.description,
+        title: normalizeTranslatedString(step.title),
+        description: normalizeTranslatedString(step.description),
         image: step.image,
-        imageAlt: step.imageAlt,
+        imageAlt: normalizeTranslatedString(step.imageAlt),
         iconKey: step.iconKey,
         status: step.status,
     };
@@ -42,22 +49,39 @@ export type AboutJourneyStepFormField =
 
 export type AboutJourneyStepFormErrors = Partial<Record<AboutJourneyStepFormField, string>>;
 
+const serverFieldMap = buildTranslatableFieldMap('', ['title', 'description', 'image_alt']);
+
+export function mapServerAboutJourneyStepFormErrors(
+    errors: Record<string, string | string[] | undefined>,
+): AboutJourneyStepFormErrors {
+    const mapped = mapTranslatableServerErrors(errors, serverFieldMap);
+
+    if (errors.image_alt && !mapped.imageAlt) {
+        mapped.imageAlt = Array.isArray(errors.image_alt) ? errors.image_alt[0] : errors.image_alt;
+    }
+
+    return mapped;
+}
+
 export function validateAboutJourneyStepFormValues(
     values: AboutJourneyStepFormValues,
     hasImage: boolean,
 ): AboutJourneyStepFormErrors {
     const errors: AboutJourneyStepFormErrors = {};
 
-    if (!values.title.trim()) {
-        errors.title = 'Required';
+    const titleError = validateEnglishRequired(values.title, 'Title');
+    if (titleError) {
+        errors.title = titleError;
     }
 
-    if (!values.description.trim()) {
-        errors.description = 'Required';
+    const descriptionError = validateEnglishRequired(values.description, 'Description');
+    if (descriptionError) {
+        errors.description = descriptionError;
     }
 
-    if (!values.imageAlt.trim()) {
-        errors.imageAlt = 'Required';
+    const imageAltError = validateEnglishRequired(values.imageAlt, 'Image alt text');
+    if (imageAltError) {
+        errors.imageAlt = imageAltError;
     }
 
     if (!values.iconKey) {
@@ -82,9 +106,9 @@ export function buildAboutJourneyStepFormData({
 }: AboutJourneyStepSubmitPayload): FormData {
     const formData = new FormData();
 
-    formData.append('title', values.title);
-    formData.append('description', values.description);
-    formData.append('image_alt', values.imageAlt);
+    appendTranslatedStringToFormData(formData, 'title', values.title);
+    appendTranslatedStringToFormData(formData, 'description', values.description);
+    appendTranslatedStringToFormData(formData, 'image_alt', values.imageAlt);
     formData.append('icon_key', values.iconKey);
     formData.append('status', values.status);
 

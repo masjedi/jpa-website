@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\SiteSetting;
 use App\Models\User;
 use App\Support\SiteSettings\SiteSettingsDefaults;
+use App\Support\Translatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -25,7 +26,7 @@ class AdminSiteSettingsTest extends TestCase
                 ->component('admin/Settings')
                 ->has('settings')
                 ->has('settings.socialLinks', 4)
-                ->where('settings.brandName', SiteSettingsDefaults::BRAND_NAME)
+                ->where('settings.brandName.en', SiteSettingsDefaults::BRAND_NAME)
                 ->where('settings.contactEmail', SiteSettingsDefaults::CONTACT_EMAIL));
     }
 
@@ -37,11 +38,11 @@ class AdminSiteSettingsTest extends TestCase
         $this->actingAs($user)
             ->post('/admin/settings', [
                 '_method' => 'patch',
-                'brand_name' => 'JPA Heritage Tours',
+                'brand_name' => $this->translation('JPA Heritage Tours'),
                 'contact_email' => 'hello@example.com',
-                'whatsapp_display' => '+93 700 000000',
+                'whatsapp_display' => $this->translation('+93 700 000000'),
                 'whatsapp_href' => 'https://wa.me/93700000000',
-                'office_location' => 'Kabul, Afghanistan',
+                'office_location' => $this->translation('Kabul, Afghanistan'),
                 'office_maps_href' => '',
                 'office_maps_embed_src' => '',
                 'social_links' => [
@@ -57,7 +58,7 @@ class AdminSiteSettingsTest extends TestCase
         $settings = SiteSetting::query()->first();
 
         $this->assertNotNull($settings);
-        $this->assertSame('JPA Heritage Tours', $settings->brand_name);
+        $this->assertSame('JPA Heritage Tours', Translatable::resolve($settings->brand_name));
         $this->assertNull($settings->office_maps_href);
         $this->assertCount(1, $settings->social_links);
     }
@@ -69,11 +70,11 @@ class AdminSiteSettingsTest extends TestCase
 
         $this->actingAs($user)
             ->patch('/admin/settings', [
-                'brand_name' => 'JPA Heritage Tours',
+                'brand_name' => $this->translation('JPA Heritage Tours'),
                 'contact_email' => 'hello@example.com',
-                'whatsapp_display' => '+93 700 000000',
+                'whatsapp_display' => $this->translation('+93 700 000000'),
                 'whatsapp_href' => 'https://wa.me/93700000000',
-                'office_location' => 'Kabul, Afghanistan',
+                'office_location' => $this->translation('Kabul, Afghanistan'),
                 'office_maps_href' => 'https://www.google.com/maps/search/?api=1&query=Kabul',
                 'office_maps_embed_src' => 'https://www.google.com/maps?q=Kabul&output=embed',
                 'social_links' => [
@@ -89,9 +90,9 @@ class AdminSiteSettingsTest extends TestCase
         $settings = SiteSetting::query()->first();
 
         $this->assertNotNull($settings);
-        $this->assertSame('JPA Heritage Tours', $settings->brand_name);
+        $this->assertSame('JPA Heritage Tours', Translatable::resolve($settings->brand_name));
         $this->assertSame('hello@example.com', $settings->contact_email);
-        $this->assertSame('+93 700 000000', $settings->whatsapp_display);
+        $this->assertSame('+93 700 000000', Translatable::resolve($settings->whatsapp_display));
         $this->assertCount(4, $settings->social_links);
     }
 
@@ -100,7 +101,7 @@ class AdminSiteSettingsTest extends TestCase
         $user = User::factory()->create();
         $settings = SiteSetting::current();
         $settings->update([
-            'brand_name' => 'Updated Brand',
+            'brand_name' => Translatable::normalize('Updated Brand'),
             'contact_email' => 'updated@example.com',
         ]);
 
@@ -122,11 +123,11 @@ class AdminSiteSettingsTest extends TestCase
 
         $this->actingAs($user)
             ->patch('/admin/settings', [
-                'brand_name' => SiteSettingsDefaults::BRAND_NAME,
+                'brand_name' => $this->translation(SiteSettingsDefaults::BRAND_NAME),
                 'contact_email' => SiteSettingsDefaults::CONTACT_EMAIL,
-                'whatsapp_display' => SiteSettingsDefaults::WHATSAPP_DISPLAY,
+                'whatsapp_display' => $this->translation(SiteSettingsDefaults::WHATSAPP_DISPLAY),
                 'whatsapp_href' => SiteSettingsDefaults::WHATSAPP_HREF,
-                'office_location' => SiteSettingsDefaults::OFFICE_LOCATION,
+                'office_location' => $this->translation(SiteSettingsDefaults::OFFICE_LOCATION),
                 'office_maps_href' => SiteSettingsDefaults::OFFICE_MAPS_HREF,
                 'office_maps_embed_src' => SiteSettingsDefaults::OFFICE_MAPS_EMBED_SRC,
                 'social_links' => SiteSettingsDefaults::socialLinks(),
@@ -145,11 +146,11 @@ class AdminSiteSettingsTest extends TestCase
     public function test_guest_cannot_update_settings(): void
     {
         $this->patch('/admin/settings', [
-            'brand_name' => 'Nope',
+            'brand_name' => $this->translation('Nope'),
             'contact_email' => 'nope@example.com',
-            'whatsapp_display' => '+1 000',
+            'whatsapp_display' => $this->translation('+1 000'),
             'whatsapp_href' => 'https://wa.me/1000',
-            'office_location' => 'Nowhere',
+            'office_location' => $this->translation('Nowhere'),
             'social_links' => SiteSettingsDefaults::socialLinks(),
         ])->assertRedirect(route('admin.login'));
     }

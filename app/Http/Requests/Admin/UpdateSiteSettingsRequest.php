@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Support\Media\BrandLogoImage;
+use App\Support\Translatable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -39,25 +40,27 @@ class UpdateSiteSettingsRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'brand_name' => ['required', 'string', 'max:255'],
-            'contact_email' => ['required', 'email', 'max:255'],
-            'whatsapp_display' => ['required', 'string', 'max:50'],
-            'whatsapp_href' => ['required', 'url', 'max:255'],
-            'office_location' => ['required', 'string', 'max:255'],
-            'office_maps_href' => ['nullable', 'string', 'url', 'max:1000'],
-            'office_maps_embed_src' => ['nullable', 'string', 'url', 'max:1000'],
-            'social_links' => ['required', 'array', 'size:4'],
-            'social_links.*.label' => ['required', 'string', 'max:50', Rule::in([
-                'Instagram',
-                'Facebook',
-                'YouTube',
-                'LinkedIn',
-            ])],
-            'social_links.*.href' => ['nullable', 'string', 'url', 'max:500'],
-            'logo_color' => BrandLogoImage::validationRules(required: false),
-            'logo_white' => BrandLogoImage::validationRules(required: false),
-        ];
+        return array_merge(
+            Translatable::validationRules('brand_name', maxLength: 255),
+            Translatable::validationRules('office_location', maxLength: 255),
+            Translatable::validationRules('whatsapp_display', maxLength: 50),
+            [
+                'contact_email' => ['required', 'email', 'max:255'],
+                'whatsapp_href' => ['required', 'url', 'max:255'],
+                'office_maps_href' => ['nullable', 'string', 'url', 'max:1000'],
+                'office_maps_embed_src' => ['nullable', 'string', 'url', 'max:1000'],
+                'social_links' => ['required', 'array', 'size:4'],
+                'social_links.*.label' => ['required', 'string', 'max:50', Rule::in([
+                    'Instagram',
+                    'Facebook',
+                    'YouTube',
+                    'LinkedIn',
+                ])],
+                'social_links.*.href' => ['nullable', 'string', 'url', 'max:500'],
+                'logo_color' => BrandLogoImage::validationRules(required: false),
+                'logo_white' => BrandLogoImage::validationRules(required: false),
+            ],
+        );
     }
 
     public function withValidator(Validator $validator): void

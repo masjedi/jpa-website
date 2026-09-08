@@ -1,22 +1,21 @@
 import {
     MAX_DURATION_DAYS,
     MIN_DURATION_DAYS,
-    OTHER_DESTINATION_VALUE,
-    destinationChoices,
-    seasonChoices,
 } from '@/components/sections/booking/bookingOptions';
 import { useBookingTranslationContext } from '@/components/sections/booking/BookingTranslationContext';
 import {
+    BookingAccordion,
     BookingTextField,
-    CheckboxCard,
-    OptionCards,
-    StepSection,
-    bookingChoiceErrorClass,
-    bookingErrorClass,
+    ConsentCheckbox,
 } from '@/components/sections/booking/bookingFields';
-import { maxStartIsoDate, resolvedSeason, todayIsoDate } from '@/components/sections/booking/bookingModel';
-import { cn } from '@/lib/utils';
-import type { BookingErrors, CustomBookingState, TravelInterest } from '@/types/customBooking';
+import { BookingChoiceDropdown } from '@/components/sections/booking/BookingChoiceDropdown';
+import { ProvinceZoneMultiSelect } from '@/components/sections/booking/ProvinceZoneMultiSelect';
+import {
+    durationDaysFromRange,
+    maxStartIsoDate,
+    todayIsoDate,
+} from '@/components/sections/booking/bookingModel';
+import type { BookingErrors, CustomBookingState, RoutePreference, TravelInterest } from '@/types/customBooking';
 
 interface TripPreferencesStepProps {
     state: CustomBookingState;
@@ -26,228 +25,197 @@ interface TripPreferencesStepProps {
     onChange: (next: CustomBookingState) => void;
 }
 
+function hasAnyError(errors: BookingErrors, fields: readonly string[]): boolean {
+    return fields.some((field) => Boolean(errors[field]));
+}
+
 export function TripPreferencesStep({
     state,
     errors,
-    destinations,
-    seasons,
+    destinations: _destinations,
+    seasons: _seasons,
     onChange,
 }: TripPreferencesStepProps) {
-    const {
-        dateFlexibilityOptions,
-        travelInterestOptions,
-        routePreferenceOptions,
-        seasonRecommendLabel,
-    } = useBookingTranslationContext();
+    const { travelInterestOptions, routePreferenceOptions } = useBookingTranslationContext();
     const { trip } = state;
-    const destinationOptions = destinationChoices(destinations);
-    const seasonOptions = seasonChoices(seasons, seasonRecommendLabel);
-    const showSeason = trip.flexibility === 'unsure';
-    const showStartDate = trip.flexibility !== '';
-    const derivedSeason =
-        trip.flexibility !== 'unsure' && trip.startDate !== ''
-            ? resolvedSeason(trip.flexibility, trip.startDate, trip.season, seasons)
-            : '';
+    const datesUnknown = trip.flexibility === 'unsure';
+    const hasDateRange = trip.startDate !== '' && trip.endDate !== '';
+    const calculatedDuration = durationDaysFromRange(trip.startDate, trip.endDate);
+    const durationFromDates = !datesUnknown && calculatedDuration !== null && calculatedDuration > 0;
     const destinationsOptional = trip.recommendDestinations || trip.routePreference === 'recommend';
+    const hasSelectedProvinces = trip.destinations.length > 0;
 
     const patchTrip = (patch: Partial<CustomBookingState['trip']>) => {
+        const nextTrip = {
+            ...state.trip,
+            ...patch,
+        };
+        const nextDuration = durationDaysFromRange(nextTrip.startDate, nextTrip.endDate);
+
         onChange({
             ...state,
             trip: {
-                ...state.trip,
-                ...patch,
+                ...nextTrip,
+                durationDays:
+                    nextDuration !== null && nextDuration > 0 ? nextDuration : nextTrip.durationDays,
             },
         });
     };
 
     return (
-        <div className="space-y-8">
-            <StepSection
-                title="Travel timing"
-                description="Tell us when you would like to travel. We will turn this into a proposed itinerary, not an instant confirmation."
+        <div className="space-y-3">
+            <BookingAccordion
+                title="Tour Date"
+                forceOpen={hasAnyError(errors, [
+                    'trip-flexibility',
+                    'trip-startDate',
+                    'trip-endDate',
+                    'trip-durationDays',
+                ])}
             >
-                <OptionCards
-                    legend="Date flexibility"
-                    name="trip-flexibility"
-                    options={dateFlexibilityOptions}
-                    value={trip.flexibility}
-                    error={errors['trip-flexibility']}
-                    onChange={(value) => {
-                        patchTrip({
-                            flexibility: value,
-                            season: value === 'unsure' ? trip.season : '',
-                        });
-                    }}
-                />
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <BookingTextField
+                        id="trip-startDate"
+                        label="Starting date"
+                        type="date"
+                        min={todayIsoDate()}
+                        max={trip.endDate || maxStartIsoDate()}
+                        value={trip.startDate}
+                        required={!datesUnknown}
+                        disabled={datesUnknown}
+                        error={errors['trip-startDate']}
+                        onChange={(value) => patchTrip({ startDate: value })}
+                    />
+                    <BookingTextField
+                        id="trip-endDate"
+                        label="Ending date"
+                        type="date"
+                        min={trip.startDate || todayIsoDate()}
+                        max={maxStartIsoDate()}
+                        value={trip.endDate}
+                        required={!datesUnknown}
+                        disabled={datesUnknown}
+                        error={errors['trip-endDate']}
+                        onChange={(value) => patchTrip({ endDate: value })}
+                    />
+                </div>
 
-                {showStartDate ? (
-                    <div className="mt-4">
-                        <BookingTextField
-                            id="trip-startDate"
-                            label={trip.flexibility === 'unsure' ? 'Preferred start date (optional)' : 'Preferred start date'}
-                            type="date"
-                            min={todayIsoDate()}
-                            max={maxStartIsoDate()}
-                            value={trip.startDate}
-                            required={trip.flexibility !== 'unsure'}
-                            error={errors['trip-startDate']}
-                            hint={
-                                trip.flexibility === 'exact'
-                                    ? 'If you choose an exact date, we will use it to determine the season.'
-                                    : undefined
+                <div className="mt-4 grid grid-cols-1 items-end gap-4 sm:grid-cols-2">
+                    <BookingTextField
+                        id="trip-durationDays"
+                        label="Duration"
+                        type="number"
+                        inputMode="numeric"
+                        step={1}
+                        min={MIN_DURATION_DAYS}
+                        max={MAX_DURATION_DAYS}
+                        value={trip.durationDays > 0 ? String(trip.durationDays) : ''}
+                        required={!datesUnknown}
+                        disabled={datesUnknown}
+                        readOnly={durationFromDates}
+                        error={errors['trip-durationDays']}
+                        onChange={(value) => {
+                            if (durationFromDates || datesUnknown) {
+                                return;
                             }
-                            onChange={(value) => patchTrip({ startDate: value })}
-                        />
-                        {derivedSeason ? (
-                            <p className="mt-2 text-xs text-muted-foreground">
-                                Season from this date: <span className="font-medium text-foreground">{derivedSeason}</span>
-                            </p>
-                        ) : null}
-                    </div>
-                ) : null}
 
-                {showSeason ? (
-                    <div className="mt-4">
-                        <OptionCards
-                            legend="Preferred season"
-                            name="trip-season"
-                            options={seasonOptions}
-                            value={trip.season}
-                            error={errors['trip-season']}
-                            onChange={(value) => patchTrip({ season: value })}
-                        />
-                    </div>
-                ) : null}
-            </StepSection>
-
-            <StepSection title="Duration">
-                <BookingTextField
-                    id="trip-durationDays"
-                    label="Number of days"
-                    type="number"
-                    inputMode="numeric"
-                    step={1}
-                    min={MIN_DURATION_DAYS}
-                    max={MAX_DURATION_DAYS}
-                    value={String(trip.durationDays)}
-                    required
-                    error={errors['trip-durationDays']}
-                    hint={`Between ${MIN_DURATION_DAYS} and ${MAX_DURATION_DAYS} days.`}
-                    onChange={(value) => {
-                        const parsed = Number(value);
-                        patchTrip({
-                            durationDays: Number.isFinite(parsed) ? parsed : 0,
-                        });
-                    }}
-                />
-            </StepSection>
-
-            <StepSection
-                title="Regions / Destinations"
-                description="Select the places you already have in mind, or ask us to recommend a route."
-            >
-                <div data-field="trip-destinations">
-                    <CheckboxCard
-                        checked={trip.recommendDestinations}
-                        invalid={Boolean(errors['trip-destinations'])}
-                        label="I am not sure — recommend destinations"
-                        description="We will suggest a route that matches your dates and interests."
-                        onChange={() => {
-                            const next = !trip.recommendDestinations;
+                            const parsed = Number(value);
                             patchTrip({
-                                recommendDestinations: next,
-                                routePreference: next && trip.routePreference === 'know' ? 'recommend' : trip.routePreference,
+                                durationDays: Number.isFinite(parsed) ? parsed : 0,
                             });
                         }}
                     />
+                    <div className="pb-2.5">
+                        <ConsentCheckbox
+                            id="trip-flexibility"
+                            checked={datesUnknown}
+                            disabled={hasDateRange}
+                            error={errors['trip-flexibility']}
+                            onChange={(checked) => {
+                                if (hasDateRange) {
+                                    return;
+                                }
 
-                    <fieldset className="mt-3" disabled={trip.recommendDestinations}>
-                        <legend className="block text-sm font-medium text-foreground">
-                            Destinations
-                            {destinationsOptional ? (
-                                <span className="ms-1 font-normal text-muted-foreground">(optional)</span>
-                            ) : null}
-                        </legend>
-                        <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                            {destinationOptions.map((name) => {
-                                const selected = trip.destinations.includes(name);
-
-                                return (
-                                    <button
-                                        key={name}
-                                        type="button"
-                                        aria-pressed={selected}
-                                        onClick={() => {
-                                            const next = selected
-                                                ? trip.destinations.filter((item) => item !== name)
-                                                : [...trip.destinations, name];
-                                            patchTrip({ destinations: next });
-                                        }}
-                                        className={cn(
-                                            'rounded-xl border px-4 py-3 text-start text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-50',
-                                            selected
-                                                ? 'border-secondary bg-secondary/10 text-foreground'
-                                                : errors['trip-destinations']
-                                                  ? `bg-background hover:border-red-400 ${bookingChoiceErrorClass}`
-                                                  : 'border-border bg-background hover:border-secondary/40',
-                                        )}
-                                    >
-                                        {name}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </fieldset>
-                    {errors['trip-destinations'] ? (
-                        <p className={bookingErrorClass} role="alert">
-                            {errors['trip-destinations']}
-                        </p>
-                    ) : null}
-                </div>
-
-                {trip.destinations.includes(OTHER_DESTINATION_VALUE) && !trip.recommendDestinations ? (
-                    <div className="mt-4">
-                        <BookingTextField
-                            id="trip-otherDestination"
-                            label="Other destination"
-                            value={trip.otherDestination}
-                            required
-                            maxLength={120}
-                            error={errors['trip-otherDestination']}
-                            onChange={(value) => patchTrip({ otherDestination: value })}
-                        />
+                                patchTrip({
+                                    flexibility: checked ? 'unsure' : 'known',
+                                    startDate: checked ? '' : trip.startDate,
+                                    endDate: checked ? '' : trip.endDate,
+                                    durationDays: checked ? 0 : trip.durationDays,
+                                    season: '',
+                                });
+                            }}
+                        >
+                            I am not sure yet
+                        </ConsentCheckbox>
                     </div>
-                ) : null}
-            </StepSection>
+                </div>
+            </BookingAccordion>
 
-            <StepSection title="Travel interests">
-                <OptionCards
-                    legend="What are you most interested in?"
-                    name="trip-interests"
+            <BookingAccordion
+                title="Regions / Destinations"
+                forceOpen={hasAnyError(errors, ['trip-destinations'])}
+            >
+                <ProvinceZoneMultiSelect
+                    value={trip.destinations}
+                    disabled={trip.recommendDestinations}
+                    optional={destinationsOptional}
+                    error={errors['trip-destinations']}
+                    onChange={(next) => patchTrip({ destinations: next, otherDestination: '' })}
+                />
+
+                <div className="mt-4">
+                    <ConsentCheckbox
+                        id="trip-recommendDestinations"
+                        checked={trip.recommendDestinations}
+                        disabled={hasSelectedProvinces}
+                        error={errors['trip-recommendDestinations']}
+                        onChange={(checked) => {
+                            if (hasSelectedProvinces) {
+                                return;
+                            }
+
+                            patchTrip({
+                                recommendDestinations: checked,
+                                destinations: checked ? [] : trip.destinations,
+                                otherDestination: '',
+                            });
+                        }}
+                    >
+                        I am not sure — recommend destinations
+                    </ConsentCheckbox>
+                </div>
+            </BookingAccordion>
+
+            <BookingAccordion title="Tour interests" forceOpen={hasAnyError(errors, ['trip-interests'])}>
+                <BookingChoiceDropdown
+                    id="trip-interests"
+                    label="Tour interests"
                     options={travelInterestOptions}
-                    value={trip.interests}
+                    values={trip.interests}
                     multiple
+                    required
+                    hideLabel
+                    placeholder="Select tour interests"
                     error={errors['trip-interests']}
-                    onChange={(value) => {
-                        const selected = trip.interests.includes(value)
-                            ? trip.interests.filter((item) => item !== value)
-                            : [...trip.interests, value as TravelInterest];
-                        patchTrip({ interests: selected });
-                    }}
+                    onChange={(next) => patchTrip({ interests: next as TravelInterest[] })}
                 />
-            </StepSection>
+            </BookingAccordion>
 
-            <StepSection title="Route preference">
-                <OptionCards
-                    legend="How would you like your itinerary planned?"
-                    name="trip-routePreference"
+            <BookingAccordion title="Route preference" forceOpen={hasAnyError(errors, ['trip-routePreference'])}>
+                <BookingChoiceDropdown
+                    id="trip-routePreference"
+                    label="Route preference"
                     options={routePreferenceOptions}
-                    value={trip.routePreference}
-                    columns={1}
+                    values={trip.routePreference === '' ? [] : [trip.routePreference]}
+                    required
+                    hideLabel
+                    placeholder="Select route preference"
                     error={errors['trip-routePreference']}
-                    onChange={(value) => patchTrip({ routePreference: value })}
+                    onChange={(next) =>
+                        patchTrip({ routePreference: (next[0] ?? '') as RoutePreference | '' })
+                    }
                 />
-            </StepSection>
+            </BookingAccordion>
         </div>
     );
 }

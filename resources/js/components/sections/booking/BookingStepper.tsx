@@ -17,12 +17,12 @@ export function BookingStepper({ currentStep, onStepSelect, maxReachableStep }: 
 
     return (
         <div className="border-b border-border px-4 py-4 sm:px-6">
-            <p className="text-sm font-medium text-foreground md:hidden">
+            <p className="text-sm font-medium text-foreground lg:hidden">
                 {t('booking.stepOf', { current: currentStep + 1, total: stepCount })}
                 {current ? ` — ${current.title}` : ''}
             </p>
 
-            <ol className="hidden md:grid md:grid-cols-6 md:gap-2" aria-label={t('booking.stepsLabel')}>
+            <ol className="hidden lg:grid lg:grid-cols-6 lg:gap-2" aria-label={t('booking.stepsLabel')}>
                 {steps.map((step, index) => {
                     const isCurrent = index === currentStep;
                     const isComplete = index < currentStep;

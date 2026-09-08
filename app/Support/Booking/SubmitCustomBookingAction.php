@@ -6,7 +6,6 @@ use App\Enums\CustomBookingStatus;
 use App\Mail\CustomBookingRequestReceived;
 use App\Mail\CustomBookingSubmittedForTeam;
 use App\Models\CustomBooking;
-use App\Models\Destination;
 use App\Support\Admin\AdminNotificationRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -46,7 +45,7 @@ class SubmitCustomBookingAction
             }
 
             $destinationNames = CustomBookingAttributes::destinationNames($validated);
-            $destinationIds = $this->publishedDestinationIdsByName($destinationNames);
+            $destinationIds = CustomBookingCatalog::publishedDestinationIdsByName($destinationNames);
 
             $destinations = [];
             foreach ($destinationNames as $name) {
@@ -93,29 +92,5 @@ class SubmitCustomBookingAction
         Mail::queue(new CustomBookingSubmittedForTeam($booking));
 
         return $confirmation;
-    }
-
-    /**
-     * @param  list<string>  $names
-     * @return array<string, int>
-     */
-    private function publishedDestinationIdsByName(array $names): array
-    {
-        if ($names === []) {
-            return [];
-        }
-
-        return Destination::query()
-            ->published()
-            ->where(function ($query) use ($names): void {
-                foreach ($names as $name) {
-                    $query->orWhereRaw('LOWER(name) = ?', [mb_strtolower($name)]);
-                }
-            })
-            ->get(['id', 'name'])
-            ->mapWithKeys(fn (Destination $destination): array => [
-                mb_strtolower((string) $destination->name) => $destination->id,
-            ])
-            ->all();
     }
 }

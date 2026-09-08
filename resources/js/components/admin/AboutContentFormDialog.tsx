@@ -3,11 +3,12 @@ import { useId } from 'react';
 import { AboutContentEditor } from '@/components/admin/AboutContentEditor';
 import type { AboutContentFormValues } from '@/components/admin/aboutPageForm';
 import { DataTableDialog } from '@/components/admin/DataTableDialog';
-import type { AboutPageContent } from '@/types/aboutPage';
+import type { AdminAboutPageContent } from '@/types/aboutPage';
+import { primaryTranslation } from '@/lib/translations';
 
 interface AboutContentFormDialogProps {
     open: boolean;
-    content: AboutPageContent;
+    content: AdminAboutPageContent;
     onClose: () => void;
     onSave: (values: AboutContentFormValues) => void | Promise<void>;
 }
@@ -19,7 +20,7 @@ export function AboutContentFormDialog({
     onSave,
 }: AboutContentFormDialogProps) {
     const formId = useId();
-    const resetKey = `${content.intro.title}-${content.missionVision.mission.title}-${content.cta.title}`;
+    const resetKey = `${primaryTranslation(content.intro.title)}-${primaryTranslation(content.missionVision.mission.title)}-${primaryTranslation(content.cta.title)}`;
 
     const handleSave = async (values: AboutContentFormValues) => {
         await onSave(values);

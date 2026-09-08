@@ -3,7 +3,9 @@
 namespace App\Support\Team;
 
 use App\Models\TeamMember;
+use App\Support\Media\PublicDecorativeImage;
 use App\Support\Media\TeamAvatarImage;
+use App\Support\Translatable;
 
 class TeamMemberPresenter
 {
@@ -26,7 +28,7 @@ class TeamMemberPresenter
     }
 
     /**
-     * @return array{members: list<array<string, mixed>>}
+     * @return array{members: list<array<string, mixed>>, bandImage: string}
      */
     public static function forPublicTeamPage(): array
     {
@@ -38,6 +40,7 @@ class TeamMemberPresenter
                 ->map(fn (TeamMember $member): array => self::publicPayload($member))
                 ->values()
                 ->all(),
+            'bandImage' => PublicDecorativeImage::resolve(),
         ];
     }
 
@@ -48,9 +51,9 @@ class TeamMemberPresenter
     {
         return [
             'id' => $member->id,
-            'name' => (string) $member->name,
-            'role' => (string) $member->role,
-            'bio' => (string) $member->bio,
+            'name' => Translatable::normalize($member->name),
+            'role' => Translatable::normalize($member->role),
+            'bio' => Translatable::normalize($member->bio),
             'email' => (string) $member->email,
             'whatsapp' => (string) $member->whatsapp,
             'whatsappHref' => (string) $member->whatsapp_href,
@@ -68,9 +71,9 @@ class TeamMemberPresenter
     {
         return [
             'id' => (string) $member->id,
-            'name' => (string) $member->name,
-            'role' => (string) $member->role,
-            'bio' => (string) $member->bio,
+            'name' => Translatable::resolve($member->name),
+            'role' => Translatable::resolve($member->role),
+            'bio' => Translatable::resolve($member->bio),
             'email' => (string) $member->email,
             'whatsapp' => (string) $member->whatsapp,
             'whatsappHref' => (string) $member->whatsapp_href,
@@ -84,8 +87,8 @@ class TeamMemberPresenter
     public static function authorPayload(TeamMember $member): array
     {
         $payload = [
-            'name' => (string) $member->name,
-            'role' => (string) $member->role,
+            'name' => Translatable::resolve($member->name),
+            'role' => Translatable::resolve($member->role),
         ];
 
         $avatar = self::avatarUrl($member);

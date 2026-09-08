@@ -14,11 +14,13 @@ import {
     Map,
     MessageSquareQuote,
     MessageSquareText,
+    MessagesSquare,
     Phone,
     Search,
     Settings,
     SlidersHorizontal,
     Users,
+    UserRound,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -63,6 +65,7 @@ export const adminNavEntries: AdminNavEntry[] = [
                 icon: MessageSquareText,
                 badge: '3',
             },
+            { label: 'Website chat', href: '/admin/chat', icon: MessagesSquare },
             { label: 'Custom bookings', href: '/admin/bookings', icon: ClipboardList },
         ],
     },
@@ -78,6 +81,7 @@ export const adminNavEntries: AdminNavEntry[] = [
         ],
     },
     { type: 'item', label: 'Settings', href: '/admin/settings', icon: Settings },
+    { type: 'item', label: 'Account', href: '/admin/account', icon: UserRound },
 ];
 
 export function isAdminNavActive(currentPath: string, href: string): boolean {

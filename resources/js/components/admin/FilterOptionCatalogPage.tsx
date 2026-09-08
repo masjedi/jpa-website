@@ -17,6 +17,8 @@ import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
+import { TranslationLocaleBadges } from '@/components/admin/TranslationLocaleBadges';
+import { primaryTranslation } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 import type { TourFilterOption, TourFilterOptionType } from '@/types/tourFilterOptions';
 import { tourFilterOptionTypeLabels } from '@/types/tourFilterOptions';
@@ -30,9 +32,12 @@ const columns: DataTableColumn<TourFilterOption>[] = [
     {
         id: 'name',
         header: 'Name',
-        accessor: (row) => row.name,
+        accessor: (row) => primaryTranslation(row.name),
         render: (row) => (
-            <p className="font-medium text-foreground">{row.name}</p>
+            <div className="max-w-md">
+                <p className="font-medium text-foreground">{primaryTranslation(row.name)}</p>
+                <TranslationLocaleBadges value={row.name} />
+            </div>
         ),
     },
     {
@@ -358,7 +363,7 @@ export function FilterOptionCatalogPage({
                         data={activeCatalog.items}
                         columns={columns}
                         rowKey={(row) => row.id}
-                        selectionLabel={(row) => row.name}
+                        selectionLabel={(row) => primaryTranslation(row.name)}
                         emptyTitle={`No ${typeLabel.toLowerCase()} options yet`}
                         emptyDescription="Add the first option to use it on the public website."
                         initialPageSize={8}
@@ -372,7 +377,7 @@ export function FilterOptionCatalogPage({
             <ContentRecordViewDialog
                 open={viewOpen}
                 title="View option"
-                description={viewingItem?.name}
+                description={viewingItem ? primaryTranslation(viewingItem.name) : undefined}
                 model={viewingItem ? buildFilterPlacementViewModel(viewingItem) : null}
                 onClose={closeView}
                 onEdit={openEditFromView}

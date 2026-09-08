@@ -1,6 +1,7 @@
 import { usePage } from '@inertiajs/react';
-import { type FormEvent, type ReactNode, useEffect, useId, useState } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useId, useMemo, useState } from 'react';
 
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
@@ -8,6 +9,9 @@ import {
     emptyTourFilterOptions,
     tourListingTypeOptions,
     mapServerTourFormErrors,
+    localeMapToTourTranslatableValues,
+    tourFormValuesToLocaleMap,
+    tourTranslatableEmptyFields,
     type TourFormErrors,
     type TourFormSubmitPayload,
     type TourFormValues,
@@ -17,6 +21,7 @@ import {
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { mediaProfiles } from '@/lib/mediaProfiles';
 import { LazyRichTextEditor } from '@/components/admin/LazyRichTextEditor';
+import { useLocaleFormFields } from '@/hooks/use-locale-form-fields';
 import { cn } from '@/lib/utils';
 import type { TourFilterFieldOptions } from '@/types/tourFilterOptions';
 
@@ -133,9 +138,33 @@ export function TourEntityForm({
     const imageFieldId = useId();
     const contentFieldId = useId();
 
-    const [values, setValues] = useState<TourFormValues>(
-        () => initialValues ?? createEmptyTourFormValues(filterOptions),
+    const startingValues = initialValues ?? createEmptyTourFormValues(filterOptions);
+    const initialByLocale = useMemo(
+        () => tourFormValuesToLocaleMap(startingValues),
+        [startingValues],
     );
+
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setField,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormFields({
+        initialByLocale,
+        emptyFields: tourTranslatableEmptyFields(),
+    });
+
+    const [listingType, setListingType] = useState(startingValues.listingType);
+    const [region, setRegion] = useState(startingValues.region);
+    const [durationDays, setDurationDays] = useState(startingValues.durationDays);
+    const [travelStyle, setTravelStyle] = useState(startingValues.travelStyle);
+    const [difficulty, setDifficulty] = useState(startingValues.difficulty);
+    const [isPopular, setIsPopular] = useState(startingValues.isPopular);
+    const [status, setStatus] = useState(startingValues.status);
+    const [existingImage, setExistingImage] = useState(startingValues.image);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(
         () => initialValues?.image || null,
@@ -152,16 +181,16 @@ export function TourEntityForm({
         }
     }, [serverErrors]);
 
-    const isPackage = values.listingType === 'package';
-    const hasImage = Boolean(imageFile) || Boolean((values.image ?? '').trim());
-    const regionOptions = withCurrentTourFilterOption(filterOptions.regions, values.region);
+    const isPackage = listingType === 'package';
+    const hasImage = Boolean(imageFile) || Boolean((existingImage ?? '').trim());
+    const regionOptions = withCurrentTourFilterOption(filterOptions.regions, region);
     const travelStyleOptions = withCurrentTourFilterOption(
         filterOptions.travelStyles,
-        values.travelStyle,
+        travelStyle,
     );
     const difficultyOptions = withCurrentTourFilterOption(
         filterOptions.difficulties,
-        values.difficulty,
+        difficulty,
     );
     const submitLabel =
         mode === 'edit'
@@ -177,7 +206,19 @@ export function TourEntityForm({
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const nextErrors = validateTourFormValues(values, hasImage);
+        const nextErrors = validateTourFormValues(
+            localeMapToTourTranslatableValues(commitAllLocales(), {
+                listingType,
+                region,
+                durationDays,
+                travelStyle,
+                difficulty,
+                image: existingImage,
+                isPopular,
+                status,
+            }),
+            hasImage,
+        );
         setErrors(nextErrors);
 
         if (Object.keys(nextErrors).length > 0) {
@@ -187,24 +228,17 @@ export function TourEntityForm({
         setSubmitting(true);
 
         try {
-            const text = (value: string | null | undefined): string => (value ?? '').trim();
-
             await onSubmit({
-                values: {
-                    ...values,
-                    title: text(values.title),
-                    tagline: text(values.tagline),
-                    summary: text(values.summary),
-                    destination: text(values.destination),
-                    badge: text(values.badge),
-                    highlightsText: text(values.highlightsText),
-                    keyDestinationsText: text(values.keyDestinationsText),
-                    includedServicesText: text(values.includedServicesText),
-                    priceEstimate: text(values.priceEstimate),
-                    idealFor: text(values.idealFor),
-                    content: text(values.content),
-                    image: text(values.image),
-                },
+                values: localeMapToTourTranslatableValues(commitAllLocales(), {
+                    listingType,
+                    region,
+                    durationDays,
+                    travelStyle,
+                    difficulty,
+                    image: existingImage,
+                    isPopular,
+                    status,
+                }),
                 coverImage: imageFile,
             });
         } finally {
@@ -230,10 +264,7 @@ export function TourEntityForm({
                         onChange={(file, preview) => {
                             setImageFile(file);
                             setImagePreview(preview);
-                            setValues((current) => ({
-                                ...current,
-                                image: preview ? current.image : '',
-                            }));
+                            setExistingImage(preview ? existingImage : '');
                             setErrors((current) => ({ ...current, image: undefined }));
                         }}
                         error={errors.image}
@@ -245,24 +276,19 @@ export function TourEntityForm({
                                 Listing
                             </p>
                             <ListingTypeToggle
-                                value={values.listingType}
+                                value={listingType}
                                 disabled={submitting || mode === 'edit'}
-                                onChange={(listingType) =>
-                                    setValues((current) => ({ ...current, listingType }))
-                                }
+                                onChange={setListingType}
                             />
                         </div>
 
                         <AdminFormField id={statusFieldId} label="Publish status" required>
                             <select
                                 id={statusFieldId}
-                                value={values.status}
+                                value={status}
                                 disabled={submitting}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        status: event.target.value as TourFormValues['status'],
-                                    }))
+                                    setStatus(event.target.value as TourFormValues['status'])
                                 }
                                 className={adminFieldClass}
                             >
@@ -274,11 +300,12 @@ export function TourEntityForm({
                         <AdminFormField id={badgeFieldId} label="Badge">
                             <input
                                 id={badgeFieldId}
-                                value={values.badge}
+                                value={draft.badge}
+                                dir={direction}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({ ...current, badge: event.target.value }))
-                                }
+                                onChange={(event) => {
+                                    setField('badge', event.target.value);
+                                }}
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
@@ -288,14 +315,9 @@ export function TourEntityForm({
                                 <input
                                     id={popularFieldId}
                                     type="checkbox"
-                                    checked={values.isPopular}
+                                    checked={isPopular}
                                     disabled={submitting}
-                                    onChange={(event) =>
-                                        setValues((current) => ({
-                                            ...current,
-                                            isPopular: event.target.checked,
-                                        }))
-                                    }
+                                    onChange={(event) => setIsPopular(event.target.checked)}
                                     className="size-4 rounded border-border text-secondary focus:ring-focus"
                                 />
                                 Featured package
@@ -305,6 +327,13 @@ export function TourEntityForm({
                 </aside>
 
                 <div className="min-w-0 space-y-5">
+                    <AdminLocaleSelector
+                        activeLocale={activeLocale}
+                        completion={completion}
+                        onChange={switchLocale}
+                        disabled={submitting}
+                    />
+
                     <FormGroup title="Identity">
                         <AdminFormField
                             id={titleFieldId}
@@ -315,10 +344,11 @@ export function TourEntityForm({
                         >
                             <input
                                 id={titleFieldId}
-                                value={values.title}
+                                value={draft.title}
+                                dir={direction}
                                 disabled={submitting}
                                 onChange={(event) => {
-                                    setValues((current) => ({ ...current, title: event.target.value }));
+                                    setField('title', event.target.value);
                                     setErrors((current) => ({ ...current, title: undefined }));
                                 }}
                                 aria-invalid={Boolean(errors.title)}
@@ -337,13 +367,11 @@ export function TourEntityForm({
                             >
                                 <input
                                     id={taglineFieldId}
-                                    value={values.tagline}
+                                    value={draft.tagline}
+                                    dir={direction}
                                     disabled={submitting}
                                     onChange={(event) => {
-                                        setValues((current) => ({
-                                            ...current,
-                                            tagline: event.target.value,
-                                        }));
+                                        setField('tagline', event.target.value);
                                         setErrors((current) => ({ ...current, tagline: undefined }));
                                     }}
                                     aria-invalid={Boolean(errors.tagline)}
@@ -368,14 +396,12 @@ export function TourEntityForm({
                         >
                             <textarea
                                 id={summaryFieldId}
-                                value={values.summary}
+                                value={draft.summary}
+                                dir={direction}
                                 disabled={submitting}
                                 rows={2}
                                 onChange={(event) => {
-                                    setValues((current) => ({
-                                        ...current,
-                                        summary: event.target.value,
-                                    }));
+                                    setField('summary', event.target.value);
                                     setErrors((current) => ({ ...current, summary: undefined }));
                                 }}
                                 aria-invalid={Boolean(errors.summary)}
@@ -400,13 +426,11 @@ export function TourEntityForm({
                         >
                             <input
                                 id={destinationFieldId}
-                                value={values.destination}
+                                value={draft.destination}
+                                dir={direction}
                                 disabled={submitting}
                                 onChange={(event) => {
-                                    setValues((current) => ({
-                                        ...current,
-                                        destination: event.target.value,
-                                    }));
+                                    setField('destination', event.target.value);
                                     setErrors((current) => ({ ...current, destination: undefined }));
                                 }}
                                 aria-invalid={Boolean(errors.destination)}
@@ -424,13 +448,10 @@ export function TourEntityForm({
                         <AdminFormField id={regionFieldId} label="Region" required>
                             <select
                                 id={regionFieldId}
-                                value={values.region}
+                                value={region}
                                 disabled={submitting}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        region: event.target.value as TourFormValues['region'],
-                                    }))
+                                    setRegion(event.target.value as TourFormValues['region'])
                                 }
                                 className={adminFieldClass}
                             >
@@ -455,13 +476,10 @@ export function TourEntityForm({
                                 id={durationFieldId}
                                 type="number"
                                 min={isPackage ? 0 : 1}
-                                value={values.durationDays}
+                                value={durationDays}
                                 disabled={submitting}
                                 onChange={(event) => {
-                                    setValues((current) => ({
-                                        ...current,
-                                        durationDays: Number(event.target.value) || 0,
-                                    }));
+                                    setDurationDays(Number(event.target.value) || 0);
                                     setErrors((current) => ({ ...current, durationDays: undefined }));
                                 }}
                                 aria-invalid={Boolean(errors.durationDays)}
@@ -481,14 +499,12 @@ export function TourEntityForm({
                                 <AdminFormField id={travelStyleFieldId} label="Travel style" required>
                                     <select
                                         id={travelStyleFieldId}
-                                        value={values.travelStyle}
+                                        value={travelStyle}
                                         disabled={submitting}
                                         onChange={(event) =>
-                                            setValues((current) => ({
-                                                ...current,
-                                                travelStyle: event.target
-                                                    .value as TourFormValues['travelStyle'],
-                                            }))
+                                            setTravelStyle(
+                                                event.target.value as TourFormValues['travelStyle'],
+                                            )
                                         }
                                         className={adminFieldClass}
                                             >
@@ -508,14 +524,12 @@ export function TourEntityForm({
                                 <AdminFormField id={difficultyFieldId} label="Difficulty" required>
                                     <select
                                         id={difficultyFieldId}
-                                        value={values.difficulty}
+                                        value={difficulty}
                                         disabled={submitting}
                                         onChange={(event) =>
-                                            setValues((current) => ({
-                                                ...current,
-                                                difficulty: event.target
-                                                    .value as TourFormValues['difficulty'],
-                                            }))
+                                            setDifficulty(
+                                                event.target.value as TourFormValues['difficulty'],
+                                            )
                                         }
                                         className={adminFieldClass}
                                             >
@@ -548,13 +562,11 @@ export function TourEntityForm({
                                 >
                                     <input
                                         id={packagePriceFieldId}
-                                        value={values.priceEstimate}
+                                        value={draft.priceEstimate}
+                                        dir={direction}
                                         disabled={submitting}
                                         onChange={(event) => {
-                                            setValues((current) => ({
-                                                ...current,
-                                                priceEstimate: event.target.value,
-                                            }));
+                                            setField('priceEstimate', event.target.value);
                                             setErrors((current) => ({
                                                 ...current,
                                                 priceEstimate: undefined,
@@ -580,13 +592,11 @@ export function TourEntityForm({
                                 >
                                     <input
                                         id={idealForFieldId}
-                                        value={values.idealFor}
+                                        value={draft.idealFor}
+                                        dir={direction}
                                         disabled={submitting}
                                         onChange={(event) => {
-                                            setValues((current) => ({
-                                                ...current,
-                                                idealFor: event.target.value,
-                                            }));
+                                            setField('idealFor', event.target.value);
                                             setErrors((current) => ({
                                                 ...current,
                                                 idealFor: undefined,
@@ -621,14 +631,12 @@ export function TourEntityForm({
                         >
                             <textarea
                                 id={highlightsFieldId}
-                                value={values.highlightsText}
+                                value={draft.highlightsText}
+                                dir={direction}
                                 disabled={submitting}
                                 rows={3}
                                 onChange={(event) => {
-                                    setValues((current) => ({
-                                        ...current,
-                                        highlightsText: event.target.value,
-                                    }));
+                                    setField('highlightsText', event.target.value);
                                     setErrors((current) => ({ ...current, highlightsText: undefined }));
                                 }}
                                 aria-invalid={Boolean(errors.highlightsText)}
@@ -653,14 +661,12 @@ export function TourEntityForm({
                             >
                                 <textarea
                                     id={destinationsFieldId}
-                                    value={values.keyDestinationsText}
+                                    value={draft.keyDestinationsText}
+                                    dir={direction}
                                     disabled={submitting}
                                     rows={3}
                                     onChange={(event) => {
-                                        setValues((current) => ({
-                                            ...current,
-                                            keyDestinationsText: event.target.value,
-                                        }));
+                                        setField('keyDestinationsText', event.target.value);
                                         setErrors((current) => ({
                                             ...current,
                                             keyDestinationsText: undefined,
@@ -688,14 +694,12 @@ export function TourEntityForm({
                         >
                             <textarea
                                 id={includedFieldId}
-                                value={values.includedServicesText}
+                                value={draft.includedServicesText}
+                                dir={direction}
                                 disabled={submitting}
                                 rows={3}
                                 onChange={(event) => {
-                                    setValues((current) => ({
-                                        ...current,
-                                        includedServicesText: event.target.value,
-                                    }));
+                                    setField('includedServicesText', event.target.value);
                                     setErrors((current) => ({
                                         ...current,
                                         includedServicesText: undefined,
@@ -723,14 +727,15 @@ export function TourEntityForm({
                                     Detail page
                                 </h3>
                                 <LazyRichTextEditor
-                                    key={`${contentFieldId}-${initialValues?.content?.length ?? 0}`}
+                                    key={activeLocale}
                                     id={contentFieldId}
                                     label="Content"
                                     required
                                     disabled={submitting}
-                                    value={values.content}
+                                    value={draft.content}
+                                    dir={direction}
                                     onChange={(content) => {
-                                        setValues((current) => ({ ...current, content }));
+                                        setField('content', content);
                                         setErrors((current) => ({ ...current, content: undefined }));
                                     }}
                                     placeholder=""

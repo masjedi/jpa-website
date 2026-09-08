@@ -1,9 +1,16 @@
 import type { TeamMember, TeamMemberStatus } from '@/types/team';
+import type { TranslatedString } from '@/types/locale';
+import {
+    appendTranslatedStringToFormData,
+    createEmptyTranslatedString,
+    normalizeTranslatedString,
+} from '@/lib/translations';
+import { buildTranslatableFieldMap, mapTranslatableServerErrors, validateEnglishRequired } from '@/lib/translatableForm';
 
 export interface TeamFormValues {
-    name: string;
-    role: string;
-    bio: string;
+    name: TranslatedString;
+    role: TranslatedString;
+    bio: TranslatedString;
     email: string;
     whatsapp: string;
     whatsappHref: string;
@@ -13,9 +20,9 @@ export interface TeamFormValues {
 
 export function createEmptyTeamFormValues(): TeamFormValues {
     return {
-        name: '',
-        role: '',
-        bio: '',
+        name: createEmptyTranslatedString(),
+        role: createEmptyTranslatedString(),
+        bio: createEmptyTranslatedString(),
         email: '',
         whatsapp: '',
         whatsappHref: '',
@@ -29,9 +36,9 @@ export function teamMemberToFormValues(
     status: TeamMemberStatus = member.status,
 ): TeamFormValues {
     return {
-        name: member.name,
-        role: member.role,
-        bio: member.bio,
+        name: normalizeTranslatedString(member.name),
+        role: normalizeTranslatedString(member.role),
+        bio: normalizeTranslatedString(member.bio),
         email: member.email,
         whatsapp: member.whatsapp,
         whatsappHref: member.whatsappHref,
@@ -56,10 +63,8 @@ export interface TeamFormSubmitPayload {
     avatarImage: File | null;
 }
 
-const serverFieldMap: Record<string, TeamFormField> = {
-    name: 'name',
-    role: 'role',
-    bio: 'bio',
+const serverFieldMap = {
+    ...buildTranslatableFieldMap('', ['name', 'role', 'bio']),
     email: 'email',
     whatsapp: 'whatsapp',
     whatsapp_href: 'whatsappHref',
@@ -69,19 +74,7 @@ const serverFieldMap: Record<string, TeamFormField> = {
 export function mapServerTeamFormErrors(
     errors: Record<string, string | string[] | undefined>,
 ): TeamFormErrors {
-    const mapped: TeamFormErrors = {};
-
-    for (const [key, message] of Object.entries(errors)) {
-        const field = serverFieldMap[key];
-
-        if (!field || message === undefined) {
-            continue;
-        }
-
-        mapped[field] = Array.isArray(message) ? message[0] : message;
-    }
-
-    return mapped;
+    return mapTranslatableServerErrors(errors, serverFieldMap);
 }
 
 export function validateTeamFormValues(
@@ -91,16 +84,19 @@ export function validateTeamFormValues(
     const errors: TeamFormErrors = {};
     const text = (value: string | null | undefined): string => (value ?? '').trim();
 
-    if (!text(values.name)) {
-        errors.name = 'Required';
+    const nameError = validateEnglishRequired(values.name, 'Name');
+    if (nameError) {
+        errors.name = nameError;
     }
 
-    if (!text(values.role)) {
-        errors.role = 'Required';
+    const roleError = validateEnglishRequired(values.role, 'Role');
+    if (roleError) {
+        errors.role = roleError;
     }
 
-    if (!text(values.bio)) {
-        errors.bio = 'Required';
+    const bioError = validateEnglishRequired(values.bio, 'Bio');
+    if (bioError) {
+        errors.bio = bioError;
     }
 
     if (!text(values.email)) {
@@ -125,9 +121,9 @@ export function validateTeamFormValues(
 export function buildTeamFormData({ values, avatarImage }: TeamFormSubmitPayload): FormData {
     const formData = new FormData();
 
-    formData.append('name', values.name.trim());
-    formData.append('role', values.role.trim());
-    formData.append('bio', values.bio.trim());
+    appendTranslatedStringToFormData(formData, 'name', values.name);
+    appendTranslatedStringToFormData(formData, 'role', values.role);
+    appendTranslatedStringToFormData(formData, 'bio', values.bio);
     formData.append('email', values.email.trim());
     formData.append('whatsapp', values.whatsapp.trim());
     formData.append('whatsapp_href', values.whatsappHref.trim());

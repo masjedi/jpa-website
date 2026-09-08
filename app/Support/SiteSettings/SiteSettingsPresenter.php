@@ -5,6 +5,7 @@ namespace App\Support\SiteSettings;
 use App\Models\SiteSetting;
 use App\Support\Media\BrandLogoImage;
 use App\Support\Media\MediaAsset;
+use App\Support\Translatable;
 use Throwable;
 
 class SiteSettingsPresenter
@@ -40,12 +41,12 @@ class SiteSettingsPresenter
     public static function adminPayload(SiteSetting $settings): array
     {
         return [
-            'brandName' => (string) $settings->brand_name,
+            'brandName' => Translatable::normalize($settings->brand_name),
             'contactEmail' => (string) $settings->contact_email,
             'contactEmailHref' => 'mailto:'.(string) $settings->contact_email,
-            'whatsappDisplay' => (string) $settings->whatsapp_display,
+            'whatsappDisplay' => Translatable::normalize($settings->whatsapp_display),
             'whatsappHref' => (string) $settings->whatsapp_href,
-            'officeLocation' => (string) $settings->office_location,
+            'officeLocation' => Translatable::normalize($settings->office_location),
             'officeMapsHref' => (string) ($settings->office_maps_href ?? ''),
             'officeMapsEmbedSrc' => (string) ($settings->office_maps_embed_src ?? ''),
             'socialLinks' => self::adminSocialLinks($settings),
@@ -79,12 +80,12 @@ class SiteSettingsPresenter
     public static function publicPayload(SiteSetting $settings): array
     {
         return [
-            'brandName' => (string) $settings->brand_name,
+            'brandName' => Translatable::resolve($settings->brand_name),
             'contactEmail' => (string) $settings->contact_email,
             'contactEmailHref' => 'mailto:'.(string) $settings->contact_email,
-            'whatsappDisplay' => (string) $settings->whatsapp_display,
+            'whatsappDisplay' => Translatable::resolve($settings->whatsapp_display),
             'whatsappHref' => (string) $settings->whatsapp_href,
-            'officeLocation' => (string) $settings->office_location,
+            'officeLocation' => Translatable::resolve($settings->office_location),
             'officeMapsHref' => (string) ($settings->office_maps_href ?: SiteSettingsDefaults::OFFICE_MAPS_HREF),
             'officeMapsEmbedSrc' => (string) ($settings->office_maps_embed_src ?: SiteSettingsDefaults::OFFICE_MAPS_EMBED_SRC),
             'socialLinks' => collect(is_array($settings->social_links) ? $settings->social_links : [])
@@ -116,11 +117,11 @@ class SiteSettingsPresenter
             ->all();
 
         return [
-            'brand_name' => trim((string) $validated['brand_name']),
+            'brand_name' => Translatable::sanitize($validated['brand_name']),
             'contact_email' => trim((string) $validated['contact_email']),
-            'whatsapp_display' => trim((string) $validated['whatsapp_display']),
+            'whatsapp_display' => Translatable::sanitize($validated['whatsapp_display']),
             'whatsapp_href' => trim((string) $validated['whatsapp_href']),
-            'office_location' => trim((string) $validated['office_location']),
+            'office_location' => Translatable::sanitize($validated['office_location']),
             'office_maps_href' => filled($validated['office_maps_href'] ?? null)
                 ? trim((string) $validated['office_maps_href'])
                 : null,

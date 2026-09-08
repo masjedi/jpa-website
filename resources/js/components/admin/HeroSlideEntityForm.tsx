@@ -1,13 +1,25 @@
-import { type FormEvent, useId, useState } from 'react';
+import { usePage } from '@inertiajs/react';
+import { type FormEvent, useEffect, useId, useMemo, useState } from 'react';
 
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
     createEmptyHeroSlideFormValues,
+    mapServerHeroSlideFormErrors,
     type HeroSlideFormErrors,
     type HeroSlideFormValues,
+    type HeroSlideSubmitPayload,
     validateHeroSlideFormValues,
 } from '@/components/admin/heroSlideForm';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
+import {
+    localeMapToTranslatedFields,
+    translatedFieldToLocaleMap,
+    useLocaleFormFields,
+} from '@/hooks/use-locale-form-fields';
+import { mediaProfiles } from '@/lib/mediaProfiles';
+import { prepareHeroSlideImage } from '@/lib/prepareImageUpload';
 import { cn } from '@/lib/utils';
 
 interface HeroSlideEntityFormProps {
@@ -15,8 +27,14 @@ interface HeroSlideEntityFormProps {
     mode: 'create' | 'edit';
     initialValues?: HeroSlideFormValues;
     onCancel: () => void;
-    onSubmit: (values: HeroSlideFormValues) => void | Promise<void>;
+    onSubmit: (payload: HeroSlideSubmitPayload) => void | Promise<void>;
+    onSubmittingChange?: (submitting: boolean) => void;
 }
+
+const emptySlideFields = {
+    title: '',
+    subtitle: '',
+};
 
 export function HeroSlideEntityForm({
     formId,
@@ -24,29 +42,77 @@ export function HeroSlideEntityForm({
     initialValues,
     onCancel,
     onSubmit,
+    onSubmittingChange,
 }: HeroSlideEntityFormProps) {
+    const { errors: serverErrors } = usePage().props;
     const titleFieldId = useId();
     const subtitleFieldId = useId();
+    const imageFieldId = useId();
+    const heroImageSpec = mediaProfiles.hero_slide;
 
-    const [values, setValues] = useState<HeroSlideFormValues>(
-        () => initialValues ?? createEmptyHeroSlideFormValues(),
+    const startingValues = initialValues ?? createEmptyHeroSlideFormValues();
+    const initialByLocale = useMemo(
+        () => translatedFieldToLocaleMap(startingValues.title, startingValues.subtitle),
+        [startingValues.subtitle, startingValues.title],
     );
-    const [errors, setErrors] = useState<HeroSlideFormErrors>({});
+
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setField,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormFields({
+        initialByLocale,
+        emptyFields: emptySlideFields,
+    });
+
+    const [status, setStatus] = useState<HeroSlideFormValues['status']>(startingValues.status);
+    const [heroImage, setHeroImage] = useState<File | null>(null);
+    const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
+        startingValues.existingImageUrl,
+    );
+    const [errors, setErrors] = useState<HeroSlideFormErrors>(() =>
+        mapServerHeroSlideFormErrors(serverErrors as Record<string, string | string[] | undefined>),
+    );
     const [submitting, setSubmitting] = useState(false);
+    const [preparingImage, setPreparingImage] = useState(false);
+
+    useEffect(() => {
+        setErrors(mapServerHeroSlideFormErrors(serverErrors as Record<string, string | string[] | undefined>));
+    }, [serverErrors]);
+
+    useEffect(() => {
+        onSubmittingChange?.(submitting || preparingImage);
+    }, [onSubmittingChange, preparingImage, submitting]);
 
     const submitLabel =
-        mode === 'edit'
-            ? submitting
+        preparingImage
+            ? 'Preparing image…'
+            : mode === 'edit'
+              ? submitting
+                  ? 'Saving…'
+                  : 'Save changes'
+              : submitting
                 ? 'Saving…'
-                : 'Save changes'
-            : submitting
-              ? 'Saving…'
-              : 'Create slide';
+                : 'Create slide';
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const nextErrors = validateHeroSlideFormValues(values);
+        const localeValues = commitAllLocales();
+        const translated = localeMapToTranslatedFields(localeValues);
+        const payloadValues: HeroSlideFormValues = {
+            title: translated.title,
+            subtitle: translated.subtitle,
+            status,
+            existingImageUrl: startingValues.existingImageUrl,
+        };
+
+        const hasImage = heroImage !== null || Boolean(startingValues.existingImageUrl);
+        const nextErrors = validateHeroSlideFormValues(payloadValues, hasImage);
         setErrors(nextErrors);
 
         if (Object.keys(nextErrors).length > 0) {
@@ -57,12 +123,47 @@ export function HeroSlideEntityForm({
 
         try {
             await onSubmit({
-                title: values.title.trim(),
-                subtitle: values.subtitle.trim(),
-                status: values.status,
+                values: payloadValues,
+                heroImage,
             });
+        } catch {
+            // Server validation errors are synced when Inertia updates page props.
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleImageChange = async (file: File | null, previewUrl: string | null) => {
+        if (!file) {
+            setHeroImage(null);
+            setImagePreviewUrl(previewUrl);
+            setErrors((current) => ({ ...current, image: undefined }));
+
+            return;
+        }
+
+        setPreparingImage(true);
+        setErrors((current) => ({ ...current, image: undefined }));
+
+        try {
+            const prepared = await prepareHeroSlideImage(file);
+            const preparedPreview = URL.createObjectURL(prepared);
+
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+
+            setHeroImage(prepared);
+            setImagePreviewUrl(preparedPreview);
+        } catch {
+            setErrors((current) => ({
+                ...current,
+                image: 'The selected image could not be prepared for upload.',
+            }));
+            setHeroImage(null);
+            setImagePreviewUrl(startingValues.existingImageUrl);
+        } finally {
+            setPreparingImage(false);
         }
     };
 
@@ -70,10 +171,31 @@ export function HeroSlideEntityForm({
         <form
             id={formId}
             onSubmit={handleSubmit}
-            aria-busy={submitting}
+            aria-busy={submitting || preparingImage}
             className="flex min-h-0 flex-1 flex-col"
         >
             <div className="grid gap-3 p-4">
+                <ImageUploadField
+                    id={imageFieldId}
+                    label="Hero background image"
+                    required
+                    disabled={submitting || preparingImage}
+                    previewUrl={imagePreviewUrl}
+                    onChange={handleImageChange}
+                    error={errors.image}
+                    hint={heroImageSpec.hint}
+                    previewAspectClass="aspect-video"
+                    previewMaxHeightClass="max-h-56"
+                    previewObjectFit="cover"
+                />
+
+                <AdminLocaleSelector
+                    activeLocale={activeLocale}
+                    completion={completion}
+                    onChange={switchLocale}
+                    disabled={submitting || preparingImage}
+                />
+
                 <AdminFormField
                     id={titleFieldId}
                     label="Title"
@@ -82,10 +204,11 @@ export function HeroSlideEntityForm({
                 >
                     <input
                         id={titleFieldId}
-                        value={values.title}
-                        disabled={submitting}
+                        value={draft.title}
+                        dir={direction}
+                        disabled={submitting || preparingImage}
                         onChange={(event) => {
-                            setValues((current) => ({ ...current, title: event.target.value }));
+                            setField('title', event.target.value);
                             setErrors((current) => ({ ...current, title: undefined }));
                         }}
                         placeholder="Headline shown in the homepage hero"
@@ -103,11 +226,12 @@ export function HeroSlideEntityForm({
                 >
                     <textarea
                         id={subtitleFieldId}
-                        value={values.subtitle}
-                        disabled={submitting}
+                        value={draft.subtitle}
+                        dir={direction}
+                        disabled={submitting || preparingImage}
                         rows={3}
                         onChange={(event) => {
-                            setValues((current) => ({ ...current, subtitle: event.target.value }));
+                            setField('subtitle', event.target.value);
                             setErrors((current) => ({ ...current, subtitle: undefined }));
                         }}
                         placeholder="Supporting sentence under the headline"
@@ -124,13 +248,10 @@ export function HeroSlideEntityForm({
                 <AdminFormField id={`${formId}-status`} label="Status" required>
                     <select
                         id={`${formId}-status`}
-                        value={values.status}
-                        disabled={submitting}
+                        value={status}
+                        disabled={submitting || preparingImage}
                         onChange={(event) => {
-                            setValues((current) => ({
-                                ...current,
-                                status: event.target.value as HeroSlideFormValues['status'],
-                            }));
+                            setStatus(event.target.value as HeroSlideFormValues['status']);
                         }}
                         className={adminFieldClass}
                     >
@@ -138,20 +259,33 @@ export function HeroSlideEntityForm({
                         <option value="Published">Published</option>
                     </select>
                 </AdminFormField>
+
+                {preparingImage ? (
+                    <p className="text-xs text-muted-foreground" role="status">
+                        Optimizing the selected image for upload…
+                    </p>
+                ) : null}
+
+                {submitting && heroImage ? (
+                    <p className="text-xs text-muted-foreground" role="status">
+                        Processing and uploading the hero image. Large files can take up to a minute on
+                        shared hosting.
+                    </p>
+                ) : null}
             </div>
 
             <footer className="flex flex-col-reverse gap-2 border-t border-border bg-surface px-4 py-3 sm:flex-row sm:justify-end">
                 <button
                     type="button"
                     onClick={onCancel}
-                    disabled={submitting}
+                    disabled={submitting || preparingImage}
                     className="inline-flex items-center justify-center rounded-lg border border-border px-3.5 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
-                    disabled={submitting}
+                    disabled={submitting || preparingImage}
                     className="inline-flex items-center justify-center rounded-lg bg-accent px-3.5 py-1.5 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     {submitLabel}

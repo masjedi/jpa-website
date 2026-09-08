@@ -11,6 +11,7 @@ use App\Mail\CustomBookingSubmittedForTeam;
 use App\Models\CustomBooking;
 use App\Models\Destination;
 use App\Models\TourFilterOption;
+use App\Support\Booking\AfghanistanProvinces;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -29,27 +30,8 @@ class PublicBookingTest extends TestCase
                 ->has('seasons'));
     }
 
-    public function test_booking_page_uses_published_destinations_and_seasons(): void
+    public function test_booking_page_uses_afghanistan_provinces_and_published_seasons(): void
     {
-        Destination::query()->create($this->destinationAttributes([
-            'slug' => 'herat',
-            'name' => 'Herat',
-            'status' => DestinationStatus::Published,
-        ]));
-
-        Destination::query()->create($this->destinationAttributes([
-            'slug' => 'draft-city',
-            'name' => 'Draft City',
-            'status' => DestinationStatus::Draft,
-        ]));
-
-        TourFilterOption::query()->create([
-            'type' => TourFilterOptionType::Destination,
-            'name' => 'Panjshir Valley',
-            'status' => TourFilterOptionStatus::Published,
-            'sort_order' => 1,
-        ]);
-
         TourFilterOption::query()->create([
             'type' => TourFilterOptionType::Season,
             'name' => 'Spring',
@@ -61,7 +43,7 @@ class PublicBookingTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('public/Booking')
-                ->where('destinations', ['Herat', 'Panjshir Valley'])
+                ->where('destinations', AfghanistanProvinces::names())
                 ->where('seasons', ['Spring']));
     }
 
@@ -89,12 +71,21 @@ class PublicBookingTest extends TestCase
         $this->assertSame(2, $booking->travelers->count());
         $this->assertSame('sara@example.com', $booking->primaryTraveler?->email);
         $this->assertTrue($booking->travelers->first()?->is_primary);
-        $this->assertNull($booking->travelers->last()?->email);
+        $this->assertTrue($booking->travelers->first()?->is_first_visit);
+        $this->assertSame('omar@example.com', $booking->travelers->last()?->email);
+        $this->assertFalse($booking->travelers->last()?->is_first_visit);
         $this->assertSame(['Herat'], $booking->destinations->pluck('name')->all());
         $this->assertSame(['culture', 'nature'], $booking->interests->pluck('interest')->all());
         $this->assertSame(2, $booking->documents->count());
-        $this->assertTrue($booking->wants_complete);
-        $this->assertNull($booking->vehicle);
+        $this->assertTrue($booking->wants_guide);
+        $this->assertSame(1, $booking->guide_count);
+        $this->assertSame(['english', 'dari'], $booking->guide_languages);
+        $this->assertSame('male', $booking->guide_gender);
+        $this->assertSame('corolla', $booking->vehicle);
+        $this->assertFalse($booking->wants_complete);
+        $this->assertFalse($booking->wants_airport);
+        $this->assertSame('none', $booking->dietary);
+        $this->assertSame(['none'], $booking->dietary_options);
         $this->assertDatabaseCount('inquiries', 0);
 
         Mail::assertQueued(CustomBookingRequestReceived::class, function (CustomBookingRequestReceived $mail) use ($booking): bool {
@@ -105,27 +96,22 @@ class PublicBookingTest extends TestCase
         });
     }
 
-    public function test_custom_booking_does_not_persist_stale_service_details(): void
+    public function test_custom_booking_stores_service_details(): void
     {
         Mail::fake();
         $this->seedPublishedLookups();
 
-        $payload = $this->validPayload();
-        $payload['services']['guide'] = false;
-        $payload['services']['guideLanguage'] = 'english';
-        $payload['services']['guideGender'] = 'male';
-        $payload['services']['transportation'] = false;
-        $payload['services']['vehicle'] = 'suv';
-
-        $this->from('/booking')->post('/booking', $payload)->assertRedirect('/booking');
+        $this->from('/booking')->post('/booking', $this->validPayload())->assertRedirect('/booking');
 
         $booking = CustomBooking::query()->first();
         $this->assertNotNull($booking);
-        $this->assertFalse($booking->wants_guide);
-        $this->assertNull($booking->guide_language);
-        $this->assertNull($booking->guide_gender);
-        $this->assertFalse($booking->wants_transportation);
-        $this->assertNull($booking->vehicle);
+        $this->assertTrue($booking->wants_guide);
+        $this->assertTrue($booking->wants_transportation);
+        $this->assertTrue($booking->wants_accommodation);
+        $this->assertTrue($booking->wants_domestic);
+        $this->assertSame('entire', $booking->transport_coverage);
+        $this->assertSame('standard', $booking->accommodation_level);
+        $this->assertSame('road', $booking->domestic_preference);
     }
 
     public function test_custom_booking_requires_the_three_review_agreements(): void
@@ -203,13 +189,11 @@ class PublicBookingTest extends TestCase
         $this->seedPublishedLookups();
 
         $payload = $this->validPayload();
-        $payload['services']['guide'] = true;
-        $payload['services']['guideGender'] = 'female';
-        unset($payload['services']['guideLanguage']);
+        unset($payload['services']['guideLanguages']);
 
         $this->from('/booking')
             ->post('/booking', $payload)
-            ->assertSessionHasErrors('services.guideLanguage');
+            ->assertSessionHasErrors('services.guideLanguages');
 
         $this->assertDatabaseCount('custom_bookings', 0);
     }
@@ -220,8 +204,6 @@ class PublicBookingTest extends TestCase
         $this->seedPublishedLookups();
 
         $payload = $this->validPayload();
-        $payload['services']['guide'] = true;
-        $payload['services']['guideLanguage'] = 'english';
         unset($payload['services']['guideGender']);
 
         $this->from('/booking')
@@ -237,9 +219,8 @@ class PublicBookingTest extends TestCase
         $this->seedPublishedLookups();
 
         $payload = $this->validPayload();
-        $payload['services']['guide'] = true;
         $payload['services']['guideGender'] = 'female';
-        $payload['services']['guideLanguage'] = 'english';
+        $payload['services']['guideLanguages'] = ['english'];
 
         $this->from('/booking')->post('/booking', $payload)->assertRedirect('/booking');
 
@@ -256,7 +237,7 @@ class PublicBookingTest extends TestCase
         $this->seedPublishedLookups();
 
         $payload = $this->validPayload();
-        $payload['services']['transportation'] = true;
+        unset($payload['services']['vehicle'], $payload['services']['transportCoverage']);
 
         $this->from('/booking')
             ->post('/booking', $payload)
@@ -271,7 +252,11 @@ class PublicBookingTest extends TestCase
         $this->seedPublishedLookups();
 
         $payload = $this->validPayload();
-        $payload['services']['accommodation'] = true;
+        unset(
+            $payload['services']['accommodationLevel'],
+            $payload['services']['roomPreference'],
+            $payload['services']['roomCount'],
+        );
 
         $this->from('/booking')
             ->post('/booking', $payload)
@@ -286,10 +271,7 @@ class PublicBookingTest extends TestCase
         $this->seedPublishedLookups();
 
         $payload = $this->validPayload();
-        $payload['services']['airport'] = true;
-        $payload['services']['arrivalAssistance'] = 'yes';
-        $payload['services']['arrivalDetailsLater'] = true;
-        $payload['services']['departureAssistance'] = 'no';
+        $payload['services']['airportPickup'] = 'yes';
 
         $this->from('/booking')
             ->post('/booking', $payload)
@@ -299,7 +281,7 @@ class PublicBookingTest extends TestCase
         $booking = CustomBooking::query()->first();
         $this->assertNotNull($booking);
         $this->assertTrue($booking->wants_airport);
-        $this->assertTrue($booking->arrival_details_later);
+        $this->assertFalse($booking->arrival_details_later);
         $this->assertNull($booking->arrival_airport);
         $this->assertNull($booking->arrival_flight);
     }
@@ -310,7 +292,7 @@ class PublicBookingTest extends TestCase
         $this->seedPublishedLookups();
 
         $payload = $this->validPayload();
-        $payload['requirements']['dietary'] = 'allergy';
+        $payload['requirements']['dietary'] = ['allergy'];
         $payload['requirements']['dietaryDetails'] = '';
 
         $this->from('/booking')
@@ -367,7 +349,8 @@ class PublicBookingTest extends TestCase
         return [
             'trip' => [
                 'startDate' => now()->addMonth()->toDateString(),
-                'flexibility' => 'exact',
+                'endDate' => now()->addMonth()->addDays(9)->toDateString(),
+                'flexibility' => 'known',
                 'season' => null,
                 'durationDays' => 10,
                 'destinations' => ['Herat'],
@@ -387,6 +370,7 @@ class PublicBookingTest extends TestCase
                     'dateOfBirth' => '1990-04-12',
                     'nationality' => 'German',
                     'countryOfResidence' => 'Germany',
+                    'isFirstVisit' => 'yes',
                 ],
                 'companions' => [
                     [
@@ -394,19 +378,25 @@ class PublicBookingTest extends TestCase
                         'lastName' => 'Ahmad',
                         'dateOfBirth' => '1988-08-02',
                         'nationality' => 'German',
+                        'email' => 'omar@example.com',
+                        'phone' => '+49 177 668 7089',
+                        'countryOfResidence' => 'Germany',
+                        'isFirstVisit' => 'no',
                     ],
                 ],
-                'groupType' => 'couple',
+                'groupType' => 'group',
             ],
             'services' => [
-                'complete' => true,
-                'guide' => false,
-                'transportation' => false,
-                'accommodation' => false,
-                'airport' => false,
-                'domestic' => false,
-                'arrivalDetailsLater' => false,
-                'departureDetailsLater' => false,
+                'guideCount' => 1,
+                'guideGender' => 'male',
+                'guideLanguages' => ['english', 'dari'],
+                'vehicle' => 'corolla',
+                'transportCoverage' => 'entire',
+                'airportPickup' => 'no',
+                'domesticPreference' => 'road',
+                'accommodationLevel' => 'standard',
+                'roomPreference' => 'double',
+                'roomCount' => 1,
             ],
             'documents' => [
                 'passports' => [
@@ -420,7 +410,7 @@ class PublicBookingTest extends TestCase
                 'emergencyName' => 'Alex Reed',
                 'emergencyRelationship' => 'Spouse',
                 'emergencyPhone' => '+49 177 0000001',
-                'dietary' => 'none',
+                'dietary' => ['none'],
                 'dietaryDetails' => '',
                 'medical' => 'no',
                 'medicalDetails' => '',

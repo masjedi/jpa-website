@@ -1,4 +1,11 @@
-import type { SiteSettings, SocialLink } from '@/components/public/brand';
+import type { SocialLink } from '@/components/public/brand';
+import type { TranslatedString } from '@/types/locale';
+import {
+    appendTranslatedStringToFormData,
+    createEmptyTranslatedString,
+    normalizeTranslatedString,
+} from '@/lib/translations';
+import { buildTranslatableFieldMap, validateEnglishRequired } from '@/lib/translatableForm';
 
 export interface LogoSpec {
     width: number;
@@ -8,12 +15,26 @@ export interface LogoSpec {
     hint: string;
 }
 
-export interface SettingsFormValues {
-    brandName: string;
+export interface AdminSiteSettings {
+    brandName: TranslatedString;
     contactEmail: string;
-    whatsappDisplay: string;
+    contactEmailHref: string;
+    whatsappDisplay: TranslatedString;
     whatsappHref: string;
-    officeLocation: string;
+    officeLocation: TranslatedString;
+    officeMapsHref: string;
+    officeMapsEmbedSrc: string;
+    socialLinks: SocialLink[];
+    logoColor: string;
+    logoWhite: string;
+}
+
+export interface SettingsFormValues {
+    brandName: TranslatedString;
+    contactEmail: string;
+    whatsappDisplay: TranslatedString;
+    whatsappHref: string;
+    officeLocation: TranslatedString;
     officeMapsHref: string;
     officeMapsEmbedSrc: string;
     socialLinks: SocialLink[];
@@ -58,17 +79,46 @@ export function normalizeSocialLinks(links: SocialLink[]): SocialLink[] {
     }));
 }
 
-export function settingsToFormValues(settings: SiteSettings): SettingsFormValues {
+export function settingsToFormValues(settings: AdminSiteSettings): SettingsFormValues {
     return {
-        brandName: settings.brandName,
+        brandName: normalizeTranslatedString(settings.brandName),
         contactEmail: settings.contactEmail,
-        whatsappDisplay: settings.whatsappDisplay,
+        whatsappDisplay: normalizeTranslatedString(settings.whatsappDisplay),
         whatsappHref: settings.whatsappHref,
-        officeLocation: settings.officeLocation,
+        officeLocation: normalizeTranslatedString(settings.officeLocation),
         officeMapsHref: settings.officeMapsHref,
         officeMapsEmbedSrc: settings.officeMapsEmbedSrc,
         socialLinks: normalizeSocialLinks(settings.socialLinks),
     };
+}
+
+export function validateSettingsFormValues(values: SettingsFormValues): SettingsFormErrors {
+    const errors: SettingsFormErrors = {};
+
+    const brandError = validateEnglishRequired(values.brandName, 'Brand name');
+    if (brandError) {
+        errors.brandName = brandError;
+    }
+
+    if (!values.contactEmail.trim()) {
+        errors.contactEmail = 'Required';
+    }
+
+    const whatsappError = validateEnglishRequired(values.whatsappDisplay, 'WhatsApp display');
+    if (whatsappError) {
+        errors.whatsappDisplay = whatsappError;
+    }
+
+    if (!values.whatsappHref.trim()) {
+        errors.whatsappHref = 'Required';
+    }
+
+    const officeError = validateEnglishRequired(values.officeLocation, 'Office location');
+    if (officeError) {
+        errors.officeLocation = officeError;
+    }
+
+    return errors;
 }
 
 export function buildSettingsFormData(payload: SettingsSubmitPayload): FormData {
@@ -76,11 +126,11 @@ export function buildSettingsFormData(payload: SettingsSubmitPayload): FormData 
     const formData = new FormData();
 
     formData.append('_method', 'patch');
-    formData.append('brand_name', values.brandName.trim());
+    appendTranslatedStringToFormData(formData, 'brand_name', values.brandName);
     formData.append('contact_email', values.contactEmail.trim());
-    formData.append('whatsapp_display', values.whatsappDisplay.trim());
+    appendTranslatedStringToFormData(formData, 'whatsapp_display', values.whatsappDisplay);
     formData.append('whatsapp_href', values.whatsappHref.trim());
-    formData.append('office_location', values.officeLocation.trim());
+    appendTranslatedStringToFormData(formData, 'office_location', values.officeLocation);
     formData.append('office_maps_href', values.officeMapsHref.trim());
     formData.append('office_maps_embed_src', values.officeMapsEmbedSrc.trim());
 
@@ -101,6 +151,7 @@ export function buildSettingsFormData(payload: SettingsSubmitPayload): FormData 
 }
 
 export function mapSettingsServerErrors(errors: Record<string, string>): SettingsFormErrors {
+    const fieldMap = buildTranslatableFieldMap('', ['brand_name', 'whatsapp_display', 'office_location']);
     const mapped: SettingsFormErrors = {};
 
     Object.entries(errors).forEach(([key, message]) => {
@@ -111,6 +162,11 @@ export function mapSettingsServerErrors(errors: Record<string, string>): Setting
 
         mapped[camel] = message;
         mapped[key] = message;
+
+        const translatableField = fieldMap[key];
+        if (translatableField) {
+            mapped[translatableField] = message;
+        }
     });
 
     return mapped;

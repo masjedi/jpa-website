@@ -32,5 +32,10 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="BOOST_ENABLED" value="false"/>
+        <env name="INERTIA_SSR_ENABLED" value="false"/>
+        <env name="ADMIN_EMAIL" value="admin@journey-to-afghanistan.com"/>
+        <env name="ADMIN_PASSWORD" value="Admin!@#$1234"/>
+        <env name="ADMIN_NAME" value="JPA Administrator"/>
     </php>
 </phpunit>

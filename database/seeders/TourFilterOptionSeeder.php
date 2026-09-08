@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\TourFilterOptionStatus;
 use App\Enums\TourFilterOptionType;
 use App\Models\TourFilterOption;
+use App\Support\Translatable;
 use Illuminate\Database\Seeder;
 
 class TourFilterOptionSeeder extends Seeder
@@ -16,9 +17,10 @@ class TourFilterOptionSeeder extends Seeder
                 TourFilterOption::query()->firstOrCreate(
                     [
                         'type' => $type,
-                        'name' => $name,
+                        'value' => $name,
                     ],
                     [
+                        'name' => Translatable::normalize($name),
                         'status' => TourFilterOptionStatus::Published,
                         'sort_order' => $index + 1,
                     ],

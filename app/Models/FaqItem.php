@@ -22,6 +22,8 @@ class FaqItem extends Model
     {
         return [
             'status' => FaqItemStatus::class,
+            'question' => 'array',
+            'answer' => 'array',
             'sort_order' => 'integer',
         ];
     }

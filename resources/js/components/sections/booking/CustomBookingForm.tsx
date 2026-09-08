@@ -28,6 +28,7 @@ import {
 } from '@/types/customBooking';
 import { useBookingTranslationContext } from '@/components/sections/booking/BookingTranslationContext';
 import { useTranslations } from '@/hooks/use-translations';
+import { cn } from '@/lib/utils';
 
 interface CustomBookingFormProps {
     destinations: readonly string[];
@@ -100,7 +101,12 @@ function CustomBookingFormInner({ destinations, seasons }: CustomBookingFormProp
         const field = (event.target as HTMLElement).closest('[data-field]');
         const fieldId = field?.getAttribute('data-field');
 
-        if (!fieldId) {
+        if (!field || !fieldId) {
+            return;
+        }
+
+        const nextTarget = event.relatedTarget;
+        if (nextTarget instanceof Node && field.contains(nextTarget)) {
             return;
         }
 
@@ -283,17 +289,22 @@ function CustomBookingFormInner({ destinations, seasons }: CustomBookingFormProp
                     ref={headingRef}
                     id={headingId}
                     tabIndex={-1}
-                    className="font-heading text-xl font-semibold tracking-tight text-foreground outline-none"
+                    className={cn(
+                        'font-heading text-xl font-semibold tracking-tight text-foreground outline-none',
+                        (step === 0 || step === 1) && 'sr-only',
+                    )}
                 >
-                    {current?.title}
+                    {step === 4 ? 'Emergency Contact' : step === 3 ? 'Passport Information' : current?.title}
                 </h2>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    This is a custom tour request. Submitting it does not reserve a seat or confirm a trip.
-                </p>
+                {step === 5 ? (
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                        This is a custom tour request. Submitting it does not reserve a seat or confirm a trip.
+                    </p>
+                ) : null}
 
                 <BookingStepErrorBanner count={Object.keys(errors).length} />
 
-                <div className="mt-8">
+                <div className={cn(step === 0 || step === 1 ? 'mt-2' : 'mt-8')}>
                     {step === 0 ? (
                         <TripPreferencesStep
                             state={state}
@@ -333,7 +344,7 @@ function CustomBookingFormInner({ destinations, seasons }: CustomBookingFormProp
                             onClick={handleBack}
                             className="inline-flex items-center justify-center gap-1.5 rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                         >
-                            <ChevronLeft className="size-4" aria-hidden />
+                            <ChevronLeft className="size-4 rtl:rotate-180" aria-hidden />
                             {t('buttons.back')}
                         </button>
                     ) : (
@@ -369,7 +380,7 @@ function CustomBookingFormInner({ destinations, seasons }: CustomBookingFormProp
                             className="inline-flex items-center justify-center gap-1.5 rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                         >
                             {t('buttons.continue')}
-                            <ChevronRight className="size-4" aria-hidden />
+                            <ChevronRight className="size-4 rtl:rotate-180" aria-hidden />
                         </button>
                     )}
                 </div>

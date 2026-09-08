@@ -34,6 +34,12 @@ class Destination extends Model
     {
         return [
             'status' => DestinationStatus::class,
+            'name' => 'array',
+            'tagline' => 'array',
+            'description' => 'array',
+            'badge' => 'array',
+            'best_season' => 'array',
+            'travel_style' => 'array',
             'cover_media' => 'array',
             'highlights' => 'array',
             'practical_notes' => 'array',

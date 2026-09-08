@@ -1,28 +1,44 @@
 import { usePage } from '@inertiajs/react';
-import { type FormEvent, useEffect, useId, useState } from 'react';
+import { type FormEvent, useEffect, useId, useMemo, useState } from 'react';
 
 import { AdminCollapsibleSection } from '@/components/admin/AdminCollapsibleSection';
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
     mapSettingsServerErrors,
     normalizeSocialLinks,
     settingsToFormValues,
+    validateSettingsFormValues,
+    type AdminSiteSettings,
     type LogoSpec,
     type SettingsFormErrors,
     type SettingsFormValues,
     type SettingsSubmitPayload,
 } from '@/components/admin/settingsForm';
-import type { SiteSettings, SocialLink } from '@/components/public/brand';
+import type { SocialLink } from '@/components/public/brand';
+import {
+    buildInitialLocaleMap,
+    localeMapToTranslatedRecord,
+    useLocaleFormFields,
+} from '@/hooks/use-locale-form-fields';
 import { cn } from '@/lib/utils';
 
 interface SettingsEntityFormProps {
     formId: string;
-    settings: SiteSettings;
+    settings: AdminSiteSettings;
     logoSpec: LogoSpec;
     onCancel: () => void;
     onSubmit: (payload: SettingsSubmitPayload) => void | Promise<void>;
 }
+
+const settingsTranslatableFields = ['brandName', 'whatsappDisplay', 'officeLocation'] as const;
+
+const emptySettingsFields = {
+    brandName: '',
+    whatsappDisplay: '',
+    officeLocation: '',
+};
 
 export function SettingsEntityForm({
     formId,
@@ -43,7 +59,35 @@ export function SettingsEntityForm({
     const logoColorId = useId();
     const logoWhiteId = useId();
 
-    const [values, setValues] = useState<SettingsFormValues>(() => settingsToFormValues(settings));
+    const startingValues = settingsToFormValues(settings);
+    const initialByLocale = useMemo(
+        () =>
+            buildInitialLocaleMap(settingsTranslatableFields, {
+                brandName: startingValues.brandName,
+                whatsappDisplay: startingValues.whatsappDisplay,
+                officeLocation: startingValues.officeLocation,
+            }),
+        [startingValues.brandName, startingValues.officeLocation, startingValues.whatsappDisplay],
+    );
+
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setField,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormFields({
+        initialByLocale,
+        emptyFields: emptySettingsFields,
+    });
+
+    const [contactEmail, setContactEmail] = useState(startingValues.contactEmail);
+    const [whatsappHref, setWhatsappHref] = useState(startingValues.whatsappHref);
+    const [officeMapsHref, setOfficeMapsHref] = useState(startingValues.officeMapsHref);
+    const [officeMapsEmbedSrc, setOfficeMapsEmbedSrc] = useState(startingValues.officeMapsEmbedSrc);
+    const [socialLinks, setSocialLinks] = useState(startingValues.socialLinks);
     const [logoColorFile, setLogoColorFile] = useState<File | null>(null);
     const [logoWhiteFile, setLogoWhiteFile] = useState<File | null>(null);
     const [logoColorPreview, setLogoColorPreview] = useState(settings.logoColor);
@@ -70,7 +114,12 @@ export function SettingsEntityForm({
     };
 
     useEffect(() => {
-        setValues(settingsToFormValues(settings));
+        const nextValues = settingsToFormValues(settings);
+        setContactEmail(nextValues.contactEmail);
+        setWhatsappHref(nextValues.whatsappHref);
+        setOfficeMapsHref(nextValues.officeMapsHref);
+        setOfficeMapsEmbedSrc(nextValues.officeMapsEmbedSrc);
+        setSocialLinks(nextValues.socialLinks);
         setLogoColorPreview(settings.logoColor);
         setLogoWhitePreview(settings.logoWhite);
         setLogoColorFile(null);
@@ -79,25 +128,42 @@ export function SettingsEntityForm({
     }, [settings]);
 
     const updateSocialLink = (index: number, patch: Partial<SocialLink>) => {
-        setValues((current) => ({
-            ...current,
-            socialLinks: current.socialLinks.map((link, linkIndex) =>
+        setSocialLinks((current) =>
+            current.map((link, linkIndex) =>
                 linkIndex === index ? { ...link, ...patch } : link,
             ),
-        }));
+        );
     };
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        const localeValues = commitAllLocales();
+        const translated = localeMapToTranslatedRecord(settingsTranslatableFields, localeValues);
+        const payloadValues: SettingsFormValues = {
+            brandName: translated.brandName,
+            contactEmail: contactEmail.trim(),
+            whatsappDisplay: translated.whatsappDisplay,
+            whatsappHref: whatsappHref.trim(),
+            officeLocation: translated.officeLocation,
+            officeMapsHref: officeMapsHref.trim(),
+            officeMapsEmbedSrc: officeMapsEmbedSrc.trim(),
+            socialLinks: normalizeSocialLinks(socialLinks),
+        };
+
+        const nextErrors = validateSettingsFormValues(payloadValues);
+        setErrors(nextErrors);
+
+        if (Object.keys(nextErrors).length > 0) {
+            return;
+        }
+
         setSubmitting(true);
         setErrors({});
 
         try {
             await onSubmit({
-                values: {
-                    ...values,
-                    socialLinks: normalizeSocialLinks(values.socialLinks),
-                },
+                values: payloadValues,
                 logoColorFile,
                 logoWhiteFile,
             });
@@ -132,6 +198,13 @@ export function SettingsEntityForm({
                     </div>
                 ) : null}
 
+                <AdminLocaleSelector
+                    activeLocale={activeLocale}
+                    completion={completion}
+                    onChange={switchLocale}
+                    disabled={submitting}
+                />
+
                 <AdminCollapsibleSection
                     title="Brand & contact"
                     description="Name and primary contact details shown across the public site."
@@ -146,18 +219,16 @@ export function SettingsEntityForm({
                         >
                             <input
                                 id={brandNameId}
-                                value={values.brandName}
+                                value={draft.brandName}
+                                dir={direction}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        brandName: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => {
+                                    setField('brandName', event.target.value);
+                                    setErrors((current) => ({ ...current, brandName: undefined }));
+                                }}
                                 className={cn(
                                     adminFieldClass,
-                                    (fieldError('brandName', 'brand_name')) &&
-                                        adminFieldErrorClass,
+                                    fieldError('brandName', 'brand_name') && adminFieldErrorClass,
                                 )}
                                 aria-describedby={adminFieldDescribedBy(
                                     brandNameId,
@@ -175,14 +246,12 @@ export function SettingsEntityForm({
                             <input
                                 id={contactEmailId}
                                 type="email"
-                                value={values.contactEmail}
+                                value={contactEmail}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        contactEmail: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => {
+                                    setContactEmail(event.target.value);
+                                    setErrors((current) => ({ ...current, contactEmail: undefined }));
+                                }}
                                 className={cn(
                                     adminFieldClass,
                                     fieldError('contactEmail', 'contact_email') &&
@@ -199,14 +268,16 @@ export function SettingsEntityForm({
                         >
                             <input
                                 id={whatsappDisplayId}
-                                value={values.whatsappDisplay}
+                                value={draft.whatsappDisplay}
+                                dir={direction}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
+                                onChange={(event) => {
+                                    setField('whatsappDisplay', event.target.value);
+                                    setErrors((current) => ({
                                         ...current,
-                                        whatsappDisplay: event.target.value,
-                                    }))
-                                }
+                                        whatsappDisplay: undefined,
+                                    }));
+                                }}
                                 className={cn(
                                     adminFieldClass,
                                     fieldError('whatsappDisplay', 'whatsapp_display') &&
@@ -225,14 +296,12 @@ export function SettingsEntityForm({
                             <input
                                 id={whatsappHrefId}
                                 type="url"
-                                value={values.whatsappHref}
+                                value={whatsappHref}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        whatsappHref: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => {
+                                    setWhatsappHref(event.target.value);
+                                    setErrors((current) => ({ ...current, whatsappHref: undefined }));
+                                }}
                                 className={cn(
                                     adminFieldClass,
                                     fieldError('whatsappHref', 'whatsapp_href') &&
@@ -256,14 +325,16 @@ export function SettingsEntityForm({
                         >
                             <input
                                 id={officeLocationId}
-                                value={values.officeLocation}
+                                value={draft.officeLocation}
+                                dir={direction}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
+                                onChange={(event) => {
+                                    setField('officeLocation', event.target.value);
+                                    setErrors((current) => ({
                                         ...current,
-                                        officeLocation: event.target.value,
-                                    }))
-                                }
+                                        officeLocation: undefined,
+                                    }));
+                                }}
                                 className={cn(
                                     adminFieldClass,
                                     fieldError('officeLocation', 'office_location') &&
@@ -280,14 +351,9 @@ export function SettingsEntityForm({
                             <input
                                 id={officeMapsHrefId}
                                 type="url"
-                                value={values.officeMapsHref}
+                                value={officeMapsHref}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        officeMapsHref: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => setOfficeMapsHref(event.target.value)}
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
@@ -300,14 +366,9 @@ export function SettingsEntityForm({
                             <input
                                 id={officeMapsEmbedSrcId}
                                 type="url"
-                                value={values.officeMapsEmbedSrc}
+                                value={officeMapsEmbedSrc}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        officeMapsEmbedSrc: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => setOfficeMapsEmbedSrc(event.target.value)}
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
@@ -319,7 +380,7 @@ export function SettingsEntityForm({
                     description="Footer links for Instagram, Facebook, YouTube, and LinkedIn."
                 >
                     <div className="space-y-2">
-                        {values.socialLinks.map((link, index) => (
+                        {socialLinks.map((link, index) => (
                             <div key={link.label} className="space-y-1">
                                 <div className="grid gap-2 rounded-lg border border-border p-2.5 sm:grid-cols-[7rem_minmax(0,1fr)]">
                                     <input

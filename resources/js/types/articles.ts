@@ -1,3 +1,5 @@
+import type { TranslatedString } from '@/types/locale';
+
 export type ArticleCategory =
     | 'Travel tips'
     | 'Culture'
@@ -43,4 +45,21 @@ export interface ArticleRelatedTour {
     title: string;
     duration: string;
     href: string;
+}
+
+export interface AdminArticleListItem {
+    id: number;
+    slug: string;
+    status: 'Published' | 'Draft';
+    title: TranslatedString;
+    summary: TranslatedString;
+    category: ArticleCategory;
+    image: string;
+    content: TranslatedString;
+    date: string;
+    readingTimeMinutes: number;
+    teamMemberId: number | null;
+    author: ArticleAuthor;
+    isFeatured: boolean;
+    relatedTourSlugs?: readonly string[];
 }

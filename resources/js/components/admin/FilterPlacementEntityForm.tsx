@@ -1,5 +1,6 @@
 import { type FormEvent, useId, useState } from 'react';
 
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
@@ -8,6 +9,8 @@ import {
     type FilterPlacementFormValues,
     validateFilterPlacementFormValues,
 } from '@/components/admin/filterPlacementForm';
+import { useLocaleFormField } from '@/hooks/use-locale-form-fields';
+import { normalizeTranslatedString } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 import { tourFilterOptionPlaceholders, tourFilterOptionTypeLabels } from '@/types/tourFilterOptions';
 
@@ -27,15 +30,29 @@ export function FilterPlacementEntityForm({
     onSubmit,
 }: FilterPlacementEntityFormProps) {
     const nameFieldId = useId();
+    const valueFieldId = useId();
     const statusFieldId = useId();
 
-    const [values, setValues] = useState<FilterPlacementFormValues>(
-        () => initialValues ?? createEmptyFilterPlacementFormValues('region'),
-    );
+    const startingValues = initialValues ?? createEmptyFilterPlacementFormValues('region');
+    const normalizedName = normalizeTranslatedString(startingValues.name);
+
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setDraft,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormField(normalizedName);
+
+    const [type, setType] = useState(startingValues.type);
+    const [value, setValue] = useState(startingValues.value);
+    const [status, setStatus] = useState(startingValues.status);
     const [errors, setErrors] = useState<FilterPlacementFormErrors>({});
     const [submitting, setSubmitting] = useState(false);
 
-    const typeLabel = tourFilterOptionTypeLabels[values.type].toLowerCase();
+    const typeLabel = tourFilterOptionTypeLabels[type].toLowerCase();
     const submitLabel =
         mode === 'edit'
             ? submitting
@@ -48,7 +65,15 @@ export function FilterPlacementEntityForm({
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const nextErrors = validateFilterPlacementFormValues(values);
+        const nameValues = commitAllLocales();
+        const payloadValues: FilterPlacementFormValues = {
+            type,
+            name: nameValues,
+            value,
+            status,
+        };
+
+        const nextErrors = validateFilterPlacementFormValues(payloadValues);
         setErrors(nextErrors);
 
         if (Object.keys(nextErrors).length > 0) {
@@ -58,11 +83,7 @@ export function FilterPlacementEntityForm({
         setSubmitting(true);
 
         try {
-            await onSubmit({
-                type: values.type,
-                name: values.name.trim(),
-                status: values.status,
-            });
+            await onSubmit(payloadValues);
         } finally {
             setSubmitting(false);
         }
@@ -76,6 +97,25 @@ export function FilterPlacementEntityForm({
             className="flex min-h-0 flex-1 flex-col"
         >
             <div className="grid gap-3 p-4">
+                {mode === 'edit' && value ? (
+                    <AdminFormField id={valueFieldId} label="Stable key">
+                        <input
+                            id={valueFieldId}
+                            value={value}
+                            readOnly
+                            disabled
+                            className={cn(adminFieldClass, 'bg-surface-muted text-muted-foreground')}
+                        />
+                    </AdminFormField>
+                ) : null}
+
+                <AdminLocaleSelector
+                    activeLocale={activeLocale}
+                    completion={completion}
+                    onChange={switchLocale}
+                    disabled={submitting}
+                />
+
                 <AdminFormField
                     id={nameFieldId}
                     label="Name"
@@ -84,13 +124,14 @@ export function FilterPlacementEntityForm({
                 >
                     <input
                         id={nameFieldId}
-                        value={values.name}
+                        value={draft}
+                        dir={direction}
                         disabled={submitting}
                         onChange={(event) => {
-                            setValues((current) => ({ ...current, name: event.target.value }));
+                            setDraft(event.target.value);
                             setErrors((current) => ({ ...current, name: undefined }));
                         }}
-                        placeholder={tourFilterOptionPlaceholders[values.type]}
+                        placeholder={tourFilterOptionPlaceholders[type]}
                         aria-invalid={Boolean(errors.name)}
                         aria-describedby={adminFieldDescribedBy(nameFieldId, errors.name)}
                         className={cn(adminFieldClass, errors.name && adminFieldErrorClass)}
@@ -100,13 +141,10 @@ export function FilterPlacementEntityForm({
                 <AdminFormField id={statusFieldId} label="Status">
                     <select
                         id={statusFieldId}
-                        value={values.status}
+                        value={status}
                         disabled={submitting}
                         onChange={(event) =>
-                            setValues((current) => ({
-                                ...current,
-                                status: event.target.value as FilterPlacementFormValues['status'],
-                            }))
+                            setStatus(event.target.value as FilterPlacementFormValues['status'])
                         }
                         className={adminFieldClass}
                     >

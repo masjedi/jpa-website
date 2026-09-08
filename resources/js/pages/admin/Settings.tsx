@@ -1,5 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
-import { Globe, Palette, Settings as SettingsIcon, Shield } from 'lucide-react';
+import { Globe, Palette, Settings as SettingsIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
@@ -8,14 +8,15 @@ import { SettingsFormDialog } from '@/components/admin/SettingsFormDialog';
 import { SettingsSummary } from '@/components/admin/SettingsSummary';
 import {
     buildSettingsFormData,
+    type AdminSiteSettings,
     type LogoSpec,
     type SettingsSubmitPayload,
 } from '@/components/admin/settingsForm';
-import type { SiteSettings } from '@/components/public/brand';
+import { primaryTranslation } from '@/lib/translations';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 
 interface SettingsPageProps {
-    settings: SiteSettings;
+    settings: AdminSiteSettings;
     logoSpec: LogoSpec;
 }
 
@@ -24,11 +25,6 @@ const comingSoonGroups = [
         title: 'Appearance',
         description: 'Theme defaults, accent usage, and localized layout preferences.',
         icon: Palette,
-    },
-    {
-        title: 'Access & security',
-        description: 'Administrator accounts, session policies, and audit preferences.',
-        icon: Shield,
     },
 ] as const;
 

@@ -7,6 +7,7 @@ import { BRAND_NAME } from '@/components/public/brand';
 import { AppearanceProvider } from '@/hooks/use-appearance';
 import { SECURE_TAB_TITLE } from '@/lib/secureTabTitle';
 
+const titleSuffix = 'Journey to Peace';
 const appName = import.meta.env.VITE_APP_NAME || BRAND_NAME;
 
 router.on('navigate', () => {
@@ -19,11 +20,11 @@ createInertiaApp({
             return SECURE_TAB_TITLE;
         }
 
-        if (!title || title === appName) {
-            return appName;
+        if (!title || title === appName || title === titleSuffix) {
+            return titleSuffix;
         }
 
-        return `${title} - ${appName}`;
+        return `${title} - ${titleSuffix}`;
     },
     pages: './pages',
     strictMode: true,

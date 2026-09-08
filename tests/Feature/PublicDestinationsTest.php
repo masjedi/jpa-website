@@ -14,7 +14,7 @@ class PublicDestinationsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_destinations_index_receives_only_published_listings(): void
+    public function test_destinations_index_redirects_to_discovery_view(): void
     {
         Destination::query()->create($this->destinationAttributes([
             'slug' => 'published-destination',
@@ -30,9 +30,14 @@ class PublicDestinationsTest extends TestCase
         ]));
 
         $this->get('/destinations')
+            ->assertRedirect('/tours?view=destinations')
+            ->assertStatus(301);
+
+        $this->get('/tours?view=destinations')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
-                ->component('public/Destinations')
+                ->component('public/Tours')
+                ->where('view', 'destinations')
                 ->has('destinations', 1)
                 ->where('destinations.0.slug', 'published-destination')
                 ->where('destinations.0.name', 'Published Destination')

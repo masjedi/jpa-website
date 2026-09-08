@@ -23,18 +23,53 @@ export interface ChoiceOption<T extends string = string> {
     description?: string;
 }
 
-export const FALLBACK_DESTINATIONS = [
-    'Kabul',
-    'Bamyan',
-    'Herat',
-    'Balkh / Mazar-e-Sharif',
-    'Panjshir',
-    'Badakhshan',
-    'Nuristan',
-    'Kandahar',
-    'Ghazni',
-    'Other',
+export const AFGHANISTAN_PROVINCE_ZONES = [
+    {
+        zone: 'Central Afghanistan',
+        provinces: ['Kabul', 'Kapisa', 'Parwan', 'Panjshir', 'Wardak', 'Logar'],
+    },
+    {
+        zone: 'East Afghanistan',
+        provinces: ['Nangarhar', 'Kunar', 'Laghman', 'Nuristan'],
+    },
+    {
+        zone: 'Southeast Afghanistan',
+        provinces: ['Paktia', 'Paktika', 'Khost', 'Ghazni'],
+    },
+    {
+        zone: 'South Afghanistan',
+        provinces: ['Kandahar', 'Helmand', 'Zabul', 'Uruzgan', 'Nimroz'],
+    },
+    {
+        zone: 'West Afghanistan',
+        provinces: ['Herat', 'Farah', 'Badghis'],
+    },
+    {
+        zone: 'Northwest Afghanistan',
+        provinces: ['Faryab', 'Jowzjan', 'Sar-e Pol'],
+    },
+    {
+        zone: 'North Afghanistan',
+        provinces: ['Balkh', 'Samangan', 'Kunduz', 'Baghlan', 'Takhar'],
+    },
+    {
+        zone: 'Northeast Afghanistan',
+        provinces: ['Badakhshan'],
+    },
+    {
+        zone: 'Central Highlands',
+        provinces: ['Bamyan', 'Daykundi', 'Ghor'],
+    },
 ] as const;
+
+export type ProvinceZone = {
+    zone: string;
+    provinces: readonly string[];
+};
+
+export const AFGHANISTAN_PROVINCE_NAMES: readonly string[] = AFGHANISTAN_PROVINCE_ZONES.flatMap(
+    (group) => group.provinces,
+);
 
 export const FALLBACK_SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter'] as const;
 
@@ -42,15 +77,13 @@ export const OTHER_DESTINATION_VALUE = 'Other';
 export const RECOMMEND_SEASON_VALUE = 'recommend';
 
 export const DATE_FLEXIBILITY_OPTIONS: readonly ChoiceOption<DateFlexibility>[] = [
-    { value: 'exact', label: 'Exact date' },
-    { value: 'plus_minus_3', label: 'Flexible ±3 days' },
-    { value: 'plus_minus_week', label: 'Flexible ±1 week' },
-    { value: 'within_month', label: 'Flexible within the month' },
-    { value: 'unsure', label: 'I am not sure yet' },
+    { value: 'known', label: 'No' },
+    { value: 'unsure', label: 'Yes' },
 ];
 
 export const TRAVEL_INTEREST_OPTIONS: readonly ChoiceOption<TravelInterest>[] = [
     { value: 'culture', label: 'Culture & History' },
+    { value: 'architecture', label: 'Architecture' },
     { value: 'nature', label: 'Nature & Landscapes' },
     { value: 'adventure', label: 'Adventure' },
     { value: 'photography', label: 'Photography' },
@@ -77,11 +110,8 @@ export const ROUTE_PREFERENCE_OPTIONS: readonly ChoiceOption<RoutePreference>[] 
 ];
 
 export const GROUP_TYPE_OPTIONS: readonly ChoiceOption<GroupType>[] = [
-    { value: 'solo', label: 'Solo' },
-    { value: 'couple', label: 'Couple' },
-    { value: 'family', label: 'Family' },
-    { value: 'friends', label: 'Friends' },
-    { value: 'private_group', label: 'Private group' },
+    { value: 'private', label: 'Private' },
+    { value: 'group', label: 'Group' },
 ];
 
 export const SERVICE_OPTIONS = [
@@ -132,11 +162,9 @@ export const GUIDE_LANGUAGE_OPTIONS: readonly ChoiceOption<GuideLanguage>[] = [
 ];
 
 export const VEHICLE_OPTIONS: readonly ChoiceOption<VehiclePreference>[] = [
-    { value: 'standard', label: 'Standard car' },
-    { value: 'suv', label: 'SUV / 4×4' },
-    { value: 'minivan', label: 'Minivan' },
-    { value: 'larger', label: 'Larger group vehicle' },
-    { value: 'recommend', label: 'Recommend the most suitable vehicle' },
+    { value: 'suv_group', label: 'SUV / 4x4 large Group Vehicle' },
+    { value: 'land_cruiser', label: 'Land Cruiser' },
+    { value: 'corolla', label: 'Corolla type car' },
 ];
 
 export const TRANSPORT_COVERAGE_OPTIONS: readonly ChoiceOption<TransportCoverage>[] = [
@@ -205,13 +233,12 @@ export const MAX_DURATION_DAYS = 45;
 export const MAX_ADULTS = 12;
 export const MAX_CHILDREN = 8;
 export const MAX_TRAVELERS = 16;
+export const MAX_GUIDES = 8;
 
 export function destinationChoices(fromServer: readonly string[]): string[] {
-    const source = fromServer.length > 0 ? fromServer : FALLBACK_DESTINATIONS;
-    const names = source.map((name) => name.trim()).filter(Boolean);
-    const hasOther = names.some((name) => name.toLowerCase() === OTHER_DESTINATION_VALUE.toLowerCase());
+    const source = fromServer.length > 0 ? fromServer : AFGHANISTAN_PROVINCE_NAMES;
 
-    return hasOther ? names : [...names, OTHER_DESTINATION_VALUE];
+    return source.map((name) => name.trim()).filter(Boolean);
 }
 
 export function seasonChoices(fromServer: readonly string[], recommendLabel = 'Recommend the best time'): ChoiceOption[] {

@@ -314,16 +314,36 @@ export function Navbar({ transparent = false }: NavbarProps) {
         }
 
         if (href === '/tours') {
+            const [pathOnly = '', query = ''] = url.split('?');
+            const params = new URLSearchParams(query);
+            const discoveryView = params.get('view');
+
+            if (pathOnly.startsWith('/tours/')) {
+                return true;
+            }
+
+            return pathOnly === '/tours' && discoveryView !== 'packages' && discoveryView !== 'destinations';
+        }
+
+        if (href === '/tours?view=packages') {
+            const [pathOnly = ''] = url.split('?');
+
             return (
-                url === '/tours' ||
-                url.startsWith('/tours?') ||
-                url.startsWith('/tours/') ||
-                url.startsWith('/packages/')
+                pathOnly.startsWith('/packages/') ||
+                url === '/tours?view=packages' ||
+                url.startsWith('/tours?view=packages&')
             );
         }
 
-        if (href === '/destinations') {
-            return url === '/destinations' || url.startsWith('/destinations/');
+        if (href === '/tours?view=destinations') {
+            const [pathOnly = ''] = url.split('?');
+
+            return (
+                pathOnly === '/destinations' ||
+                pathOnly.startsWith('/destinations/') ||
+                url === '/tours?view=destinations' ||
+                url.startsWith('/tours?view=destinations&')
+            );
         }
 
         if (href === '/services') {

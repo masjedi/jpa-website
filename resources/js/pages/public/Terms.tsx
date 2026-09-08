@@ -7,10 +7,7 @@ import { PublicLayout } from '@/layouts/PublicLayout';
 export default function Terms() {
     return (
         <>
-            <PageMeta
-                title="Terms and Conditions"
-                description="Terms for using the Journey to Peace Afghanistan Tours website and submitting a trip inquiry. Inquiries are not confirmed reservations."
-            />
+            <PageMeta />
             <LegalDocument
                 title="Terms and Conditions"
                 eyebrow="Using this website"
@@ -37,9 +34,9 @@ export default function Terms() {
                 <LegalSection title="Content">
                     <p>
                         Photographs and stories illustrate the kind of journeys
-                        we plan. Some public pages still use placeholder imagery
-                        while the visual library is completed. Do not treat mock
-                        or sample details as a live inventory of departures.
+                        we plan. Visuals come from our managed media library.
+                        Do not treat sample itinerary details as a live inventory
+                        of departures.
                     </p>
                 </LegalSection>
                 <LegalSection title="Contact">

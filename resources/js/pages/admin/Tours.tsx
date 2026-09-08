@@ -18,6 +18,7 @@ import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
+import { primaryTranslation } from '@/lib/translations';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 import type { TourFilterFieldOptions } from '@/types/tourFilterOptions';
 
@@ -55,24 +56,24 @@ function buildOfferRow(offer: ManagedOffer): OfferRow {
     if (offer.listingType === 'package') {
         return {
             id: offer.id,
-            title: offer.title,
+            title: primaryTranslation(offer.title),
             slug: offer.slug,
             listingType: offer.listingType,
             region: 'Packages section',
             style: '—',
-            duration: offer.duration,
+            duration: primaryTranslation(offer.duration),
             status: offer.status,
         };
     }
 
     return {
         id: offer.id,
-        title: offer.title,
+        title: primaryTranslation(offer.title),
         slug: offer.slug,
         listingType: offer.listingType,
         region: offer.region,
-        style: offer.travelStyle,
-        duration: offer.duration,
+        style: offer.travelStyle ?? '—',
+        duration: primaryTranslation(offer.duration),
         status: offer.status,
     };
 }
@@ -269,7 +270,9 @@ export default function Tours({ offers, filterOptions }: ToursPageProps) {
                     <ContentRecordViewDialog
                         open={viewOpen}
                         title="View listing"
-                        description={viewingOffer?.title}
+                        description={
+                            viewingOffer ? primaryTranslation(viewingOffer.title) : undefined
+                        }
                         model={viewingOffer ? buildOfferViewModel(viewingOffer) : null}
                         onClose={closeView}
                         onEdit={openEditFromView}

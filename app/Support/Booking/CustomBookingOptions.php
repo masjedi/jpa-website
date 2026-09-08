@@ -26,12 +26,14 @@ final class CustomBookingOptions
 
     public const MAX_TRAVELERS = 16;
 
+    public const MAX_GUIDES = 8;
+
     /**
      * @return list<string>
      */
     public static function flexibilities(): array
     {
-        return ['exact', 'plus_minus_3', 'plus_minus_week', 'within_month', 'unsure'];
+        return ['known', 'unsure'];
     }
 
     /**
@@ -47,7 +49,7 @@ final class CustomBookingOptions
      */
     public static function interests(): array
     {
-        return ['culture', 'nature', 'adventure', 'photography', 'communities', 'food'];
+        return ['culture', 'architecture', 'nature', 'adventure', 'photography', 'communities', 'food'];
     }
 
     /**
@@ -55,7 +57,7 @@ final class CustomBookingOptions
      */
     public static function groupTypes(): array
     {
-        return ['solo', 'couple', 'family', 'friends', 'private_group'];
+        return ['private', 'group'];
     }
 
     /**
@@ -79,7 +81,7 @@ final class CustomBookingOptions
      */
     public static function vehicles(): array
     {
-        return ['standard', 'suv', 'minivan', 'larger', 'recommend'];
+        return ['suv_group', 'land_cruiser', 'corolla'];
     }
 
     /**
@@ -157,6 +159,14 @@ final class CustomBookingOptions
     /**
      * @return list<string>
      */
+    public static function firstVisitAnswers(): array
+    {
+        return ['yes', 'no'];
+    }
+
+    /**
+     * @return list<string>
+     */
     public static function contactMethods(): array
     {
         return ['email', 'whatsapp', 'phone'];
@@ -166,11 +176,8 @@ final class CustomBookingOptions
     {
         return match ($group) {
             'flexibility' => match ($value) {
-                'exact' => 'Exact date',
-                'plus_minus_3' => 'Flexible ±3 days',
-                'plus_minus_week' => 'Flexible ±1 week',
-                'within_month' => 'Flexible within the month',
-                'unsure' => 'I am not sure yet',
+                'known', 'exact', 'plus_minus_3', 'plus_minus_week', 'within_month' => 'No',
+                'unsure' => 'Yes',
                 default => $value,
             },
             'route' => match ($value) {
@@ -179,8 +186,14 @@ final class CustomBookingOptions
                 'mix' => 'Mix selected destinations with recommendations',
                 default => $value,
             },
+            'group' => match ($value) {
+                'private' => 'Private',
+                'group' => 'Group',
+                default => $value,
+            },
             'interest' => match ($value) {
                 'culture' => 'Culture & History',
+                'architecture' => 'Architecture',
                 'nature' => 'Nature & Landscapes',
                 'adventure' => 'Adventure',
                 'photography' => 'Photography',
@@ -191,6 +204,80 @@ final class CustomBookingOptions
             'guide_gender' => match ($value) {
                 'male' => 'Male',
                 'female' => 'Female',
+                default => $value,
+            },
+            'vehicle' => match ($value) {
+                'suv_group' => 'SUV / 4x4 large Group Vehicle',
+                'land_cruiser' => 'Land Cruiser',
+                'corolla' => 'Corolla type car',
+                default => $value,
+            },
+            'language' => match ($value) {
+                'english' => 'English',
+                'dari' => 'Dari',
+                'pashto' => 'Pashto',
+                'german' => 'German',
+                'other' => 'Other',
+                default => $value,
+            },
+            'dietary' => match ($value) {
+                'none' => 'None',
+                'vegetarian' => 'Vegetarian',
+                'vegan' => 'Vegan',
+                'halal' => 'Halal',
+                'gluten_free' => 'Gluten-free',
+                'allergy' => 'Food allergy',
+                'other' => 'Other',
+                default => $value,
+            },
+            'medical' => match ($value) {
+                'yes' => 'Yes',
+                'no' => 'No',
+                default => $value,
+            },
+            'contact' => match ($value) {
+                'email' => 'Email',
+                'whatsapp' => 'WhatsApp',
+                'phone' => 'Phone',
+                default => $value,
+            },
+            'visa' => match ($value) {
+                'obtained' => 'Already obtained',
+                'applying' => 'Applying independently',
+                'guidance' => 'Need guidance',
+                'not_started' => 'Not started yet',
+                default => $value,
+            },
+            'insurance' => match ($value) {
+                'arranged' => 'Already arranged',
+                'will_arrange' => 'Will arrange before travel',
+                'guidance' => 'Need general guidance',
+                default => $value,
+            },
+            'coverage' => match ($value) {
+                'entire' => 'Entire trip',
+                'selected' => 'Selected destinations/days',
+                'airport_only' => 'Airport transfers only',
+                default => $value,
+            },
+            'accommodation' => match ($value) {
+                'standard' => 'Standard',
+                'comfortable' => 'Comfortable',
+                'premium' => 'Premium / best available',
+                'recommend' => 'Recommend based on destination',
+                default => $value,
+            },
+            'room' => match ($value) {
+                'single' => 'Single',
+                'double' => 'Double',
+                'twin' => 'Twin',
+                'family' => 'Family / multiple rooms',
+                default => $value,
+            },
+            'domestic' => match ($value) {
+                'road' => 'Road transportation',
+                'flight' => 'Domestic flight where available',
+                'recommend' => 'Recommend the best option',
                 default => $value,
             },
             default => $value,

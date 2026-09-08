@@ -14,10 +14,7 @@ export default function Gallery({ photos = [] }: GalleryPageProps) {
 
     return (
         <>
-            <PageMeta
-                title="Gallery"
-                description="Explore travel photography from Afghanistan — landscapes, heritage sites and everyday life captured on guided journeys."
-            />
+            <PageMeta />
             <GalleryLanding photos={photos} />
         </>
     );

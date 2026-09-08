@@ -1,13 +1,13 @@
 import { useId } from 'react';
 
 import { SettingsEntityForm } from '@/components/admin/SettingsEntityForm';
-import type { LogoSpec, SettingsSubmitPayload } from '@/components/admin/settingsForm';
+import type { AdminSiteSettings, LogoSpec, SettingsSubmitPayload } from '@/components/admin/settingsForm';
 import { DataTableDialog } from '@/components/admin/DataTableDialog';
-import type { SiteSettings } from '@/components/public/brand';
+import { primaryTranslation } from '@/lib/translations';
 
 interface SettingsFormDialogProps {
     open: boolean;
-    settings: SiteSettings;
+    settings: AdminSiteSettings;
     logoSpec: LogoSpec;
     onClose: () => void;
     onSubmit: (payload: SettingsSubmitPayload) => void | Promise<void>;
@@ -21,7 +21,7 @@ export function SettingsFormDialog({
     onSubmit,
 }: SettingsFormDialogProps) {
     const formId = useId();
-    const resetKey = `${settings.brandName}-${settings.contactEmail}-${settings.logoColor}`;
+    const resetKey = `${primaryTranslation(settings.brandName)}-${settings.contactEmail}-${settings.logoColor}`;
 
     const handleSubmit = async (payload: SettingsSubmitPayload) => {
         await onSubmit(payload);

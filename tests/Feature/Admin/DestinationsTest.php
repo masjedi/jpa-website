@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Enums\DestinationStatus;
 use App\Models\Destination;
 use App\Models\User;
+use App\Support\Translatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -37,7 +38,7 @@ class DestinationsTest extends TestCase
                 ->component('admin/Destinations')
                 ->has('destinations', 1)
                 ->where('destinations.0.id', $destination->id)
-                ->where('destinations.0.name', 'Bamiyan Valley'));
+                ->where('destinations.0.name.en', 'Bamiyan Valley'));
     }
 
     public function test_authenticated_admin_can_create_update_and_delete_destination(): void
@@ -50,31 +51,26 @@ class DestinationsTest extends TestCase
 
         $destination = Destination::query()->firstOrFail();
 
-        $this->assertDatabaseHas('destinations', [
-            'id' => $destination->id,
-            'name' => 'Bamiyan Valley',
-            'status' => DestinationStatus::Draft->value,
-            'slug' => 'bamiyan-valley',
-            'is_featured' => true,
-        ]);
-
+        $this->assertSame('Bamiyan Valley', Translatable::resolve($destination->name));
+        $this->assertSame(DestinationStatus::Draft, $destination->status);
+        $this->assertSame('bamiyan-valley', $destination->slug);
+        $this->assertTrue($destination->is_featured);
         $this->assertNotNull($destination->cover_media);
 
         $payload = $this->validDestinationPayload();
         unset($payload['cover_image']);
-        $payload['name'] = 'Updated Bamiyan Valley';
+        $payload['name'] = $this->translation('Updated Bamiyan Valley');
         $payload['status'] = 'Published';
 
         $this->actingAs($user)
             ->patch("/admin/destinations/{$destination->id}", $payload)
             ->assertRedirect(route('admin.destinations.index'));
 
-        $this->assertDatabaseHas('destinations', [
-            'id' => $destination->id,
-            'name' => 'Updated Bamiyan Valley',
-            'status' => DestinationStatus::Published->value,
-            'slug' => 'updated-bamiyan-valley',
-        ]);
+        $destination->refresh();
+
+        $this->assertSame('Updated Bamiyan Valley', Translatable::resolve($destination->name));
+        $this->assertSame(DestinationStatus::Published, $destination->status);
+        $this->assertSame('updated-bamiyan-valley', $destination->slug);
 
         $this->actingAs($user)
             ->delete("/admin/destinations/{$destination->id}")
@@ -114,7 +110,7 @@ class DestinationsTest extends TestCase
 
         $payload = $this->validDestinationPayload();
         unset($payload['cover_image']);
-        $payload['name'] = 'Updated without new cover';
+        $payload['name'] = $this->translation('Updated without new cover');
 
         $this->actingAs($user)
             ->patch("/admin/destinations/{$destination->id}", $payload)
@@ -122,7 +118,7 @@ class DestinationsTest extends TestCase
 
         $destination->refresh();
 
-        $this->assertSame('Updated without new cover', $destination->name);
+        $this->assertSame('Updated without new cover', Translatable::resolve($destination->name));
         $this->assertSame($originalCover, $destination->cover_media);
     }
 
@@ -143,15 +139,15 @@ class DestinationsTest extends TestCase
     private function validDestinationPayload(): array
     {
         return [
-            'name' => 'Bamiyan Valley',
-            'tagline' => 'Alpine lakes, cliff monasteries, and highland silence.',
+            'name' => $this->translation('Bamiyan Valley'),
+            'tagline' => $this->translation('Alpine lakes, cliff monasteries, and highland silence.'),
             'region' => 'Central Highlands',
-            'badge' => 'Signature',
-            'description' => '<p>The heart of the Hazarajat highlands.</p>',
-            'highlights_text' => "Band-e Amir lakes\nBuddha niches",
-            'best_season' => 'May – October',
-            'travel_style' => 'Cultural & nature',
-            'practical_notes_text' => "Highland roads from Kabul\nModerate walking",
+            'badge' => $this->translation('Signature'),
+            'description' => $this->translation('<p>The heart of the Hazarajat highlands.</p>'),
+            'highlights_text' => $this->stringListText("Band-e Amir lakes\nBuddha niches"),
+            'best_season' => $this->translation('May – October'),
+            'travel_style' => $this->translation('Cultural & nature'),
+            'practical_notes_text' => $this->stringListText("Highland roads from Kabul\nModerate walking"),
             'tour_match_keywords_text' => "Bamiyan\nCentral Highlands\nBand-e Amir",
             'is_featured' => '1',
             'status' => 'Draft',
@@ -164,15 +160,15 @@ class DestinationsTest extends TestCase
         return Destination::query()->create([
             'slug' => 'existing-destination',
             'status' => DestinationStatus::Published,
-            'name' => 'Bamiyan Valley',
-            'tagline' => 'Highland heritage.',
+            'name' => Translatable::normalize('Bamiyan Valley'),
+            'tagline' => Translatable::normalize('Highland heritage.'),
             'region' => 'Central Highlands',
-            'badge' => 'Signature',
-            'description' => '<p>Existing destination.</p>',
-            'highlights' => ['Highlight one'],
-            'best_season' => 'May – October',
-            'travel_style' => 'Cultural & nature',
-            'practical_notes' => ['Note one'],
+            'badge' => Translatable::normalize('Signature'),
+            'description' => Translatable::normalize('<p>Existing destination.</p>'),
+            'highlights' => Translatable::normalizeStringListStorage(['Highlight one']),
+            'best_season' => Translatable::normalize('May – October'),
+            'travel_style' => Translatable::normalize('Cultural & nature'),
+            'practical_notes' => Translatable::normalizeStringListStorage(['Note one']),
             'tour_match_keywords' => ['Bamiyan'],
             'is_featured' => true,
             'cover_media' => null,

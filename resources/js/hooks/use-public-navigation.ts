@@ -26,6 +26,18 @@ export function usePublicNavigation() {
 
     return useMemo(() => {
         const primaryLinks: PrimaryNavItem[] = primaryLinkDefs.map((item) => {
+            if ('children' in item && item.href === '/tours') {
+                return {
+                    ...item,
+                    label: t('nav.tours'),
+                    children: [
+                        translateNavLink(item.children[0], 'nav.allTours', t),
+                        translateNavLink(item.children[1], 'nav.tourPackages', t),
+                        translateNavLink(item.children[2], 'nav.destinations', t),
+                    ],
+                };
+            }
+
             if ('children' in item) {
                 return {
                     ...item,
@@ -39,8 +51,6 @@ export function usePublicNavigation() {
 
             const keyByHref: Record<string, string> = {
                 '/': 'nav.home',
-                '/tours': 'nav.tours',
-                '/destinations': 'nav.destinations',
                 '/services': 'nav.services',
                 '/articles': 'nav.articles',
                 '/gallery': 'nav.gallery',
@@ -54,7 +64,7 @@ export function usePublicNavigation() {
             const keyByHref: Record<string, string> = {
                 '/': 'nav.home',
                 '/tours': 'nav.toursAndPackages',
-                '/destinations': 'nav.destinations',
+                '/tours?view=destinations': 'nav.destinations',
                 '/gallery': 'nav.gallery',
             };
 

@@ -1,8 +1,10 @@
+import type { TranslatedString } from '@/types/locale';
+
 export interface HeroEyebrowFormValues {
-    eyebrow: string;
+    eyebrow: TranslatedString;
 }
 
-export function createHeroEyebrowFormValues(eyebrow: string): HeroEyebrowFormValues {
+export function createHeroEyebrowFormValues(eyebrow: TranslatedString): HeroEyebrowFormValues {
     return { eyebrow };
 }
 
@@ -15,8 +17,8 @@ export function validateHeroEyebrowFormValues(
 ): HeroEyebrowFormErrors {
     const errors: HeroEyebrowFormErrors = {};
 
-    if (!values.eyebrow.trim()) {
-        errors.eyebrow = 'Required';
+    if (!values.eyebrow.en.trim()) {
+        errors.eyebrow = 'English eyebrow is required';
     }
 
     return errors;

@@ -16,6 +16,7 @@ interface ImageUploadFieldProps {
     className?: string;
     previewAspectClass?: string;
     previewObjectFit?: 'cover' | 'contain';
+    previewMaxHeightClass?: string;
 }
 
 export function ImageUploadField({
@@ -30,6 +31,7 @@ export function ImageUploadField({
     className,
     previewAspectClass = 'aspect-[4/3]',
     previewObjectFit = 'cover',
+    previewMaxHeightClass,
 }: ImageUploadFieldProps) {
     const generatedId = useId();
     const inputId = id ?? generatedId;
@@ -77,12 +79,20 @@ export function ImageUploadField({
                     disabled && 'opacity-60',
                 )}
             >
-                <div className={cn('relative bg-surface-muted', previewAspectClass)}>
+                <div
+                    className={cn(
+                        'relative bg-surface-muted',
+                        previewAspectClass,
+                        previewMaxHeightClass,
+                    )}
+                >
                     {previewUrl ? (
                         <>
                             <img
                                 src={previewUrl}
                                 alt=""
+                                loading="lazy"
+                                decoding="async"
                                 className={cn(
                                     'size-full',
                                     previewObjectFit === 'contain'

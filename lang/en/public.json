@@ -2,6 +2,8 @@
     "nav": {
         "home": "Home",
         "tours": "Tours",
+        "allTours": "All Tours",
+        "tourPackages": "Tour Packages",
         "destinations": "Destinations",
         "services": "Services",
         "articles": "Articles",
@@ -34,13 +36,71 @@
         "subscribe": "Subscribe",
         "subscribing": "Subscribing…"
     },
+    "seo": {
+        "pages": {
+            "home": {
+                "title": "Private Afghanistan Tours",
+                "description": "Explore private Afghanistan tours with trusted local guides. Discover Kabul, Bamiyan, Herat, Panjshir and more through carefully planned journeys."
+            },
+            "tours": {
+                "title": "Tours and Packages",
+                "description": "Explore curated Afghan tour packages and tailored itineraries across Bamiyan, Herat, Kabul and Wakhan. Inquiry only — no instant booking."
+            },
+            "packages": {
+                "title": "Tour Packages",
+                "description": "Browse ready-to-request Afghanistan tour packages with clear durations, route highlights and inclusions. Inquiry only — no instant booking."
+            },
+            "destinations": {
+                "title": "Destinations",
+                "description": "Explore Afghan destinations — Bamiyan, Kabul, Herat, Mazar-i-Sharif and Wakhan — with locally guided travel planning."
+            },
+            "articles": {
+                "title": "Travel Articles",
+                "description": "Travel notes, cultural guides and practical advice for visiting Afghanistan from the Journey to Peace team."
+            },
+            "services": {
+                "title": "Travel Services",
+                "description": "Guided tours, private travel, custom itineraries, local guides, transport and visa support for travel in Afghanistan."
+            },
+            "gallery": {
+                "title": "Travel Gallery",
+                "description": "Travel photography from Afghanistan — landscapes, heritage sites and everyday life captured on guided journeys."
+            },
+            "about": {
+                "title": "About Us",
+                "description": "Learn how Journey to Peace plans private Afghanistan tours with local guides, cultural respect and carefully prepared itineraries."
+            },
+            "team": {
+                "title": "Our Team",
+                "description": "Meet the Afghan guides, planners and coordinators who design and lead every Journey to Peace itinerary."
+            },
+            "booking": {
+                "title": "Custom Tour Request",
+                "description": "Request a custom Afghanistan tour. Our team reviews every request and sends a quotation — this is not an instant booking."
+            },
+            "contact": {
+                "title": "Contact and Inquiry",
+                "description": "Contact Journey to Peace about travel in Afghanistan. Every inquiry is reviewed personally and does not confirm a trip."
+            },
+            "privacy": {
+                "title": "Privacy Policy",
+                "description": "How Journey to Peace collects, uses and protects information you share through inquiry forms and the public website."
+            },
+            "terms": {
+                "title": "Terms and Conditions",
+                "description": "Terms for using the Journey to Peace website and submitting a trip inquiry. Inquiries are not confirmed reservations."
+            }
+        }
+    },
     "language": {
         "label": "Language",
         "choose": "Choose language",
         "current": "Current language: :language",
         "english": "English",
         "dari": "Dari",
-        "pashto": "Pashto"
+        "pashto": "Pashto",
+        "german": "German",
+        "french": "French"
     },
     "buttons": {
         "bookNow": "Book Now",
@@ -53,7 +113,7 @@
         "viewAllTours": "View all tours",
         "exploreAllDestinations": "Explore all destinations",
         "exploreTours": "Explore Tours",
-        "sendInquiry": "Send your Inquiry",
+        "sendInquiry": "Send Inquiry",
         "requestThisTour": "Request This Tour",
         "priceOnRequest": "Price on Request",
         "sendBookingRequest": "Send booking request",
@@ -75,6 +135,9 @@
         "readArticle": "Read Article",
         "findTours": "Find Tours",
         "view": "View",
+        "viewItinerary": "View itinerary",
+        "viewPackage": "View package",
+        "exploreDestination": "Explore destination",
         "browseRegions": "Browse regions",
         "viewTours": "View tours",
         "viewPackages": "View packages",
@@ -96,6 +159,7 @@
         "home": "Home",
         "breadcrumb": "Breadcrumb",
         "clear": "Clear",
+        "clearAll": "Clear all",
         "resetFilters": "Reset filters",
         "region": "Region",
         "difficulty": "Difficulty",
@@ -107,19 +171,35 @@
         "by": "By",
         "article": "article",
         "articles": "articles",
-        "destination": "destination",
+        "destination": "Destination",
         "destinations": "destinations"
     },
     "bookNowDialog": {
-        "title": "How would you like to book?",
+        "title": "Book your tour",
         "description": "This sends a request. It does not reserve a seat or confirm a trip.",
-        "customTitle": "Custom",
+        "customTitle": "Custom Package",
         "customDescription": "Plan your own Afghanistan itinerary with our team.",
-        "fixedTitle": "Fixed",
+        "fixedTitle": "Fixed package",
         "fixedDescription": "Choose a ready-to-request tour package."
     },
     "whatsapp": {
         "chat": "Chat on WhatsApp at :number"
+    },
+    "chat": {
+        "open": "Open chat",
+        "close": "Close chat",
+        "minimize": "Minimize chat",
+        "title": "Chat with us",
+        "greeting": "Hi! How can we help with your Afghanistan journey?",
+        "offlineNotice": "Send us a message and our team will reply as soon as possible.",
+        "placeholder": "Type your message…",
+        "send": "Send",
+        "sending": "Sending…",
+        "continueWhatsApp": "Continue on WhatsApp",
+        "closedNotice": "This conversation is closed. You can still reach us on WhatsApp.",
+        "sendError": "We could not send your message. Please try again.",
+        "loadError": "We could not load messages. Please try again.",
+        "teamTyping": "Our team is typing…"
     },
     "contact": {
         "sendMessage": "Send a message",
@@ -138,7 +218,14 @@
         "formTitle": "Send a message",
         "yourName": "Your name",
         "emailAddress": "Email address",
+        "subject": "Subject",
         "howCanWeHelp": "How can we help?",
+        "errors": {
+            "name": "Please enter your name (at least 2 characters).",
+            "email": "Please enter a valid email address.",
+            "subject": "Please enter a subject (at least 3 characters).",
+            "message": "Please write at least 10 characters in your message."
+        },
         "submitDisclaimer": "Submitting this message does not reserve a seat or confirm a trip.",
         "messageSent": "Message sent",
         "findUs": "Find us",
@@ -151,22 +238,42 @@
     },
     "toursPage": {
         "hero": {
-            "eyebrow": "Guided journeys in Afghanistan",
-            "title": "Tours & packages",
-            "description": "Curated itineraries and flexible packages — planned with local guides, clear permits, and honest advice."
+            "eyebrow": "Explore Afghanistan",
+            "title": "Find your next journey",
+            "description": "Browse guided tours, explore remarkable destinations, and plan a journey around your interests."
+        },
+        "views": {
+            "navLabel": "Browse catalogs",
+            "allTours": "All Tours",
+            "packages": "Tour Packages",
+            "destinations": "Destinations"
+        },
+        "filters": {
+            "title": "Filters",
+            "showResults": "Show results",
+            "sort": "Sort",
+            "sortNewest": "Newest",
+            "sortTitle": "Title A–Z",
+            "sortDurationAsc": "Shortest first",
+            "sortDurationDesc": "Longest first"
         },
         "packages": {
             "eyebrow": "Travel packages",
             "title": "Ready-to-request packages",
-            "description": "All-inclusive bundles — inquiry only, no instant booking."
+            "description": "All-inclusive bundles — inquiry only, no instant booking.",
+            "searchPlaceholder": "Search packages, routes, or inclusions…",
+            "filterNote": "Search packages by title, route highlights, or inclusions.",
+            "noResultsTitle": "No matching packages"
         },
         "catalog": {
             "eyebrow": "Tours",
             "title": "Browse itineraries",
             "countNote": ":shown of :total journeys. Every tour can be private or small group.",
+            "resultsCount": ":count results",
             "searchPlaceholder": "Search tours, places, or themes…",
             "searchAria": "Search tours",
             "travelStyle": "Travel style",
+            "allDestinations": "All destinations",
             "allRegions": "All regions",
             "allStyles": "All styles",
             "allDifficulties": "All difficulties",
@@ -174,6 +281,7 @@
             "upTo5Days": "Up to 5 days",
             "days6to8": "6–8 days",
             "days9Plus": "9+ days",
+            "loadMore": "Load more",
             "noResultsTitle": "No matching tours",
             "noResultsDescription": "Try a different search or clear the filters."
         }
@@ -193,6 +301,8 @@
             "allRegions": "All regions",
             "relatedTour": "related tour",
             "relatedTours": "related tours",
+            "relatedTourCount": ":count related tour",
+            "relatedToursCount": ":count related tours",
             "noResultsTitle": "No destinations found",
             "noResultsFilter": "Try a different search or clear the filters.",
             "noResultsEmpty": "No published destinations yet. Set a destination to Published in Admin → Destinations to show it here."
@@ -360,8 +470,29 @@
         },
         "services": {
             "eyebrow": "Services",
-            "title": "How we support your journey",
-            "description": "From a single day with a local guide to a fully custom itinerary, we coordinate the practical details so you can focus on the experience."
+            "title": "Everything your journey needs, handled locally.",
+            "description": "From local guides and private transport to carefully selected stays, we coordinate the practical details so you can focus on the experience.",
+            "imageAlt": "Local Afghan guide leading travellers along a scenic route in Afghanistan",
+            "cta": "Explore all services",
+            "rowLinkHint": "Learn more about {title}",
+            "items": {
+                "tailorMade": {
+                    "title": "Tailor-made journeys",
+                    "description": "Personal itineraries shaped around your interests, dates and pace."
+                },
+                "privateGuides": {
+                    "title": "Private local guides",
+                    "description": "Experienced Afghan guides with deep knowledge of each destination."
+                },
+                "transport": {
+                    "title": "Transport & logistics",
+                    "description": "Reliable private vehicles and practical coordination throughout your route."
+                },
+                "accommodation": {
+                    "title": "Accommodation support",
+                    "description": "Carefully selected hotels and guesthouses suited to your journey."
+                }
+            }
         },
         "gallery": {
             "eyebrow": "Gallery",
@@ -391,10 +522,10 @@
         "reviewSubmitHint": "Request My Custom Tour stays inactive until the three required confirmations above are ticked.",
         "steps": {
             "trip": { "title": "Trip Preferences", "short": "Trip" },
-            "travelers": { "title": "Travelers", "short": "Travelers" },
+            "travelers": { "title": "Tourists", "short": "Tourists" },
             "services": { "title": "Services", "short": "Services" },
             "documents": { "title": "Travel Documents", "short": "Documents" },
-            "requirements": { "title": "Requirements & Contact", "short": "Requirements" },
+            "requirements": { "title": "Emergency Contact", "short": "Emergency" },
             "review": { "title": "Review & Request", "short": "Review" }
         },
         "options": {
@@ -409,6 +540,7 @@
             "photography": "Photography",
             "communities": "Local Communities",
             "food": "Food & Traditions",
+            "architecture": "Architecture",
             "routeKnow": "I know the destinations I want",
             "routeKnowDesc": "We will plan around the places you select.",
             "routeRecommend": "Recommend the best route",
@@ -420,6 +552,8 @@
             "family": "Family",
             "friends": "Friends",
             "privateGroup": "Private group",
+            "private": "Private",
+            "group": "Group",
             "guide": "Tour guide",
             "guideDesc": "A local guide for your itinerary.",
             "transportation": "Transportation",

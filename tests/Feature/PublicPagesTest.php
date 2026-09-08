@@ -18,7 +18,8 @@ class PublicPagesTest extends TestCase
         return [
             'home' => ['/'],
             'tours' => ['/tours'],
-            'destinations' => ['/destinations'],
+            'tour packages' => ['/tours?view=packages'],
+            'destinations discovery' => ['/tours?view=destinations'],
             'services' => ['/services'],
             'articles' => ['/articles'],
             'about' => ['/about'],
@@ -52,11 +53,11 @@ class PublicPagesTest extends TestCase
     {
         $this->get('/')
             ->assertOk()
-            ->assertDontSee('<meta name="robots" content="noindex, nofollow">', false);
+            ->assertDontSee('noindex, nofollow, noarchive, nosnippet', false);
 
         $this->get('/admin/login')
             ->assertOk()
-            ->assertSee('<meta name="robots" content="noindex, nofollow">', false);
+            ->assertSee('noindex, nofollow, noarchive, nosnippet', false);
     }
 
     public function test_robots_file_allows_public_pages_and_blocks_admin(): void
@@ -65,6 +66,6 @@ class PublicPagesTest extends TestCase
 
         $this->assertStringContainsString("User-agent: *\nAllow: /", $robots);
         $this->assertStringContainsString('Disallow: /admin', $robots);
-        $this->assertStringContainsString('Sitemap: /sitemap.xml', $robots);
+        $this->assertStringContainsString('Sitemap: https://journey-to-afghanistan.com/sitemap.xml', $robots);
     }
 }

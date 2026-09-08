@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\Translatable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,12 +18,14 @@ abstract class TestimonialListingRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name' => ['required', 'string', 'max:120'],
-            'journey' => ['required', 'string', 'max:255'],
-            'text' => ['required', 'string', 'max:2000'],
-            'rating' => ['required', 'integer', 'min:1', 'max:5'],
-            'status' => ['required', 'string', Rule::in(['Published', 'Draft'])],
-        ];
+        return array_merge(
+            Translatable::validationRules('name', maxLength: 120),
+            Translatable::validationRules('journey', maxLength: 255),
+            Translatable::validationRules('text', maxLength: 2000),
+            [
+                'rating' => ['required', 'integer', 'min:1', 'max:5'],
+                'status' => ['required', 'string', Rule::in(['Published', 'Draft'])],
+            ],
+        );
     }
 }

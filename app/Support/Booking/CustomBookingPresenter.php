@@ -24,6 +24,7 @@ class CustomBookingPresenter
                 'reference',
                 'status',
                 'start_date',
+                'end_date',
                 'traveler_count',
                 'created_at',
             ])
@@ -98,7 +99,7 @@ class CustomBookingPresenter
             'statusValue' => $booking->status->value,
             'travelerName' => $primary?->displayName() ?? 'Traveler',
             'email' => (string) ($primary?->email ?? ''),
-            'preferredDate' => $booking->start_date?->format('j M Y') ?? 'To be decided',
+            'preferredDate' => self::preferredDateLabel($booking),
             'travelerCount' => (int) $booking->traveler_count,
             'received' => $booking->created_at?->diffForHumans() ?? '',
         ];
@@ -116,7 +117,7 @@ class CustomBookingPresenter
             'receivedAt' => $booking->created_at?->timezone(config('app.timezone'))->format('d M Y · H:i') ?? '',
             'adults' => (int) $booking->adults,
             'children' => (int) $booking->children,
-            'groupType' => (string) ($booking->group_type ?? ''),
+            'groupType' => CustomBookingOptions::label('group', (string) ($booking->group_type ?? '')),
             'flexibility' => CustomBookingOptions::label('flexibility', (string) $booking->flexibility),
             'season' => (string) ($booking->season ?? ''),
             'durationDays' => (int) $booking->duration_days,
@@ -129,16 +130,16 @@ class CustomBookingPresenter
                 ->map(fn (mixed $interest): string => CustomBookingOptions::label('interest', (string) $interest))
                 ->values()
                 ->all(),
-            'visaStatus' => (string) $booking->visa_status,
-            'insuranceStatus' => (string) $booking->insurance_status,
+            'visaStatus' => CustomBookingOptions::label('visa', (string) $booking->visa_status),
+            'insuranceStatus' => CustomBookingOptions::label('insurance', (string) $booking->insurance_status),
             'emergencyName' => (string) $booking->emergency_name,
             'emergencyRelationship' => (string) $booking->emergency_relationship,
             'emergencyPhone' => (string) $booking->emergency_phone,
-            'dietary' => (string) $booking->dietary,
+            'dietary' => self::dietaryLabel($booking),
             'dietaryDetails' => (string) ($booking->dietary_details ?? ''),
-            'medical' => (string) $booking->medical,
+            'medical' => CustomBookingOptions::label('medical', (string) $booking->medical),
             'medicalDetails' => (string) ($booking->medical_details ?? ''),
-            'contactMethod' => (string) $booking->contact_method,
+            'contactMethod' => CustomBookingOptions::label('contact', (string) $booking->contact_method),
             'specialRequests' => (string) ($booking->special_requests ?? ''),
             'accuracy' => (bool) $booking->accuracy,
             'terms' => (bool) $booking->terms,
@@ -146,23 +147,27 @@ class CustomBookingPresenter
             'marketing' => (bool) $booking->marketing,
             'wantsComplete' => (bool) $booking->wants_complete,
             'wantsGuide' => (bool) $booking->wants_guide,
-            'guideGender' => $booking->wants_guide
-                ? CustomBookingOptions::label('guide_gender', (string) ($booking->guide_gender ?? ''))
-                : '',
+            'guideCount' => $booking->guide_count,
+            'guideGender' => CustomBookingOptions::label('guide_gender', (string) ($booking->guide_gender ?? '')),
             'wantsTransportation' => (bool) $booking->wants_transportation,
             'wantsAccommodation' => (bool) $booking->wants_accommodation,
             'wantsAirport' => (bool) $booking->wants_airport,
             'wantsDomestic' => (bool) $booking->wants_domestic,
             'guideLanguage' => (string) ($booking->guide_language ?? ''),
+            'guideLanguages' => collect(is_array($booking->guide_languages) ? $booking->guide_languages : [])
+                ->map(fn (mixed $language): string => CustomBookingOptions::label('language', (string) $language))
+                ->filter()
+                ->implode(', '),
             'guideLanguageOther' => (string) ($booking->guide_language_other ?? ''),
             'guideRequest' => (string) ($booking->guide_request ?? ''),
-            'vehicle' => (string) ($booking->vehicle ?? ''),
-            'transportCoverage' => (string) ($booking->transport_coverage ?? ''),
+            'vehicle' => CustomBookingOptions::label('vehicle', (string) ($booking->vehicle ?? '')),
+            'transportCoverage' => CustomBookingOptions::label('coverage', (string) ($booking->transport_coverage ?? '')),
             'transportNotes' => (string) ($booking->transport_notes ?? ''),
-            'accommodationLevel' => (string) ($booking->accommodation_level ?? ''),
-            'roomPreference' => (string) ($booking->room_preference ?? ''),
+            'accommodationLevel' => CustomBookingOptions::label('accommodation', (string) ($booking->accommodation_level ?? '')),
+            'roomPreference' => CustomBookingOptions::label('room', (string) ($booking->room_preference ?? '')),
             'roomCount' => $booking->room_count,
             'accommodationNotes' => (string) ($booking->accommodation_notes ?? ''),
+            'airportPickup' => $booking->wants_airport ? 'Yes' : 'No',
             'arrivalAssistance' => (string) ($booking->arrival_assistance ?? ''),
             'arrivalDetailsLater' => (bool) $booking->arrival_details_later,
             'arrivalAirport' => (string) ($booking->arrival_airport ?? ''),
@@ -175,7 +180,7 @@ class CustomBookingPresenter
             'departureDate' => $booking->departure_date?->toDateString() ?? '',
             'departureTime' => (string) ($booking->departure_time ?? ''),
             'departureFlight' => (string) ($booking->departure_flight ?? ''),
-            'domesticPreference' => (string) ($booking->domestic_preference ?? ''),
+            'domesticPreference' => CustomBookingOptions::label('domestic', (string) ($booking->domestic_preference ?? '')),
             'travelers' => $booking->travelers->map(fn ($traveler): array => [
                 'id' => $traveler->id,
                 'isPrimary' => (bool) $traveler->is_primary,
@@ -185,6 +190,11 @@ class CustomBookingPresenter
                 'email' => (string) ($traveler->email ?? ''),
                 'phone' => (string) ($traveler->phone ?? ''),
                 'countryOfResidence' => (string) ($traveler->country_of_residence ?? ''),
+                'isFirstVisit' => match ($traveler->is_first_visit) {
+                    true => 'Yes',
+                    false => 'No',
+                    default => '',
+                },
             ])->values()->all(),
             'documents' => $booking->documents->map(fn ($document): array => [
                 'issuingCountry' => (string) $document->issuing_country,
@@ -210,6 +220,33 @@ class CustomBookingPresenter
             'nextStatus' => $next?->value,
             'nextStatusLabel' => $next?->frontendLabel(),
         ];
+    }
+
+    private static function dietaryLabel(CustomBooking $booking): string
+    {
+        $options = is_array($booking->dietary_options) && $booking->dietary_options !== []
+            ? $booking->dietary_options
+            : (filled($booking->dietary) ? [(string) $booking->dietary] : []);
+
+        return collect($options)
+            ->map(fn (mixed $item): string => CustomBookingOptions::label('dietary', (string) $item))
+            ->filter()
+            ->implode(', ');
+    }
+
+    private static function preferredDateLabel(CustomBooking $booking): string
+    {
+        if ($booking->start_date === null) {
+            return 'To be decided';
+        }
+
+        $start = $booking->start_date->format('j M Y');
+
+        if ($booking->end_date === null) {
+            return $start;
+        }
+
+        return $start.' – '.$booking->end_date->format('j M Y');
     }
 
     private static function fileSizeLabel(int $bytes): string

@@ -4,16 +4,14 @@ import { TourInquiryModal } from '@/components/sections/tours/TourInquiryModal';
 import { TourPackagesSection } from '@/components/sections/tours/TourPackagesSection';
 import { ToursGridSection } from '@/components/sections/tours/ToursGridSection';
 import { ToursHero } from '@/components/sections/tours/ToursHero';
-import type { TourFilterFieldOptions } from '@/types/tourFilterOptions';
 import type { InquiryFormData, Tour, TourPackage } from '@/types/tours';
 
 interface ToursLandingProps {
     tours: Tour[];
     packages: TourPackage[];
-    filterOptions: TourFilterFieldOptions;
 }
 
-export function ToursLanding({ tours, packages, filterOptions }: ToursLandingProps) {
+export function ToursLanding({ tours, packages }: ToursLandingProps) {
     const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
     const [inquiryInitialData, setInquiryInitialData] = useState<InquiryFormData>({
         tourTitle: '',
@@ -51,11 +49,7 @@ export function ToursLanding({ tours, packages, filterOptions }: ToursLandingPro
         <div className="w-full">
             <ToursHero />
             <TourPackagesSection packages={packages} onSelectPackage={handleSelectPackage} />
-            <ToursGridSection
-                tours={tours}
-                filterOptions={filterOptions}
-                onSelectTour={handleSelectTour}
-            />
+            <ToursGridSection tours={tours} onSelectTour={handleSelectTour} />
             <TourInquiryModal
                 isOpen={inquiryModalOpen}
                 onClose={() => setInquiryModalOpen(false)}

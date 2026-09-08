@@ -1,25 +1,10 @@
 import type { ContentRecordStatus, ContentRecordViewModel } from '@/components/admin/contentRecordViewModel';
 import { destinationToFormValues, type DestinationFormStatus } from '@/components/admin/destinationForm';
 import { isRichTextHtml, normalizeRichHtml } from '@/lib/richText';
-import type { Destination } from '@/types/destinations';
+import { primaryTranslation } from '@/lib/translations';
+import type { AdminDestination } from '@/types/destinations';
 
-export type ManagedDestination = {
-    id: number;
-    slug: string;
-    status: DestinationFormStatus;
-    name: string;
-    tagline: string;
-    region: Destination['region'];
-    badge?: string;
-    image: string;
-    description: string;
-    highlights: readonly string[];
-    bestSeason: string;
-    travelStyle: string;
-    practicalNotes: readonly string[];
-    tourMatchKeywords: readonly string[];
-    isFeatured?: boolean;
-    linkedToursCount?: number;
+export type ManagedDestination = AdminDestination & {
     linkedTours?: readonly { id: string; title: string; meta: string }[];
 };
 
@@ -32,24 +17,27 @@ export function buildDestinationViewModel({
     destination,
     status,
 }: BuildDestinationViewModelOptions): ContentRecordViewModel {
-    const description = normalizeRichHtml(destination.description ?? '');
-    const usesRichDescription = isRichTextHtml(description);
+    const name = primaryTranslation(destination.name);
+    const tagline = primaryTranslation(destination.tagline);
+    const badge = primaryTranslation(destination.badge);
+    const descriptionHtml = normalizeRichHtml(primaryTranslation(destination.description));
+    const usesRichDescription = isRichTextHtml(descriptionHtml);
     const linkedTours = destination.linkedTours ?? [];
 
     return {
-        title: destination.name,
-        subtitle: destination.tagline,
+        title: name,
+        subtitle: tagline,
         imageUrl: destination.image,
-        imageAlt: destination.name,
+        imageAlt: name,
         badgeLabel: destination.region,
         status,
-        cardEyebrow: destination.badge || destination.region,
+        cardEyebrow: badge || destination.region,
         cardCtaLabel: 'View destination',
         metaFields: [
             { id: 'region', label: 'Region', value: destination.region },
             { id: 'slug', label: 'Slug', value: destination.slug },
-            { id: 'season', label: 'Best season', value: destination.bestSeason || '—' },
-            { id: 'style', label: 'Travel style', value: destination.travelStyle || '—' },
+            { id: 'season', label: 'Best season', value: primaryTranslation(destination.bestSeason) || '—' },
+            { id: 'style', label: 'Travel style', value: primaryTranslation(destination.travelStyle) || '—' },
             {
                 id: 'featured',
                 label: 'Featured',
@@ -62,8 +50,8 @@ export function buildDestinationViewModel({
                 value: String(destination.linkedToursCount ?? linkedTours.length),
             },
         ],
-        bodyHtml: usesRichDescription ? description : undefined,
-        bodyPlain: usesRichDescription ? undefined : description,
+        bodyHtml: usesRichDescription ? descriptionHtml : undefined,
+        bodyPlain: usesRichDescription ? undefined : descriptionHtml,
         highlights:
             destination.highlights.length > 0 ? [...destination.highlights] : undefined,
         relatedItems:

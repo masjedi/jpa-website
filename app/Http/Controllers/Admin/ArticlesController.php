@@ -11,6 +11,7 @@ use App\Support\Articles\ArticlePresenter;
 use App\Support\Articles\ArticleSlug;
 use App\Support\Media\ArticleCoverImage;
 use App\Support\Media\MediaValidationException;
+use App\Support\Translatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -34,7 +35,7 @@ class ArticlesController extends Controller
                 Article::query()->create(array_merge(
                     ArticleAttributes::fromValidated($validated),
                     [
-                        'slug' => ArticleSlug::unique((string) $validated['title']),
+                        'slug' => ArticleSlug::unique(Translatable::resolve($validated['title'])),
                         'cover_media' => $cover->toArray(),
                     ],
                 ));
@@ -58,7 +59,7 @@ class ArticlesController extends Controller
             DB::transaction(function () use ($validated, $request, $article): void {
                 $attributes = array_merge(
                     ArticleAttributes::fromValidated($validated, $article),
-                    ['slug' => ArticleSlug::unique((string) $validated['title'], $article->id)],
+                    ['slug' => ArticleSlug::unique(Translatable::resolve($validated['title']), $article->id)],
                 );
 
                 if ($request->hasFile('cover_image')) {

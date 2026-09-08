@@ -4,18 +4,38 @@ namespace App\Models;
 
 use App\Enums\TourFilterOptionStatus;
 use App\Enums\TourFilterOptionType;
+use App\Support\Translatable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
     'type',
+    'value',
     'name',
     'status',
     'sort_order',
 ])]
 class TourFilterOption extends Model
 {
+    protected static function booted(): void
+    {
+        static::creating(function (TourFilterOption $option): void {
+            if (is_string($option->name)) {
+                $option->value ??= trim($option->name);
+                $option->name = Translatable::normalize($option->name);
+            } elseif ($option->value === null && is_array($option->name)) {
+                $option->value = Translatable::resolve($option->name, 'en');
+            }
+        });
+
+        static::updating(function (TourFilterOption $option): void {
+            if ($option->isDirty('name') && is_string($option->name)) {
+                $option->name = Translatable::normalize($option->name);
+            }
+        });
+    }
+
     /**
      * @return array<string, string>
      */
@@ -23,6 +43,7 @@ class TourFilterOption extends Model
     {
         return [
             'type' => TourFilterOptionType::class,
+            'name' => 'array',
             'status' => TourFilterOptionStatus::class,
             'sort_order' => 'integer',
         ];
@@ -67,8 +88,8 @@ class TourFilterOption extends Model
         }
 
         return $query
-            ->pluck('name')
-            ->map(fn (mixed $name): string => (string) $name)
+            ->pluck('value')
+            ->map(fn (mixed $value): string => (string) $value)
             ->values()
             ->all();
     }
@@ -82,7 +103,7 @@ class TourFilterOption extends Model
         }
 
         return Tour::query()
-            ->where($column, $this->name)
+            ->where($column, $this->value)
             ->exists();
     }
 }

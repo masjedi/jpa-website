@@ -1,5 +1,8 @@
-import { type FormEvent, useId, useState } from 'react';
+import { type FormEvent, useId, useMemo, useState } from 'react';
 
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
+import { AdminFormField } from '@/components/admin/AdminFormField';
+import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
     createEmptyAboutJourneyStepFormValues,
     type AboutJourneyStepFormErrors,
@@ -7,9 +10,12 @@ import {
     type AboutJourneyStepSubmitPayload,
     validateAboutJourneyStepFormValues,
 } from '@/components/admin/aboutJourneyStepForm';
-import { AdminFormField } from '@/components/admin/AdminFormField';
-import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
+import {
+    buildInitialLocaleMap,
+    localeMapToTranslatedRecord,
+    useLocaleFormFields,
+} from '@/hooks/use-locale-form-fields';
 import { mediaProfiles } from '@/lib/mediaProfiles';
 import type { AboutIconOption } from '@/types/aboutPage';
 import { cn } from '@/lib/utils';
@@ -22,6 +28,14 @@ interface AboutJourneyStepEntityFormProps {
     onCancel: () => void;
     onSubmit: (payload: AboutJourneyStepSubmitPayload) => void | Promise<void>;
 }
+
+const journeyStepTranslatableFields = ['title', 'description', 'imageAlt'] as const;
+
+const emptyJourneyStepFields = {
+    title: '',
+    description: '',
+    imageAlt: '',
+};
 
 export function AboutJourneyStepEntityForm({
     formId,
@@ -38,17 +52,39 @@ export function AboutJourneyStepEntityForm({
     const iconFieldId = useId();
     const statusFieldId = useId();
 
-    const [values, setValues] = useState<AboutJourneyStepFormValues>(
-        () => initialValues ?? createEmptyAboutJourneyStepFormValues(iconOptions),
+    const startingValues =
+        initialValues ?? createEmptyAboutJourneyStepFormValues(iconOptions);
+    const initialByLocale = useMemo(
+        () =>
+            buildInitialLocaleMap(journeyStepTranslatableFields, {
+                title: startingValues.title,
+                description: startingValues.description,
+                imageAlt: startingValues.imageAlt,
+            }),
+        [startingValues.description, startingValues.imageAlt, startingValues.title],
     );
+
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setField,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormFields({
+        initialByLocale,
+        emptyFields: emptyJourneyStepFields,
+    });
+
+    const [iconKey, setIconKey] = useState(startingValues.iconKey);
+    const [status, setStatus] = useState(startingValues.status);
     const [imageFile, setImageFile] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(
-        () => initialValues?.image || null,
-    );
+    const [imagePreview, setImagePreview] = useState<string | null>(startingValues.image || null);
     const [errors, setErrors] = useState<AboutJourneyStepFormErrors>({});
     const [submitting, setSubmitting] = useState(false);
 
-    const hasImage = Boolean(imageFile) || Boolean(values.image.trim());
+    const hasImage = Boolean(imageFile) || Boolean(startingValues.image.trim());
     const submitLabel =
         mode === 'edit'
             ? submitting
@@ -61,7 +97,18 @@ export function AboutJourneyStepEntityForm({
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const nextErrors = validateAboutJourneyStepFormValues(values, hasImage);
+        const localeValues = commitAllLocales();
+        const translated = localeMapToTranslatedRecord(journeyStepTranslatableFields, localeValues);
+        const payloadValues: AboutJourneyStepFormValues = {
+            title: translated.title,
+            description: translated.description,
+            imageAlt: translated.imageAlt,
+            image: startingValues.image,
+            iconKey,
+            status,
+        };
+
+        const nextErrors = validateAboutJourneyStepFormValues(payloadValues, hasImage);
         setErrors(nextErrors);
 
         if (Object.keys(nextErrors).length > 0) {
@@ -72,12 +119,7 @@ export function AboutJourneyStepEntityForm({
 
         try {
             await onSubmit({
-                values: {
-                    ...values,
-                    title: values.title.trim(),
-                    description: values.description.trim(),
-                    imageAlt: values.imageAlt.trim(),
-                },
+                values: payloadValues,
                 imageFile,
             });
         } finally {
@@ -102,23 +144,27 @@ export function AboutJourneyStepEntityForm({
                     onChange={(file, preview) => {
                         setImageFile(file);
                         setImagePreview(preview);
-                        setValues((current) => ({
-                            ...current,
-                            image: preview ? current.image : '',
-                        }));
                         setErrors((current) => ({ ...current, image: undefined }));
                     }}
                     error={errors.image}
                 />
 
-                <div className="grid gap-3">
+                <div className="space-y-3">
+                    <AdminLocaleSelector
+                        activeLocale={activeLocale}
+                        completion={completion}
+                        onChange={switchLocale}
+                        disabled={submitting}
+                    />
+
                     <AdminFormField id={titleFieldId} label="Title" required error={errors.title}>
                         <input
                             id={titleFieldId}
-                            value={values.title}
+                            value={draft.title}
+                            dir={direction}
                             disabled={submitting}
                             onChange={(event) => {
-                                setValues((current) => ({ ...current, title: event.target.value }));
+                                setField('title', event.target.value);
                                 setErrors((current) => ({ ...current, title: undefined }));
                             }}
                             className={cn(adminFieldClass, errors.title && adminFieldErrorClass)}
@@ -133,14 +179,12 @@ export function AboutJourneyStepEntityForm({
                     >
                         <textarea
                             id={descriptionFieldId}
-                            value={values.description}
+                            value={draft.description}
+                            dir={direction}
                             disabled={submitting}
                             rows={4}
                             onChange={(event) => {
-                                setValues((current) => ({
-                                    ...current,
-                                    description: event.target.value,
-                                }));
+                                setField('description', event.target.value);
                                 setErrors((current) => ({ ...current, description: undefined }));
                             }}
                             className={cn(
@@ -159,65 +203,50 @@ export function AboutJourneyStepEntityForm({
                     >
                         <input
                             id={imageAltFieldId}
-                            value={values.imageAlt}
+                            value={draft.imageAlt}
+                            dir={direction}
                             disabled={submitting}
                             onChange={(event) => {
-                                setValues((current) => ({
-                                    ...current,
-                                    imageAlt: event.target.value,
-                                }));
+                                setField('imageAlt', event.target.value);
                                 setErrors((current) => ({ ...current, imageAlt: undefined }));
                             }}
-                            className={cn(adminFieldClass, errors.imageAlt && adminFieldErrorClass)}
+                            className={cn(
+                                adminFieldClass,
+                                errors.imageAlt && adminFieldErrorClass,
+                            )}
                         />
                     </AdminFormField>
 
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <AdminFormField
+                    <AdminFormField id={iconFieldId} label="Icon" required error={errors.iconKey}>
+                        <select
                             id={iconFieldId}
-                            label="Icon"
-                            required
-                            error={errors.iconKey}
+                            value={iconKey}
+                            disabled={submitting}
+                            onChange={(event) => setIconKey(event.target.value)}
+                            className={cn(adminFieldClass, errors.iconKey && adminFieldErrorClass)}
                         >
-                            <select
-                                id={iconFieldId}
-                                value={values.iconKey}
-                                disabled={submitting}
-                                onChange={(event) => {
-                                    setValues((current) => ({
-                                        ...current,
-                                        iconKey: event.target.value,
-                                    }));
-                                    setErrors((current) => ({ ...current, iconKey: undefined }));
-                                }}
-                                className={cn(adminFieldClass, errors.iconKey && adminFieldErrorClass)}
-                            >
-                                {iconOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </AdminFormField>
+                            {iconOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </AdminFormField>
 
-                        <AdminFormField id={statusFieldId} label="Status">
-                            <select
-                                id={statusFieldId}
-                                value={values.status}
-                                disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        status: event.target.value as AboutJourneyStepFormValues['status'],
-                                    }))
-                                }
-                                className={adminFieldClass}
-                            >
-                                <option value="Draft">Draft</option>
-                                <option value="Published">Published</option>
-                            </select>
-                        </AdminFormField>
-                    </div>
+                    <AdminFormField id={statusFieldId} label="Status">
+                        <select
+                            id={statusFieldId}
+                            value={status}
+                            disabled={submitting}
+                            onChange={(event) =>
+                                setStatus(event.target.value as AboutJourneyStepFormValues['status'])
+                            }
+                            className={adminFieldClass}
+                        >
+                            <option value="Draft">Draft</option>
+                            <option value="Published">Published</option>
+                        </select>
+                    </AdminFormField>
                 </div>
             </div>
 

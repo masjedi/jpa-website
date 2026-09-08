@@ -15,6 +15,8 @@ import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
+import { TranslationLocaleBadges } from '@/components/admin/TranslationLocaleBadges';
+import { primaryTranslation } from '@/lib/translations';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 import type {
     ServiceCategory,
@@ -31,13 +33,14 @@ const columns: DataTableColumn<ServiceOffering>[] = [
     {
         id: 'service',
         header: 'Service',
-        accessor: (row) => row.title,
+        accessor: (row) => primaryTranslation(row.title),
         render: (row) => (
             <div className="max-w-md">
-                <p className="font-medium text-foreground">{row.title}</p>
+                <p className="font-medium text-foreground">{primaryTranslation(row.title)}</p>
                 <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                    {row.tagline}
+                    {primaryTranslation(row.tagline)}
                 </p>
+                <TranslationLocaleBadges value={row.title} />
             </div>
         ),
     },
@@ -208,7 +211,7 @@ export default function Services({
                     data={items}
                     columns={columns}
                     rowKey={(row) => row.id}
-                    selectionLabel={(row) => row.title}
+                    selectionLabel={(row) => primaryTranslation(row.title)}
                     emptyTitle="No services yet"
                     emptyDescription="Add the first offering to show it on the public website."
                     initialPageSize={10}
@@ -221,7 +224,7 @@ export default function Services({
             <ContentRecordViewDialog
                 open={viewOpen}
                 title="View service"
-                description={viewingItem?.title}
+                description={viewingItem ? primaryTranslation(viewingItem.title) : undefined}
                 model={viewingItem ? buildServiceViewModel(viewingItem) : null}
                 onClose={closeView}
                 onEdit={openEditFromView}

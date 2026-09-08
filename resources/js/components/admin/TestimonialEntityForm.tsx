@@ -1,41 +1,92 @@
-import { type FormEvent, useId, useState } from 'react';
+import { usePage } from '@inertiajs/react';
+import { type FormEvent, useId, useMemo, useState } from 'react';
 
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
     createEmptyTestimonialFormValues,
+    mapServerTestimonialFormErrors,
     type TestimonialFormErrors,
+    type TestimonialFormSubmitPayload,
     type TestimonialFormValues,
     validateTestimonialFormValues,
 } from '@/components/admin/testimonialForm';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
+import {
+    buildInitialLocaleMap,
+    localeMapToTranslatedRecord,
+    useLocaleFormFields,
+} from '@/hooks/use-locale-form-fields';
 import { cn } from '@/lib/utils';
 
 interface TestimonialEntityFormProps {
     formId: string;
     mode: 'create' | 'edit';
     initialValues?: TestimonialFormValues;
+    uploadHint: string;
     onCancel: () => void;
-    onSubmit: (values: TestimonialFormValues) => void | Promise<void>;
+    onSubmit: (payload: TestimonialFormSubmitPayload) => void | Promise<void>;
 }
+
+const testimonialTranslatableFields = ['name', 'journey', 'text'] as const;
+
+const emptyTestimonialFields = {
+    name: '',
+    journey: '',
+    text: '',
+};
 
 export function TestimonialEntityForm({
     formId,
     mode,
     initialValues,
+    uploadHint,
     onCancel,
     onSubmit,
 }: TestimonialEntityFormProps) {
+    const { errors: serverErrors } = usePage().props;
+    const imageFieldId = useId();
     const nameFieldId = useId();
     const journeyFieldId = useId();
     const textFieldId = useId();
     const ratingFieldId = useId();
     const statusFieldId = useId();
 
-    const [values, setValues] = useState<TestimonialFormValues>(
-        () => initialValues ?? createEmptyTestimonialFormValues(),
+    const startingValues = initialValues ?? createEmptyTestimonialFormValues();
+    const initialByLocale = useMemo(
+        () =>
+            buildInitialLocaleMap(testimonialTranslatableFields, {
+                name: startingValues.name,
+                journey: startingValues.journey,
+                text: startingValues.text,
+            }),
+        [startingValues.journey, startingValues.name, startingValues.text],
     );
-    const [errors, setErrors] = useState<TestimonialFormErrors>({});
+
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setField,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormFields({
+        initialByLocale,
+        emptyFields: emptyTestimonialFields,
+    });
+
+    const [rating, setRating] = useState(startingValues.rating);
+    const [status, setStatus] = useState(startingValues.status);
+    const [avatarImage, setAvatarImage] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState(startingValues.image);
+    const [errors, setErrors] = useState<TestimonialFormErrors>(() =>
+        mapServerTestimonialFormErrors(serverErrors as Record<string, string | string[] | undefined>),
+    );
     const [submitting, setSubmitting] = useState(false);
+
+    const hasImage = avatarImage !== null || startingValues.image.trim() !== '';
 
     const submitLabel =
         mode === 'edit'
@@ -46,10 +97,27 @@ export function TestimonialEntityForm({
               ? 'Saving…'
               : 'Create testimonial';
 
+    const handleImageChange = (file: File | null, nextPreviewUrl: string) => {
+        setAvatarImage(file);
+        setPreviewUrl(nextPreviewUrl);
+        setErrors((current) => ({ ...current, image: undefined }));
+    };
+
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const nextErrors = validateTestimonialFormValues(values);
+        const localeValues = commitAllLocales();
+        const translated = localeMapToTranslatedRecord(testimonialTranslatableFields, localeValues);
+        const payloadValues: TestimonialFormValues = {
+            name: translated.name,
+            journey: translated.journey,
+            text: translated.text,
+            image: startingValues.image,
+            rating,
+            status,
+        };
+
+        const nextErrors = validateTestimonialFormValues(payloadValues, hasImage);
         setErrors(nextErrors);
 
         if (Object.keys(nextErrors).length > 0) {
@@ -60,11 +128,8 @@ export function TestimonialEntityForm({
 
         try {
             await onSubmit({
-                name: values.name.trim(),
-                journey: values.journey.trim(),
-                text: values.text.trim(),
-                rating: values.rating,
-                status: values.status,
+                values: payloadValues,
+                avatarImage,
             });
         } finally {
             setSubmitting(false);
@@ -79,37 +144,54 @@ export function TestimonialEntityForm({
             className="flex min-h-0 flex-1 flex-col"
         >
             <div className="grid gap-3 p-4">
-                <AdminFormField id={nameFieldId} label="Traveller name" required error={errors.name}>
+                <ImageUploadField
+                    id={imageFieldId}
+                    label="Portrait"
+                    required={mode === 'create'}
+                    disabled={submitting}
+                    previewUrl={previewUrl}
+                    onChange={handleImageChange}
+                    error={errors.image}
+                    hint={uploadHint}
+                    previewAspectClass="aspect-square"
+                    previewObjectFit="cover"
+                />
+
+                <AdminLocaleSelector
+                    activeLocale={activeLocale}
+                    completion={completion}
+                    onChange={switchLocale}
+                    disabled={submitting}
+                />
+
+                <AdminFormField id={nameFieldId} label="Name" required error={errors.name}>
                     <input
                         id={nameFieldId}
-                        value={values.name}
+                        value={draft.name}
+                        dir={direction}
                         disabled={submitting}
                         onChange={(event) => {
-                            setValues((current) => ({ ...current, name: event.target.value }));
+                            setField('name', event.target.value);
                             setErrors((current) => ({ ...current, name: undefined }));
                         }}
-                        placeholder="Elena M."
+                        placeholder="Traveler name"
                         aria-invalid={Boolean(errors.name)}
                         aria-describedby={adminFieldDescribedBy(nameFieldId, errors.name)}
                         className={cn(adminFieldClass, errors.name && adminFieldErrorClass)}
                     />
                 </AdminFormField>
 
-                <AdminFormField
-                    id={journeyFieldId}
-                    label="Journey"
-                    required
-                    error={errors.journey}
-                >
+                <AdminFormField id={journeyFieldId} label="Journey" required error={errors.journey}>
                     <input
                         id={journeyFieldId}
-                        value={values.journey}
+                        value={draft.journey}
+                        dir={direction}
                         disabled={submitting}
                         onChange={(event) => {
-                            setValues((current) => ({ ...current, journey: event.target.value }));
+                            setField('journey', event.target.value);
                             setErrors((current) => ({ ...current, journey: undefined }));
                         }}
-                        placeholder="Bamiyan Heritage Circuit, 2025"
+                        placeholder="Bamiyan Valley tour, March 2025"
                         aria-invalid={Boolean(errors.journey)}
                         aria-describedby={adminFieldDescribedBy(journeyFieldId, errors.journey)}
                         className={cn(adminFieldClass, errors.journey && adminFieldErrorClass)}
@@ -119,14 +201,15 @@ export function TestimonialEntityForm({
                 <AdminFormField id={textFieldId} label="Quote" required error={errors.text}>
                     <textarea
                         id={textFieldId}
-                        value={values.text}
+                        value={draft.text}
+                        dir={direction}
                         disabled={submitting}
-                        rows={5}
+                        rows={4}
                         onChange={(event) => {
-                            setValues((current) => ({ ...current, text: event.target.value }));
+                            setField('text', event.target.value);
                             setErrors((current) => ({ ...current, text: undefined }));
                         }}
-                        placeholder="The guide's knowledge turned every site into a story..."
+                        placeholder="What the traveler said about their experience"
                         aria-invalid={Boolean(errors.text)}
                         aria-describedby={adminFieldDescribedBy(textFieldId, errors.text)}
                         className={cn(
@@ -137,54 +220,39 @@ export function TestimonialEntityForm({
                     />
                 </AdminFormField>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                    <AdminFormField
+                <AdminFormField id={ratingFieldId} label="Rating" required error={errors.rating}>
+                    <select
                         id={ratingFieldId}
-                        label="Star rating"
-                        required
-                        error={errors.rating}
+                        value={rating}
+                        disabled={submitting}
+                        onChange={(event) => {
+                            setRating(Number(event.target.value));
+                            setErrors((current) => ({ ...current, rating: undefined }));
+                        }}
+                        className={cn(adminFieldClass, errors.rating && adminFieldErrorClass)}
                     >
-                        <select
-                            id={ratingFieldId}
-                            value={values.rating}
-                            disabled={submitting}
-                            onChange={(event) => {
-                                setValues((current) => ({
-                                    ...current,
-                                    rating: Number(event.target.value),
-                                }));
-                                setErrors((current) => ({ ...current, rating: undefined }));
-                            }}
-                            aria-invalid={Boolean(errors.rating)}
-                            aria-describedby={adminFieldDescribedBy(ratingFieldId, errors.rating)}
-                            className={cn(adminFieldClass, errors.rating && adminFieldErrorClass)}
-                        >
-                            {[5, 4, 3, 2, 1].map((rating) => (
-                                <option key={rating} value={rating}>
-                                    {rating} star{rating === 1 ? '' : 's'}
-                                </option>
-                            ))}
-                        </select>
-                    </AdminFormField>
+                        {[5, 4, 3, 2, 1].map((value) => (
+                            <option key={value} value={value}>
+                                {value} stars
+                            </option>
+                        ))}
+                    </select>
+                </AdminFormField>
 
-                    <AdminFormField id={statusFieldId} label="Status">
-                        <select
-                            id={statusFieldId}
-                            value={values.status}
-                            disabled={submitting}
-                            onChange={(event) =>
-                                setValues((current) => ({
-                                    ...current,
-                                    status: event.target.value as TestimonialFormValues['status'],
-                                }))
-                            }
-                            className={adminFieldClass}
-                        >
-                            <option value="Draft">Draft</option>
-                            <option value="Published">Published</option>
-                        </select>
-                    </AdminFormField>
-                </div>
+                <AdminFormField id={statusFieldId} label="Status">
+                    <select
+                        id={statusFieldId}
+                        value={status}
+                        disabled={submitting}
+                        onChange={(event) =>
+                            setStatus(event.target.value as TestimonialFormValues['status'])
+                        }
+                        className={adminFieldClass}
+                    >
+                        <option value="Draft">Draft</option>
+                        <option value="Published">Published</option>
+                    </select>
+                </AdminFormField>
             </div>
 
             <footer className="flex flex-col-reverse gap-2 border-t border-border bg-surface px-4 py-3 sm:flex-row sm:justify-end">

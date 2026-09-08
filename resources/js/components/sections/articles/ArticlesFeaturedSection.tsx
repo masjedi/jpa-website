@@ -5,6 +5,7 @@ import { FadeIn } from '@/components/motion/FadeIn';
 import { articleShowHref } from '@/components/public/navigation';
 import { BorderGlow } from '@/components/react-bits/BorderGlow/BorderGlow';
 import { useTranslations } from '@/hooks/use-translations';
+import { cardSummaryClass, cardTitleClass } from '@/lib/cardText';
 import type { ArticleListItem } from '@/types/articles';
 
 interface ArticlesFeaturedSectionProps {
@@ -54,7 +55,7 @@ export function ArticlesFeaturedSection({ featured }: ArticlesFeaturedSectionPro
                                     loading="eager"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-black/20" />
-                                <span className="absolute left-4 top-4 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
+                                <span className="absolute start-4 top-4 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
                                     {featured.category}
                                 </span>
                             </Link>
@@ -71,7 +72,7 @@ export function ArticlesFeaturedSection({ featured }: ArticlesFeaturedSectionPro
                                     </span>
                                 </div>
 
-                                <h3 className="font-heading mt-4 text-2xl font-semibold leading-snug text-foreground sm:text-3xl">
+                                <h3 className={`font-heading mt-4 text-2xl font-semibold leading-snug text-foreground sm:text-3xl ${cardTitleClass}`}>
                                     <Link
                                         href={articleShowHref(featured.slug)}
                                         className="transition-colors hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
@@ -80,7 +81,7 @@ export function ArticlesFeaturedSection({ featured }: ArticlesFeaturedSectionPro
                                     </Link>
                                 </h3>
 
-                                <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                                <p className={`mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base ${cardSummaryClass}`}>
                                     {featured.summary}
                                 </p>
 

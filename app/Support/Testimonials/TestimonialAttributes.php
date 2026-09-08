@@ -3,6 +3,7 @@
 namespace App\Support\Testimonials;
 
 use App\Enums\TestimonialStatus;
+use App\Support\Translatable;
 
 class TestimonialAttributes
 {
@@ -14,9 +15,9 @@ class TestimonialAttributes
     {
         return [
             'status' => TestimonialStatus::fromFrontend((string) $validated['status']),
-            'name' => (string) $validated['name'],
-            'journey' => (string) $validated['journey'],
-            'text' => (string) $validated['text'],
+            'name' => Translatable::sanitize($validated['name']),
+            'journey' => Translatable::sanitize($validated['journey']),
+            'text' => Translatable::sanitize($validated['text']),
             'rating' => (int) $validated['rating'],
         ];
     }

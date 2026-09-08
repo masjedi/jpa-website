@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\FaqItemStatus;
 use App\Models\FaqItem;
 use App\Models\User;
+use App\Support\Translatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -28,8 +29,8 @@ class AdminFaqTest extends TestCase
 
         $this->actingAs($user)
             ->post('/admin/faq', [
-                'question' => 'Do I need a visa?',
-                'answer' => 'Most nationalities require a visa in advance.',
+                'question' => $this->translation('Do I need a visa?'),
+                'answer' => $this->translation('Most nationalities require a visa in advance.'),
                 'status' => 'Published',
             ])
             ->assertRedirect(route('admin.faq.index'))
@@ -38,14 +39,14 @@ class AdminFaqTest extends TestCase
         $item = FaqItem::query()->first();
 
         $this->assertNotNull($item);
-        $this->assertSame('Do I need a visa?', $item->question);
+        $this->assertSame('Do I need a visa?', Translatable::resolve($item->question));
         $this->assertSame(FaqItemStatus::Published, $item->status);
         $this->assertSame(1, $item->sort_order);
 
         $this->actingAs($user)
             ->patch("/admin/faq/{$item->id}", [
-                'question' => 'Do I need a visa to visit Afghanistan?',
-                'answer' => 'Updated guidance is available from your embassy.',
+                'question' => $this->translation('Do I need a visa to visit Afghanistan?'),
+                'answer' => $this->translation('Updated guidance is available from your embassy.'),
                 'status' => 'Draft',
             ])
             ->assertRedirect(route('admin.faq.index'));
@@ -53,7 +54,7 @@ class AdminFaqTest extends TestCase
         $item->refresh();
 
         $this->assertSame(FaqItemStatus::Draft, $item->status);
-        $this->assertSame('Do I need a visa to visit Afghanistan?', $item->question);
+        $this->assertSame('Do I need a visa to visit Afghanistan?', Translatable::resolve($item->question));
 
         $this->actingAs($user)
             ->delete("/admin/faq/{$item->id}")
@@ -66,15 +67,15 @@ class AdminFaqTest extends TestCase
     {
         FaqItem::query()->create([
             'status' => FaqItemStatus::Published,
-            'question' => 'Published question',
-            'answer' => 'Published answer',
+            'question' => Translatable::normalize('Published question'),
+            'answer' => Translatable::normalize('Published answer'),
             'sort_order' => 1,
         ]);
 
         FaqItem::query()->create([
             'status' => FaqItemStatus::Draft,
-            'question' => 'Draft question',
-            'answer' => 'Draft answer',
+            'question' => Translatable::normalize('Draft question'),
+            'answer' => Translatable::normalize('Draft answer'),
             'sort_order' => 2,
         ]);
 
@@ -93,10 +94,10 @@ class AdminFaqTest extends TestCase
 
         $this->actingAs($user)
             ->post('/admin/faq', [
-                'question' => '',
-                'answer' => '',
+                'question' => $this->translation(''),
+                'answer' => $this->translation(''),
                 'status' => 'Draft',
             ])
-            ->assertSessionHasErrors(['question', 'answer']);
+            ->assertSessionHasErrors(['question.en', 'answer.en']);
     }
 }

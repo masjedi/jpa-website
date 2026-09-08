@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import { FadeIn } from '@/components/motion/FadeIn';
 import { useTranslations } from '@/hooks/use-translations';
+import { cardSummaryClass, cardTitleClass } from '@/lib/cardText';
 
 export function ServicesProcessSection() {
     const { t } = useTranslations();
@@ -51,15 +52,15 @@ export function ServicesProcessSection() {
 
                 <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     {steps.map((step, index) => (
-                        <FadeIn key={step.step} delay={index * 0.05}>
-                            <article className="relative rounded-2xl border border-border bg-surface p-5 text-start shadow-sm">
+                        <FadeIn key={step.step} delay={index * 0.05} className="h-full">
+                            <article className="relative flex h-full flex-col rounded-2xl border border-border bg-surface p-5 text-start shadow-sm">
                                 <span className="font-heading text-3xl font-bold text-secondary/25">
                                     {step.step}
                                 </span>
-                                <h3 className="font-heading mt-2 text-sm font-semibold text-foreground">
+                                <h3 className={`font-heading mt-2 text-sm font-semibold text-foreground ${cardTitleClass}`}>
                                     {step.title}
                                 </h3>
-                                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                                <p className={`mt-1.5 text-xs leading-relaxed text-muted-foreground ${cardSummaryClass}`}>
                                     {step.description}
                                 </p>
                             </article>

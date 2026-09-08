@@ -1,6 +1,7 @@
 import { usePage } from '@inertiajs/react';
-import { type FormEvent, type ReactNode, useEffect, useId, useState } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useId, useMemo, useState } from 'react';
 
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
@@ -14,6 +15,11 @@ import {
 } from '@/components/admin/destinationForm';
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { LazyRichTextEditor } from '@/components/admin/LazyRichTextEditor';
+import {
+    buildInitialLocaleMap,
+    localeMapToTranslatedRecord,
+    useLocaleFormFields,
+} from '@/hooks/use-locale-form-fields';
 import { mediaProfiles } from '@/lib/mediaProfiles';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +30,28 @@ interface DestinationEntityFormProps {
     onCancel: () => void;
     onSubmit: (payload: DestinationFormSubmitPayload) => void | Promise<void>;
 }
+
+const destinationTranslatableFields = [
+    'name',
+    'tagline',
+    'badge',
+    'description',
+    'highlightsText',
+    'bestSeason',
+    'travelStyle',
+    'practicalNotesText',
+] as const;
+
+const emptyDestinationFields = {
+    name: '',
+    tagline: '',
+    badge: '',
+    description: '',
+    highlightsText: '',
+    bestSeason: '',
+    travelStyle: '',
+    practicalNotesText: '',
+};
 
 function FormDivider() {
     return <div className="border-t border-border/70" aria-hidden />;
@@ -79,13 +107,44 @@ export function DestinationEntityForm({
     const notesFieldId = useId();
     const keywordsFieldId = useId();
 
-    const [values, setValues] = useState<DestinationFormValues>(
-        () => initialValues ?? createEmptyDestinationFormValues(),
+    const startingValues = initialValues ?? createEmptyDestinationFormValues();
+    const initialByLocale = useMemo(
+        () =>
+            buildInitialLocaleMap(destinationTranslatableFields, {
+                name: startingValues.name,
+                tagline: startingValues.tagline,
+                badge: startingValues.badge,
+                description: startingValues.description,
+                highlightsText: startingValues.highlightsText,
+                bestSeason: startingValues.bestSeason,
+                travelStyle: startingValues.travelStyle,
+                practicalNotesText: startingValues.practicalNotesText,
+            }),
+        [startingValues],
     );
+
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setField,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormFields({
+        initialByLocale,
+        emptyFields: emptyDestinationFields,
+    });
+
+    const [region, setRegion] = useState(startingValues.region);
+    const [image, setImage] = useState(startingValues.image);
+    const [tourMatchKeywordsText, setTourMatchKeywordsText] = useState(
+        startingValues.tourMatchKeywordsText,
+    );
+    const [isFeatured, setIsFeatured] = useState(startingValues.isFeatured);
+    const [status, setStatus] = useState(startingValues.status);
     const [imageFile, setImageFile] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(
-        () => initialValues?.image || null,
-    );
+    const [imagePreview, setImagePreview] = useState<string | null>(startingValues.image || null);
     const [errors, setErrors] = useState<DestinationFormErrors>({});
     const [submitting, setSubmitting] = useState(false);
     const { errors: serverErrors } = usePage().props;
@@ -98,7 +157,7 @@ export function DestinationEntityForm({
         }
     }, [serverErrors]);
 
-    const hasImage = Boolean(imageFile) || Boolean((values.image ?? '').trim());
+    const hasImage = Boolean(imageFile) || Boolean(image.trim());
     const submitLabel =
         mode === 'edit'
             ? submitting
@@ -111,7 +170,28 @@ export function DestinationEntityForm({
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const nextErrors = validateDestinationFormValues(values, hasImage);
+        const localeValues = commitAllLocales();
+        const translated = localeMapToTranslatedRecord(
+            destinationTranslatableFields,
+            localeValues,
+        );
+        const payloadValues: DestinationFormValues = {
+            name: translated.name,
+            tagline: translated.tagline,
+            badge: translated.badge,
+            description: translated.description,
+            highlightsText: translated.highlightsText,
+            bestSeason: translated.bestSeason,
+            travelStyle: translated.travelStyle,
+            practicalNotesText: translated.practicalNotesText,
+            region,
+            image,
+            tourMatchKeywordsText: tourMatchKeywordsText.trim(),
+            isFeatured,
+            status,
+        };
+
+        const nextErrors = validateDestinationFormValues(payloadValues, hasImage);
         setErrors(nextErrors);
 
         if (Object.keys(nextErrors).length > 0) {
@@ -121,22 +201,8 @@ export function DestinationEntityForm({
         setSubmitting(true);
 
         try {
-            const text = (value: string | null | undefined): string => (value ?? '').trim();
-
             await onSubmit({
-                values: {
-                    ...values,
-                    name: text(values.name),
-                    tagline: text(values.tagline),
-                    badge: text(values.badge),
-                    image: text(values.image),
-                    description: text(values.description),
-                    highlightsText: text(values.highlightsText),
-                    bestSeason: text(values.bestSeason),
-                    travelStyle: text(values.travelStyle),
-                    practicalNotesText: text(values.practicalNotesText),
-                    tourMatchKeywordsText: text(values.tourMatchKeywordsText),
-                },
+                values: payloadValues,
                 coverImage: imageFile,
             });
         } finally {
@@ -162,10 +228,9 @@ export function DestinationEntityForm({
                         onChange={(file, preview) => {
                             setImageFile(file);
                             setImagePreview(preview);
-                            setValues((current) => ({
-                                ...current,
-                                image: preview ? current.image : '',
-                            }));
+                            if (!preview) {
+                                setImage('');
+                            }
                             setErrors((current) => ({ ...current, image: undefined }));
                         }}
                         error={errors.image}
@@ -175,13 +240,10 @@ export function DestinationEntityForm({
                         <AdminFormField id={statusFieldId} label="Publish status" required>
                             <select
                                 id={statusFieldId}
-                                value={values.status}
+                                value={status}
                                 disabled={submitting}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        status: event.target.value as DestinationFormValues['status'],
-                                    }))
+                                    setStatus(event.target.value as DestinationFormValues['status'])
                                 }
                                 className={adminFieldClass}
                             >
@@ -190,34 +252,13 @@ export function DestinationEntityForm({
                             </select>
                         </AdminFormField>
 
-                        <AdminFormField id={badgeFieldId} label="Badge">
-                            <input
-                                id={badgeFieldId}
-                                value={values.badge}
-                                disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        badge: event.target.value,
-                                    }))
-                                }
-                                placeholder="Signature"
-                                className={adminFieldClass}
-                            />
-                        </AdminFormField>
-
                         <label className="flex items-center gap-2.5 rounded-lg border border-border/70 bg-surface px-3 py-2.5 text-sm font-medium text-foreground">
                             <input
                                 id={featuredFieldId}
                                 type="checkbox"
-                                checked={values.isFeatured}
+                                checked={isFeatured}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        isFeatured: event.target.checked,
-                                    }))
-                                }
+                                onChange={(event) => setIsFeatured(event.target.checked)}
                                 className="size-4 rounded border-border text-secondary focus:ring-focus"
                             />
                             Featured destination
@@ -226,6 +267,13 @@ export function DestinationEntityForm({
                 </aside>
 
                 <div className="min-w-0 space-y-5">
+                    <AdminLocaleSelector
+                        activeLocale={activeLocale}
+                        completion={completion}
+                        onChange={switchLocale}
+                        disabled={submitting}
+                    />
+
                     <FormGroup title="Identity">
                         <AdminFormField
                             id={titleFieldId}
@@ -236,13 +284,11 @@ export function DestinationEntityForm({
                         >
                             <input
                                 id={titleFieldId}
-                                value={values.name}
+                                value={draft.name}
+                                dir={direction}
                                 disabled={submitting}
                                 onChange={(event) => {
-                                    setValues((current) => ({
-                                        ...current,
-                                        name: event.target.value,
-                                    }));
+                                    setField('name', event.target.value);
                                     setErrors((current) => ({ ...current, name: undefined }));
                                 }}
                                 placeholder="Bamiyan Valley"
@@ -255,20 +301,16 @@ export function DestinationEntityForm({
                         <AdminFormField id={regionFieldId} label="Region" required>
                             <select
                                 id={regionFieldId}
-                                value={values.region}
+                                value={region}
                                 disabled={submitting}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        region: event.target
-                                            .value as DestinationFormValues['region'],
-                                    }))
+                                    setRegion(event.target.value as DestinationFormValues['region'])
                                 }
                                 className={adminFieldClass}
                             >
-                                {destinationRegionOptions.map((region) => (
-                                    <option key={region} value={region}>
-                                        {region}
+                                {destinationRegionOptions.map((option) => (
+                                    <option key={option} value={option}>
+                                        {option}
                                     </option>
                                 ))}
                             </select>
@@ -283,13 +325,11 @@ export function DestinationEntityForm({
                         >
                             <input
                                 id={taglineFieldId}
-                                value={values.tagline}
+                                value={draft.tagline}
+                                dir={direction}
                                 disabled={submitting}
                                 onChange={(event) => {
-                                    setValues((current) => ({
-                                        ...current,
-                                        tagline: event.target.value,
-                                    }));
+                                    setField('tagline', event.target.value);
                                     setErrors((current) => ({ ...current, tagline: undefined }));
                                 }}
                                 placeholder="Alpine lakes, cliff monasteries, and highland silence."
@@ -304,6 +344,18 @@ export function DestinationEntityForm({
                                 )}
                             />
                         </AdminFormField>
+
+                        <AdminFormField id={badgeFieldId} label="Badge" className={spanThree}>
+                            <input
+                                id={badgeFieldId}
+                                value={draft.badge}
+                                dir={direction}
+                                disabled={submitting}
+                                onChange={(event) => setField('badge', event.target.value)}
+                                placeholder="Signature"
+                                className={adminFieldClass}
+                            />
+                        </AdminFormField>
                     </FormGroup>
 
                     <FormDivider />
@@ -316,14 +368,10 @@ export function DestinationEntityForm({
                         >
                             <input
                                 id={seasonFieldId}
-                                value={values.bestSeason}
+                                value={draft.bestSeason}
+                                dir={direction}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        bestSeason: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => setField('bestSeason', event.target.value)}
                                 placeholder="May – October"
                                 className={adminFieldClass}
                             />
@@ -336,14 +384,10 @@ export function DestinationEntityForm({
                         >
                             <input
                                 id={styleFieldId}
-                                value={values.travelStyle}
+                                value={draft.travelStyle}
+                                dir={direction}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        travelStyle: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => setField('travelStyle', event.target.value)}
                                 placeholder="Cultural & nature"
                                 className={adminFieldClass}
                             />
@@ -360,14 +404,12 @@ export function DestinationEntityForm({
                         >
                             <textarea
                                 id={highlightsFieldId}
-                                value={values.highlightsText}
+                                value={draft.highlightsText}
+                                dir={direction}
                                 disabled={submitting}
                                 rows={4}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        highlightsText: event.target.value,
-                                    }))
+                                    setField('highlightsText', event.target.value)
                                 }
                                 placeholder={'Buddha cliff niches\nBand-e Amir lakes'}
                                 className={cn(adminFieldClass, 'resize-y')}
@@ -381,14 +423,12 @@ export function DestinationEntityForm({
                         >
                             <textarea
                                 id={notesFieldId}
-                                value={values.practicalNotesText}
+                                value={draft.practicalNotesText}
+                                dir={direction}
                                 disabled={submitting}
                                 rows={4}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        practicalNotesText: event.target.value,
-                                    }))
+                                    setField('practicalNotesText', event.target.value)
                                 }
                                 placeholder={'Highland roads from Kabul\nModerate walking'}
                                 className={cn(adminFieldClass, 'resize-y')}
@@ -402,15 +442,10 @@ export function DestinationEntityForm({
                         >
                             <textarea
                                 id={keywordsFieldId}
-                                value={values.tourMatchKeywordsText}
+                                value={tourMatchKeywordsText}
                                 disabled={submitting}
                                 rows={3}
-                                onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        tourMatchKeywordsText: event.target.value,
-                                    }))
-                                }
+                                onChange={(event) => setTourMatchKeywordsText(event.target.value)}
                                 placeholder={'Bamiyan\nCentral Highlands\nBand-e Amir'}
                                 className={cn(adminFieldClass, 'resize-y')}
                             />
@@ -418,13 +453,15 @@ export function DestinationEntityForm({
 
                         <div className={spanTwo}>
                             <LazyRichTextEditor
+                                key={activeLocale}
                                 id={descriptionFieldId}
                                 label="Description"
                                 required
                                 disabled={submitting}
-                                value={values.description}
+                                dir={direction}
+                                value={draft.description}
                                 onChange={(description) => {
-                                    setValues((current) => ({ ...current, description }));
+                                    setField('description', description);
                                     setErrors((current) => ({
                                         ...current,
                                         description: undefined,

@@ -10,10 +10,7 @@ export default function Booking({ destinations, seasons }: BookingPageProps) {
 
     return (
         <>
-            <PageMeta
-                title="Custom Tour Request"
-                description="Request a custom Afghanistan tour. Share dates, destinations, travelers and services. Our team reviews every request and sends a quotation — this is not an instant booking."
-            />
+            <PageMeta />
             <BookingLanding destinations={destinations} seasons={seasons} />
         </>
     );

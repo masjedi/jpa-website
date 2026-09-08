@@ -68,6 +68,26 @@ class CustomBookingsTest extends TestCase
                 ->missing('booking.attachments.0.media'));
     }
 
+    public function test_admin_can_fetch_a_booking_record_as_json_for_printing(): void
+    {
+        $user = User::factory()->create();
+        $booking = CustomBooking::factory()->create([
+            'emergency_name' => 'Alex Reed',
+            'emergency_phone' => '+49 177 0000000',
+            'dietary' => 'vegetarian',
+            'dietary_options' => ['vegetarian'],
+        ]);
+
+        $this->actingAs($user)
+            ->getJson('/admin/bookings/'.$booking->id)
+            ->assertOk()
+            ->assertJsonPath('booking.reference', $booking->reference)
+            ->assertJsonPath('booking.emergencyName', 'Alex Reed')
+            ->assertJsonPath('booking.emergencyPhone', '+49 177 0000000')
+            ->assertJsonPath('booking.dietary', 'Vegetarian')
+            ->assertJsonPath('booking.email', 'sara@example.com');
+    }
+
     public function test_admin_can_advance_status_but_not_skip_ahead(): void
     {
         $user = User::factory()->create();

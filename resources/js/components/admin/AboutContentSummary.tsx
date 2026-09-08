@@ -1,9 +1,10 @@
 import { Pencil } from 'lucide-react';
 
-import type { AboutPageContent } from '@/types/aboutPage';
+import { primaryTranslation } from '@/lib/translations';
+import type { AdminAboutPageContent } from '@/types/aboutPage';
 
 interface AboutContentSummaryProps {
-    content: AboutPageContent;
+    content: AdminAboutPageContent;
     onEdit: () => void;
 }
 
@@ -35,18 +36,18 @@ export function AboutContentSummary({ content, onEdit }: AboutContentSummaryProp
             <div className="grid gap-2 sm:grid-cols-3">
                 <SummaryBlock
                     label="Journey intro"
-                    title={content.intro.title}
-                    preview={content.intro.description}
+                    title={primaryTranslation(content.intro.title)}
+                    preview={primaryTranslation(content.intro.description)}
                 />
                 <SummaryBlock
                     label="Mission & vision"
-                    title={content.missionSection.title}
-                    preview={`${content.missionVision.mission.title} · ${content.missionVision.vision.title}`}
+                    title={primaryTranslation(content.missionSection.title)}
+                    preview={`${primaryTranslation(content.missionVision.mission.title)} · ${primaryTranslation(content.missionVision.vision.title)}`}
                 />
                 <SummaryBlock
                     label="Call to action"
-                    title={content.cta.title}
-                    preview={`${content.cta.primaryLabel} → ${content.cta.primaryHref}`}
+                    title={primaryTranslation(content.cta.title)}
+                    preview={`${primaryTranslation(content.cta.primaryLabel)} → ${content.cta.primaryHref}`}
                 />
             </div>
 

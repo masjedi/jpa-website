@@ -15,6 +15,8 @@ import {
     type TeamFormSubmitPayload,
 } from '@/components/admin/teamForm';
 import { buildTeamViewModel } from '@/components/admin/teamView';
+import { TranslationLocaleBadges } from '@/components/admin/TranslationLocaleBadges';
+import { primaryTranslation } from '@/lib/translations';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 import type { TeamAvatarSpec, TeamMember } from '@/types/team';
 
@@ -27,7 +29,7 @@ const columns: DataTableColumn<TeamMember>[] = [
     {
         id: 'member',
         header: 'Team member',
-        accessor: (row) => row.name,
+        accessor: (row) => primaryTranslation(row.name),
         render: (row) => (
             <div className="flex items-center gap-3">
                 <img
@@ -36,14 +38,17 @@ const columns: DataTableColumn<TeamMember>[] = [
                     className="size-10 rounded-full bg-surface-muted object-contain object-center"
                 />
                 <div className="max-w-md">
-                    <p className="font-medium text-foreground">{row.name}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{row.role}</p>
+                    <p className="font-medium text-foreground">{primaryTranslation(row.name)}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                        {primaryTranslation(row.role)}
+                    </p>
+                    <TranslationLocaleBadges value={row.name} />
                 </div>
             </div>
         ),
     },
-    { id: 'name', header: 'Name', accessor: (row) => row.name },
-    { id: 'role', header: 'Role', accessor: (row) => row.role },
+    { id: 'name', header: 'Name', accessor: (row) => primaryTranslation(row.name) },
+    { id: 'role', header: 'Role', accessor: (row) => primaryTranslation(row.role) },
     {
         id: 'status',
         header: 'Status',
@@ -93,7 +98,7 @@ function submitTeamForm(
     });
 }
 
-export default function Teams({ members }: TeamsPageProps) {
+export default function Teams({ members, avatarSpec }: TeamsPageProps) {
     const { flash } = usePage().props;
     const [formOpen, setFormOpen] = useState(false);
     const [viewOpen, setViewOpen] = useState(false);
@@ -188,7 +193,7 @@ export default function Teams({ members }: TeamsPageProps) {
                     data={members}
                     columns={columns}
                     rowKey={(row) => row.id}
-                    selectionLabel={(row) => row.name}
+                    selectionLabel={(row) => primaryTranslation(row.name)}
                     initialPageSize={5}
                     onView={openViewDialog}
                     onEdit={openEditForm}
@@ -199,7 +204,7 @@ export default function Teams({ members }: TeamsPageProps) {
             <ContentRecordViewDialog
                 open={viewOpen}
                 title="View team member"
-                description={viewingMember?.name}
+                description={viewingMember ? primaryTranslation(viewingMember.name) : undefined}
                 model={viewingMember ? buildTeamViewModel(viewingMember) : null}
                 onClose={closeView}
                 onEdit={openEditFromView}
@@ -209,6 +214,7 @@ export default function Teams({ members }: TeamsPageProps) {
                 open={formOpen}
                 mode={editingMember ? 'edit' : 'create'}
                 resetKey={editingMember ? `edit-${editingMember.id}` : 'create'}
+                avatarSpec={avatarSpec}
                 initialValues={
                     editingMember ? teamMemberToFormValues(editingMember) : undefined
                 }

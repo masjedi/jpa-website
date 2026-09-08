@@ -29,7 +29,7 @@ export function BookingLanding({ destinations, seasons }: BookingLandingProps) {
                             >
                                 Home
                             </Link>
-                            <ChevronRight className="size-3.5 opacity-50" aria-hidden />
+                            <ChevronRight className="size-3.5 opacity-50 rtl:rotate-180" aria-hidden />
                             <span className="text-brand-on-surface" aria-current="page">
                                 Custom tour request
                             </span>

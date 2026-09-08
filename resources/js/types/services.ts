@@ -1,3 +1,5 @@
+import type { TranslatedString } from '@/types/locale';
+
 export type ServiceCategory = 'Journey' | 'On-ground' | 'Logistics';
 
 export type ServiceOfferingStatus = 'Published' | 'Draft';
@@ -15,12 +17,13 @@ export interface ServiceIconOption {
 
 export interface ServiceOffering {
     id: number;
-    title: string;
+    title: TranslatedString;
     slug: string;
-    tagline: string;
-    description: string;
+    tagline: TranslatedString;
+    description: TranslatedString;
     category: ServiceCategory;
     iconKey: string;
+    featuresText: TranslatedString;
     features: string[];
     isFeatured: boolean;
     showOnHome: boolean;
@@ -43,6 +46,7 @@ export interface PublicServiceOffering {
 
 export interface HomeServicePreview {
     id: number;
+    slug: string;
     title: string;
     description: string;
     iconKey: string;

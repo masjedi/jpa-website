@@ -55,6 +55,7 @@ interface PremiumDataTableProps<T extends object> {
     onView?: (row: T) => void | Promise<void>;
     onEdit?: (row: T) => void | Promise<void>;
     onDelete?: (row: T) => void | Promise<void>;
+    onPrint?: (row: T) => void | Promise<void>;
 }
 
 type DialogName =
@@ -106,6 +107,7 @@ export function PremiumDataTable<T extends object>({
     onView,
     onEdit,
     onDelete,
+    onPrint,
 }: PremiumDataTableProps<T>) {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterColumnId, setFilterColumnId] = useState(columns[0]?.id ?? '');
@@ -360,6 +362,21 @@ export function PremiumDataTable<T extends object>({
             frameWindow.focus();
             frameWindow.print();
         }, 50);
+    };
+
+    const printSelectedRecord = async (asPdf: boolean) => {
+        if (!onPrint || !selectedRow) {
+            printTable(asPdf);
+            return;
+        }
+
+        setProcessingSelection(true);
+        try {
+            await onPrint(selectedRow);
+        } finally {
+            setProcessingSelection(false);
+            setDialog(null);
+        }
     };
 
     const exportCsv = () => {
@@ -753,12 +770,24 @@ export function PremiumDataTable<T extends object>({
 
             <ActionDialog
                 open={dialog === 'print'}
-                title="Print table"
-                description={`Print ${processedRows.length} filtered records using the currently visible columns.`}
-                actionLabel="Print"
+                title={onPrint ? 'Print selected record' : 'Print table'}
+                description={
+                    onPrint
+                        ? selectedRow
+                            ? `Print all received information for ${selectedRowLabel}.`
+                            : 'Select a record first to print its full submitted details.'
+                        : `Print ${processedRows.length} filtered records using the currently visible columns.`
+                }
+                actionLabel={processingSelection ? 'Preparing…' : 'Print'}
                 onClose={() => setDialog(null)}
-                onConfirm={() => printTable(false)}
+                onConfirm={() => printSelectedRecord(false)}
+                disabled={processingSelection || (Boolean(onPrint) && !selectedRow)}
                 icon={<Printer className="size-5" aria-hidden />}
+                note={
+                    onPrint
+                        ? 'The printed document includes the full request, not only the table columns.'
+                        : 'Only the current search, filter, and visible columns are included.'
+                }
             />
 
             <ActionDialog
@@ -774,11 +803,16 @@ export function PremiumDataTable<T extends object>({
 
             <ActionDialog
                 open={dialog === 'pdf'}
-                title="Export as PDF"
-                description="Use your browser print dialog and choose “Save as PDF” as the destination."
-                actionLabel="Open PDF preview"
+                title={onPrint && selectedRow ? 'Export selected record' : 'Export as PDF'}
+                description={
+                    onPrint && selectedRow
+                        ? `Open the print dialog for ${selectedRowLabel} and choose “Save as PDF”.`
+                        : 'Use your browser print dialog and choose “Save as PDF” as the destination.'
+                }
+                actionLabel={processingSelection ? 'Preparing…' : 'Open PDF preview'}
                 onClose={() => setDialog(null)}
-                onConfirm={() => printTable(true)}
+                onConfirm={() => printSelectedRecord(true)}
+                disabled={processingSelection}
                 icon={<FileText className="size-5" aria-hidden />}
             />
 

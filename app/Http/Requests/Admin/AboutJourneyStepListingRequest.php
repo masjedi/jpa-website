@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Support\About\AboutJourneyIcons;
+use App\Support\Translatable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,14 +19,16 @@ abstract class AboutJourneyStepListingRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string', 'max:2000'],
-            'image_alt' => ['required', 'string', 'max:255'],
-            'icon_key' => ['required', 'string', Rule::in(AboutJourneyIcons::keys())],
-            'status' => ['required', 'string', Rule::in(['Published', 'Draft'])],
-            'image' => $this->imageRules(),
-        ];
+        return array_merge(
+            Translatable::validationRules('title', maxLength: 255),
+            Translatable::validationRules('description', maxLength: 2000),
+            Translatable::validationRules('image_alt', maxLength: 255),
+            [
+                'icon_key' => ['required', 'string', Rule::in(AboutJourneyIcons::keys())],
+                'status' => ['required', 'string', Rule::in(['Published', 'Draft'])],
+                'image' => $this->imageRules(),
+            ],
+        );
     }
 
     /**

@@ -17,8 +17,15 @@ export function isNavDropdown(item: PrimaryNavItem): item is PublicNavDropdown {
 
 export const primaryLinks = [
     { label: 'Home', href: '/' },
-    { label: 'Tours', href: '/tours' },
-    { label: 'Destinations', href: '/destinations' },
+    {
+        label: 'Tours',
+        href: '/tours',
+        children: [
+            { label: 'All Tours', href: '/tours' },
+            { label: 'Tour Packages', href: '/tours?view=packages' },
+            { label: 'Destinations', href: '/tours?view=destinations' },
+        ],
+    },
     { label: 'Services', href: '/services' },
     { label: 'Articles', href: '/articles' },
     { label: 'Gallery', href: '/gallery' },
@@ -36,7 +43,7 @@ export const primaryLinks = [
 export const exploreLinks = [
     { label: 'Home', href: '/' },
     { label: 'Tours & Packages', href: '/tours' },
-    { label: 'Destinations', href: '/destinations' },
+    { label: 'Destinations', href: '/tours?view=destinations' },
     { label: 'Gallery', href: '/gallery' },
 ] as const satisfies readonly PublicNavLink[];
 
@@ -61,9 +68,11 @@ export const planTripHref = '/contact';
 
 export const customBookingHref = '/booking';
 
-export const tourPackagesHref = '/tours#packages';
+export const tourPackagesHref = '/tours?view=packages';
 
 export const donateHref = '/contact';
+
+export const servicesHref = '/services';
 
 export function packageShowHref(slug: string): string {
     return `/packages/${slug}`;

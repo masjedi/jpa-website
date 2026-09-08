@@ -7,10 +7,7 @@ import { PublicLayout } from '@/layouts/PublicLayout';
 export default function Privacy() {
     return (
         <>
-            <PageMeta
-                title="Privacy Policy"
-                description="How Journey to Peace Afghanistan Tours collects, uses and protects information you share through inquiry forms and the public website."
-            />
+            <PageMeta />
             <LegalDocument
                 title="Privacy Policy"
                 eyebrow="Your information"

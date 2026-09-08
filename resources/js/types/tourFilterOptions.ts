@@ -1,3 +1,5 @@
+import type { TranslatedString } from '@/types/locale';
+
 export type TourFilterOptionType =
     | 'region'
     | 'travelStyle'
@@ -11,23 +13,29 @@ export type TourFilterOptionStatus = 'Published' | 'Draft';
 export interface TourFilterOption {
     id: number;
     type: TourFilterOptionType;
-    name: string;
+    value: string;
+    name: TranslatedString;
     order: number;
     status: TourFilterOptionStatus;
     updated: string;
 }
 
+export interface PublicFilterChoice {
+    value: string;
+    label: string;
+}
+
 export interface TourFilterFieldOptions {
-    regions: string[];
-    travelStyles: string[];
-    difficulties: string[];
+    regions: PublicFilterChoice[];
+    travelStyles: PublicFilterChoice[];
+    difficulties: PublicFilterChoice[];
 }
 
 export interface HomeFinderOptions {
-    destinations: string[];
-    travelStyles: string[];
-    seasons: string[];
-    groupTypes: string[];
+    destinations: PublicFilterChoice[];
+    travelStyles: PublicFilterChoice[];
+    seasons: PublicFilterChoice[];
+    groupTypes: PublicFilterChoice[];
 }
 
 export const tourFilterOptionTypeLabels: Record<TourFilterOptionType, string> = {

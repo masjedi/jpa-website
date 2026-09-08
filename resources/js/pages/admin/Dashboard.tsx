@@ -4,6 +4,7 @@ import { ArrowRight, BookOpen, Compass, LayoutDashboard, Map, MessageSquareText 
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
 import { AdminSectionPanel } from '@/components/admin/AdminSectionPanel';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
+import { cardSummaryClass, cardTitleClass } from '@/lib/cardText';
 import '@/types/inertia';
 
 const quickLinks = [
@@ -56,7 +57,7 @@ export default function Dashboard() {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className="group rounded-2xl border border-border bg-surface p-5 shadow-sm transition-colors hover:border-secondary/30 hover:bg-surface-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                                className="group flex h-full flex-col rounded-2xl border border-border bg-surface p-5 shadow-sm transition-colors hover:border-secondary/30 hover:bg-surface-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -68,13 +69,13 @@ export default function Dashboard() {
                                         </span>
                                     ) : null}
                                 </div>
-                                <h3 className="mt-4 font-heading text-base font-semibold text-foreground">
+                                <h3 className={`mt-4 font-heading text-base font-semibold text-foreground ${cardTitleClass}`}>
                                     {item.label}
                                 </h3>
-                                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                                <p className={`mt-2 text-sm leading-relaxed text-muted-foreground ${cardSummaryClass}`}>
                                     {item.description}
                                 </p>
-                                <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-secondary">
+                                <span className="mt-auto inline-flex items-center gap-1 pt-4 text-sm font-medium text-secondary">
                                     Open section
                                     <ArrowRight
                                         className="size-4 transition-transform group-hover:translate-x-0.5"

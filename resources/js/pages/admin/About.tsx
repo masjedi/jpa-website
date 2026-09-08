@@ -19,16 +19,18 @@ import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
+import { TranslationLocaleBadges } from '@/components/admin/TranslationLocaleBadges';
+import { primaryTranslation } from '@/lib/translations';
 import type {
     AboutIconOption,
     AboutJourneyImageSpec,
     AboutJourneyStep,
-    AboutPageContent,
+    AdminAboutPageContent,
 } from '@/types/aboutPage';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 
 interface AboutAdminPageProps {
-    content: AboutPageContent;
+    content: AdminAboutPageContent;
     journeySteps: AboutJourneyStep[];
     journeyImageSpec: AboutJourneyImageSpec;
     iconOptions: AboutIconOption[];
@@ -43,13 +45,14 @@ const columns: DataTableColumn<AboutJourneyStep>[] = [
     {
         id: 'step',
         header: 'Journey step',
-        accessor: (row) => row.title,
+        accessor: (row) => primaryTranslation(row.title),
         render: (row) => (
             <div className="max-w-md">
-                <p className="font-medium text-foreground">{row.title}</p>
+                <p className="font-medium text-foreground">{primaryTranslation(row.title)}</p>
                 <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                    {row.description}
+                    {primaryTranslation(row.description)}
                 </p>
+                <TranslationLocaleBadges value={row.title} />
             </div>
         ),
     },
@@ -220,7 +223,7 @@ export default function About({
                     data={journeySteps}
                     columns={columns}
                     rowKey={(row) => row.id}
-                    selectionLabel={(row) => row.title}
+                    selectionLabel={(row) => primaryTranslation(row.title)}
                     initialPageSize={5}
                     onView={openViewDialog}
                     onEdit={openEditForm}
@@ -238,7 +241,7 @@ export default function About({
             <ContentRecordViewDialog
                 open={viewOpen}
                 title="View journey step"
-                description={viewingStep?.title}
+                description={viewingStep ? primaryTranslation(viewingStep.title) : undefined}
                 model={viewingStep ? buildAboutJourneyStepViewModel(viewingStep) : null}
                 onClose={closeView}
                 onEdit={openEditFromView}

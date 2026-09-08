@@ -14,10 +14,7 @@ export default function Destinations({ destinations = [] }: DestinationsPageProp
 
     return (
         <>
-            <PageMeta
-                title="Destinations"
-                description="Explore Afghan destinations — Bamiyan, Kabul, Herat, Mazar-i-Sharif, Wakhan and more — with locally guided travel planning."
-            />
+            <PageMeta />
             <DestinationsLanding destinations={destinations} />
         </>
     );

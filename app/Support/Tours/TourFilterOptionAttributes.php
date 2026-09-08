@@ -5,6 +5,7 @@ namespace App\Support\Tours;
 use App\Enums\TourFilterOptionStatus;
 use App\Enums\TourFilterOptionType;
 use App\Models\Tour;
+use App\Support\Translatable;
 
 class TourFilterOptionAttributes
 {
@@ -12,21 +13,25 @@ class TourFilterOptionAttributes
      * @param  array<string, mixed>  $validated
      * @return array<string, mixed>
      */
-    public static function fromValidated(array $validated): array
+    public static function fromValidated(array $validated, ?string $existingValue = null): array
     {
+        $name = Translatable::sanitize($validated['name']);
+        $value = $existingValue ?? Translatable::resolve($name);
+
         return [
             'type' => TourFilterOptionType::fromFrontend((string) $validated['type']),
-            'name' => trim((string) $validated['name']),
+            'name' => $name,
+            'value' => $value,
             'status' => TourFilterOptionStatus::fromFrontend((string) $validated['status']),
         ];
     }
 
     public static function syncRenamedValue(
         TourFilterOptionType $type,
-        string $previousName,
-        string $nextName,
+        string $previousValue,
+        string $nextValue,
     ): void {
-        if ($previousName === $nextName) {
+        if ($previousValue === $nextValue) {
             return;
         }
 
@@ -37,7 +42,7 @@ class TourFilterOptionAttributes
         }
 
         Tour::query()
-            ->where($column, $previousName)
-            ->update([$column => $nextName]);
+            ->where($column, $previousValue)
+            ->update([$column => $nextValue]);
     }
 }

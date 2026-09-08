@@ -5,6 +5,7 @@ import { packageShowHref } from '@/components/public/navigation';
 import { FadeIn, RevealItem, RevealStagger } from '@/components/motion/FadeIn';
 import { TourOfferBadges } from '@/components/sections/tours/TourOfferBadges';
 import { useTranslations } from '@/hooks/use-translations';
+import { cardLineClass, cardSummaryClass } from '@/lib/cardText';
 import type { TourPackage } from '@/types/tours';
 
 interface TourPackagesSectionProps {
@@ -36,9 +37,9 @@ export function TourPackagesSection({
                     </p>
                 </div>
 
-                <RevealStagger className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                <RevealStagger className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {packages.map((pkg) => (
-                        <RevealItem key={pkg.id}>
+                        <RevealItem key={pkg.id} className="h-full">
                         <article
                             className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface text-start shadow-sm transition-shadow hover:shadow-md"
                         >
@@ -64,11 +65,11 @@ export function TourPackagesSection({
                             </Link>
 
                             <div className="flex flex-1 flex-col p-4">
-                                <p className="text-xs leading-relaxed text-muted-foreground line-clamp-2">
+                                <p className={`text-xs leading-relaxed text-muted-foreground ${cardSummaryClass}`}>
                                     {pkg.tagline}
                                 </p>
 
-                                <p className="mt-2 text-[11px] text-muted-foreground line-clamp-1">
+                                <p className={`mt-2 text-[11px] text-muted-foreground ${cardLineClass}`}>
                                     {pkg.keyDestinations.slice(0, 3).join(' · ')}
                                     {pkg.keyDestinations.length > 3
                                         ? ` +${pkg.keyDestinations.length - 3}`

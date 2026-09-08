@@ -12,6 +12,7 @@ use App\Support\Media\TourCoverImage;
 use App\Support\Tours\TourAttributes;
 use App\Support\Tours\TourPresenter;
 use App\Support\Tours\TourSlug;
+use App\Support\Translatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -36,7 +37,7 @@ class ToursController extends Controller
                 Tour::query()->create(array_merge(
                     TourAttributes::fromValidated($validated, $listingType),
                     [
-                        'slug' => TourSlug::unique((string) $validated['title']),
+                        'slug' => TourSlug::unique(Translatable::resolve($validated['title'])),
                         'cover_media' => $cover->toArray(),
                     ],
                 ));
@@ -64,7 +65,7 @@ class ToursController extends Controller
             DB::transaction(function () use ($validated, $listingType, $request, $tour): void {
                 $attributes = array_merge(
                     TourAttributes::fromValidated($validated, $listingType),
-                    ['slug' => TourSlug::unique((string) $validated['title'], $tour->id)],
+                    ['slug' => TourSlug::unique(Translatable::resolve($validated['title']), $tour->id)],
                 );
 
                 if ($request->hasFile('cover_image')) {

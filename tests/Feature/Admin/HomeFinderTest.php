@@ -6,6 +6,7 @@ use App\Enums\TourFilterOptionStatus;
 use App\Enums\TourFilterOptionType;
 use App\Models\TourFilterOption;
 use App\Models\User;
+use App\Support\Translatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,7 +20,8 @@ class HomeFinderTest extends TestCase
 
         TourFilterOption::query()->create([
             'type' => TourFilterOptionType::Destination,
-            'name' => 'Bamiyan Valley',
+            'value' => 'Bamiyan Valley',
+            'name' => Translatable::normalize('Bamiyan Valley'),
             'status' => TourFilterOptionStatus::Published,
             'sort_order' => 1,
         ]);
@@ -30,7 +32,7 @@ class HomeFinderTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('admin/HomeFinder')
                 ->has('destinations', 1)
-                ->where('destinations.0.name', 'Bamiyan Valley')
+                ->where('destinations.0.name.en', 'Bamiyan Valley')
                 ->has('travelStyles', 0)
                 ->has('seasons', 0)
                 ->has('groupTypes', 0));
@@ -43,7 +45,7 @@ class HomeFinderTest extends TestCase
         $this->actingAs($user)
             ->post('/admin/filter-placement', [
                 'type' => 'destination',
-                'name' => 'Kabul & around',
+                'name' => $this->translation('Kabul & around'),
                 'status' => 'Published',
             ])
             ->assertRedirect(route('admin.home-finder.index'))
@@ -53,7 +55,7 @@ class HomeFinderTest extends TestCase
 
         $this->assertNotNull($option);
         $this->assertSame(TourFilterOptionType::Destination, $option->type);
-        $this->assertSame('Kabul & around', $option->name);
+        $this->assertSame('Kabul & around', Translatable::resolve($option->name));
     }
 
     public function test_guest_cannot_view_home_finder(): void

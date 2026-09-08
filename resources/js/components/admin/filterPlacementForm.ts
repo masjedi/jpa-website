@@ -3,10 +3,17 @@ import type {
     TourFilterOptionStatus,
     TourFilterOptionType,
 } from '@/types/tourFilterOptions';
+import type { TranslatedString } from '@/types/locale';
+import {
+    createEmptyTranslatedString,
+    normalizeTranslatedString,
+} from '@/lib/translations';
+import { buildTranslatableFieldMap, mapTranslatableServerErrors, validateEnglishRequired, type AdminJsonPayload } from '@/lib/translatableForm';
 
 export interface FilterPlacementFormValues {
     type: TourFilterOptionType;
-    name: string;
+    name: TranslatedString;
+    value: string;
     status: TourFilterOptionStatus;
 }
 
@@ -15,7 +22,8 @@ export function createEmptyFilterPlacementFormValues(
 ): FilterPlacementFormValues {
     return {
         type,
-        name: '',
+        name: createEmptyTranslatedString(),
+        value: '',
         status: 'Draft',
     };
 }
@@ -25,7 +33,8 @@ export function filterPlacementToFormValues(
 ): FilterPlacementFormValues {
     return {
         type: option.type,
-        name: option.name,
+        name: normalizeTranslatedString(option.name),
+        value: option.value,
         status: option.status,
     };
 }
@@ -34,13 +43,22 @@ export type FilterPlacementFormField = 'name';
 
 export type FilterPlacementFormErrors = Partial<Record<FilterPlacementFormField, string>>;
 
+const serverFieldMap = buildTranslatableFieldMap('', ['name']);
+
+export function mapServerFilterPlacementFormErrors(
+    errors: Record<string, string | string[] | undefined>,
+): FilterPlacementFormErrors {
+    return mapTranslatableServerErrors(errors, serverFieldMap);
+}
+
 export function validateFilterPlacementFormValues(
     values: FilterPlacementFormValues,
 ): FilterPlacementFormErrors {
     const errors: FilterPlacementFormErrors = {};
 
-    if (!values.name.trim()) {
-        errors.name = 'Required';
+    const nameError = validateEnglishRequired(values.name, 'Name');
+    if (nameError) {
+        errors.name = nameError;
     }
 
     return errors;
@@ -48,10 +66,10 @@ export function validateFilterPlacementFormValues(
 
 export function buildFilterPlacementPayload(
     values: FilterPlacementFormValues,
-): Record<string, string> {
+): AdminJsonPayload {
     return {
         type: values.type,
-        name: values.name.trim(),
+        name: values.name,
         status: values.status,
     };
 }

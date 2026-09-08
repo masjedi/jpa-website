@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateTourFilterOptionRequest;
 use App\Models\TourFilterOption;
 use App\Support\Tours\TourFilterOptionAttributes;
 use App\Support\Tours\TourFilterOptionPresenter;
+use App\Support\Translatable;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -37,17 +38,20 @@ class FilterPlacementController extends Controller
 
     public function update(UpdateTourFilterOptionRequest $request, TourFilterOption $tourFilterOption): RedirectResponse
     {
-        $attributes = TourFilterOptionAttributes::fromValidated($request->validated());
+        $attributes = TourFilterOptionAttributes::fromValidated(
+            $request->validated(),
+            $tourFilterOption->value,
+        );
         $attributes['type'] = $tourFilterOption->type;
 
-        $previousName = (string) $tourFilterOption->name;
+        $previousValue = (string) $tourFilterOption->value;
 
         $tourFilterOption->update($attributes);
 
         TourFilterOptionAttributes::syncRenamedValue(
             $tourFilterOption->type,
-            $previousName,
-            (string) $tourFilterOption->name,
+            $previousValue,
+            (string) $tourFilterOption->value,
         );
 
         return redirect()
@@ -60,7 +64,7 @@ class FilterPlacementController extends Controller
         if ($tourFilterOption->isUsedByTours()) {
             return redirect()
                 ->route($tourFilterOption->type->adminIndexRouteName())
-                ->with('error', "{$tourFilterOption->name} is used by existing tours. Reassign those listings before removing it.");
+                ->with('error', Translatable::resolve($tourFilterOption->name).' is used by existing tours. Reassign those listings before removing it.');
         }
 
         $label = $tourFilterOption->type->label();

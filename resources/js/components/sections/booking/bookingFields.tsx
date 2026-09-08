@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 import type { ChoiceOption } from '@/components/sections/booking/bookingOptions';
@@ -73,6 +74,8 @@ interface TextFieldProps {
     spellCheck?: boolean;
     autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
     autoCorrect?: 'on' | 'off';
+    readOnly?: boolean;
+    disabled?: boolean;
 }
 
 export function BookingTextField({
@@ -95,6 +98,8 @@ export function BookingTextField({
     spellCheck,
     autoCapitalize,
     autoCorrect,
+    readOnly,
+    disabled,
 }: TextFieldProps) {
     const describedBy = [hint && !error ? `${id}-hint` : null, error ? `${id}-error` : null]
         .filter(Boolean)
@@ -120,9 +125,15 @@ export function BookingTextField({
                 autoCapitalize={autoCapitalize}
                 autoCorrect={autoCorrect}
                 required={required}
+                readOnly={readOnly}
+                disabled={disabled}
                 aria-invalid={error ? true : undefined}
                 aria-describedby={describedBy}
-                className={cn(bookingFieldClass, error && bookingFieldErrorClass)}
+                className={cn(
+                    bookingFieldClass,
+                    error && bookingFieldErrorClass,
+                    (readOnly || disabled) && 'cursor-default bg-surface-muted',
+                )}
             />
         </BookingFieldShell>
     );
@@ -246,6 +257,7 @@ interface OptionCardsProps<T extends string> {
     hint?: string;
     multiple?: boolean;
     columns?: 1 | 2 | 3;
+    hideLegend?: boolean;
 }
 
 export function OptionCards<T extends string>({
@@ -258,6 +270,7 @@ export function OptionCards<T extends string>({
     hint,
     multiple = false,
     columns = 2,
+    hideLegend = false,
 }: OptionCardsProps<T>) {
     const selected = Array.isArray(value) ? value : value === '' ? [] : [value];
     const hintId = hint ? `${name}-hint` : undefined;
@@ -269,7 +282,7 @@ export function OptionCards<T extends string>({
             aria-invalid={error ? true : undefined}
             aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}
         >
-            <legend className={bookingLabelClass}>{legend}</legend>
+            <legend className={cn(bookingLabelClass, hideLegend && 'sr-only')}>{legend}</legend>
             {hint && !error ? (
                 <p id={hintId} className={bookingHelperClass}>
                     {hint}
@@ -367,24 +380,40 @@ interface ConsentCheckboxProps {
     onChange: (checked: boolean) => void;
     error?: string;
     required?: boolean;
+    disabled?: boolean;
     children: ReactNode;
 }
 
-export function ConsentCheckbox({ id, checked, onChange, error, required, children }: ConsentCheckboxProps) {
+export function ConsentCheckbox({
+    id,
+    checked,
+    onChange,
+    error,
+    required,
+    disabled,
+    children,
+}: ConsentCheckboxProps) {
     return (
         <div data-field={id}>
-            <label htmlFor={id} className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-foreground">
+            <label
+                htmlFor={id}
+                className={cn(
+                    'flex items-start gap-3 text-sm leading-relaxed text-foreground',
+                    disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+                )}
+            >
                 <input
                     id={id}
                     name={id}
                     type="checkbox"
                     checked={checked}
+                    disabled={disabled}
                     onChange={(event) => onChange(event.target.checked)}
                     required={required}
                     aria-required={required || undefined}
                     aria-invalid={error ? true : undefined}
                     className={cn(
-                        'mt-0.5 size-4 shrink-0 rounded border-border text-secondary focus:outline-focus',
+                        'mt-0.5 size-4 shrink-0 rounded border-border text-secondary focus:outline-focus disabled:cursor-not-allowed',
                         error && 'border-red-500 dark:border-red-400',
                     )}
                 />
@@ -396,6 +425,110 @@ export function ConsentCheckbox({ id, checked, onChange, error, required, childr
                 </p>
             ) : null}
         </div>
+    );
+}
+
+interface ExclusiveCheckboxesProps {
+    id: string;
+    label: string;
+    value: string;
+    options: readonly { value: string; label: string }[];
+    error?: string;
+    hideLabel?: boolean;
+    onChange: (value: string) => void;
+}
+
+export function BookingExclusiveCheckboxes({
+    id,
+    label,
+    value,
+    options,
+    error,
+    hideLabel = false,
+    onChange,
+}: ExclusiveCheckboxesProps) {
+    const errorId = error ? `${id}-error` : undefined;
+
+    return (
+        <fieldset
+            data-field={id}
+            aria-invalid={error ? true : undefined}
+            aria-required
+            aria-describedby={errorId}
+        >
+            <legend className={cn(bookingLabelClass, hideLabel && 'sr-only')}>{label}</legend>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-6 gap-y-2">
+                {options.map((option) => {
+                    const optionId = `${id}-${option.value}`;
+
+                    return (
+                        <label
+                            key={option.value}
+                            htmlFor={optionId}
+                            className="flex cursor-pointer items-center gap-2 text-sm text-foreground"
+                        >
+                            <input
+                                id={optionId}
+                                type="checkbox"
+                                checked={value === option.value}
+                                aria-invalid={error ? true : undefined}
+                                onChange={() => onChange(option.value)}
+                                className={cn(
+                                    'size-4 shrink-0 rounded border-border text-secondary focus:outline-focus',
+                                    error && 'border-red-500 dark:border-red-400',
+                                )}
+                            />
+                            <span>{option.label}</span>
+                        </label>
+                    );
+                })}
+            </div>
+            {error ? (
+                <p id={errorId} className={bookingErrorClass} role="alert">
+                    {error}
+                </p>
+            ) : null}
+        </fieldset>
+    );
+}
+
+export function BookingAccordion({
+    title,
+    children,
+    forceOpen = false,
+}: {
+    title: string;
+    children: ReactNode;
+    forceOpen?: boolean;
+}) {
+    const [open, setOpen] = useState(false);
+
+    useEffect(() => {
+        if (forceOpen) {
+            setOpen(true);
+        }
+    }, [forceOpen]);
+
+    return (
+        <details
+            className="group rounded-2xl border border-border bg-background open:bg-surface-muted/40"
+            open={open}
+        >
+            <summary
+                onClick={(event) => {
+                    event.preventDefault();
+                    setOpen((current) => !current);
+                }}
+                className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-start font-heading text-base font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden"
+            >
+                {title}
+                <ChevronDown
+                    className="size-4 shrink-0 text-secondary transition-transform group-open:rotate-180 motion-reduce:transition-none"
+                    aria-hidden
+                />
+            </summary>
+            <div className="px-5 pb-5 pt-1">{children}</div>
+        </details>
     );
 }
 

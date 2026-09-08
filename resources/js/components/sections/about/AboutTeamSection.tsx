@@ -2,12 +2,10 @@ import { Mail, MessageCircle } from 'lucide-react';
 
 import { FadeIn } from '@/components/motion/FadeIn';
 import { useTranslations } from '@/hooks/use-translations';
+import { cardSummaryClass, cardSubtitleClass, cardTitleClass } from '@/lib/cardText';
 import { buildWebMailComposeHref } from '@/lib/mailto';
 import { cn } from '@/lib/utils';
 import type { PublicTeamMember } from '@/types/team';
-
-const BAND_TEXTURE =
-    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1600&q=60';
 
 function TeamMemberCard({
     member,
@@ -35,17 +33,17 @@ function TeamMemberCard({
                     />
                 </div>
 
-                <h3 className="font-heading mt-5 text-sm font-bold uppercase tracking-[0.14em] text-foreground sm:text-[0.9375rem]">
+                <h3 className={`font-heading mt-5 text-sm font-bold uppercase tracking-[0.14em] text-foreground sm:text-[0.9375rem] ${cardTitleClass}`}>
                     {member.name}
                 </h3>
-                <p className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                <p className={`mt-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground ${cardSubtitleClass}`}>
                     {member.role}
                 </p>
-                <p className="mt-3 max-w-[16rem] text-sm leading-relaxed text-muted-foreground">
+                <p className={`mt-3 max-w-[16rem] text-sm leading-relaxed text-muted-foreground ${cardSummaryClass}`}>
                     {member.bio}
                 </p>
 
-                <div className="mt-5 flex items-center justify-center gap-2">
+                <div className="mt-auto flex items-center justify-center gap-2 pt-5">
                     <a
                         href={buildWebMailComposeHref(member.email)}
                         target="_blank"
@@ -70,7 +68,13 @@ function TeamMemberCard({
     );
 }
 
-export function AboutTeamSection({ members }: { members: PublicTeamMember[] }) {
+export function AboutTeamSection({
+    members,
+    bandImage,
+}: {
+    members: PublicTeamMember[];
+    bandImage: string;
+}) {
     const { t } = useTranslations();
 
     return (
@@ -79,7 +83,7 @@ export function AboutTeamSection({ members }: { members: PublicTeamMember[] }) {
                 <div
                     aria-hidden
                     className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-[0.22]"
-                    style={{ backgroundImage: `url(${BAND_TEXTURE})` }}
+                    style={{ backgroundImage: `url(${bandImage})` }}
                 />
                 <div
                     aria-hidden

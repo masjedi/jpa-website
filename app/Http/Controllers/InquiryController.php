@@ -20,7 +20,7 @@ class InquiryController extends Controller
             'status' => InquiryStatus::New,
             'name' => trim((string) $validated['name']),
             'email' => mb_strtolower(trim((string) $validated['email'])),
-            'subject' => trim((string) $validated['topic']),
+            'subject' => trim((string) $validated['subject']),
             'message' => trim((string) $validated['message']),
             'read_at' => null,
         ]);

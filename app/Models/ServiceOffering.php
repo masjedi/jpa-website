@@ -40,6 +40,9 @@ class ServiceOffering extends Model
         return [
             'status' => ServiceOfferingStatus::class,
             'category' => ServiceOfferingCategory::class,
+            'title' => 'array',
+            'tagline' => 'array',
+            'description' => 'array',
             'features' => 'array',
             'is_featured' => 'boolean',
             'show_on_home' => 'boolean',

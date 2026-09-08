@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\HeroSlideStatus;
 use App\Models\HeroSection;
+use App\Support\Translatable;
 use Illuminate\Database\Seeder;
 
 class HeroSectionSeeder extends Seeder
@@ -15,31 +16,31 @@ class HeroSectionSeeder extends Seeder
     {
         $section = HeroSection::query()->updateOrCreate(
             ['id' => 1],
-            ['eyebrow' => 'Premium guided travel in Afghanistan'],
+            ['eyebrow' => Translatable::normalize('Premium guided travel in Afghanistan')],
         );
 
         $slides = [
             [
-                'title' => 'Discover Afghanistan with trusted local guidance',
-                'subtitle' => 'Landscapes, heritage and hospitality — planned with people who know the country deeply.',
+                'title' => Translatable::normalize('Discover Afghanistan with trusted local guidance'),
+                'subtitle' => Translatable::normalize('Landscapes, heritage and hospitality — planned with people who know the country deeply.'),
                 'status' => HeroSlideStatus::Published,
                 'sort_order' => 1,
             ],
             [
-                'title' => 'Experience a country rich in stories and tradition',
-                'subtitle' => 'Travel thoughtfully through ancient cities, dramatic valleys and welcoming communities.',
+                'title' => Translatable::normalize('Experience a country rich in stories and tradition'),
+                'subtitle' => Translatable::normalize('Travel thoughtfully through ancient cities, dramatic valleys and welcoming communities.'),
                 'status' => HeroSlideStatus::Published,
                 'sort_order' => 2,
             ],
             [
-                'title' => 'Plan an Afghanistan journey shaped around you',
-                'subtitle' => 'Explore at your pace with local insight, careful planning and personal support throughout.',
+                'title' => Translatable::normalize('Plan an Afghanistan journey shaped around you'),
+                'subtitle' => Translatable::normalize('Explore at your pace with local insight, careful planning and personal support throughout.'),
                 'status' => HeroSlideStatus::Published,
                 'sort_order' => 3,
             ],
             [
-                'title' => 'Walk ancient routes with guides who know every valley',
-                'subtitle' => 'A draft slide for the next homepage campaign — not yet visible on the public site.',
+                'title' => Translatable::normalize('Walk ancient routes with guides who know every valley'),
+                'subtitle' => Translatable::normalize('A draft slide for the next homepage campaign — not yet visible on the public site.'),
                 'status' => HeroSlideStatus::Draft,
                 'sort_order' => 4,
             ],

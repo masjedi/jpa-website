@@ -39,7 +39,7 @@ export function BrandLogo({
                 width={300}
                 height={70}
                 className={cn(
-                    'h-8 w-auto object-contain object-left sm:h-9',
+                    'h-8 w-auto object-contain object-start sm:h-9',
                     imageClassName,
                 )}
                 decoding="async"

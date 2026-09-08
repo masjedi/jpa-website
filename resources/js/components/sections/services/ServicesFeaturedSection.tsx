@@ -3,6 +3,7 @@ import { Check } from 'lucide-react';
 import { FadeIn } from '@/components/motion/FadeIn';
 import { BorderGlow } from '@/components/react-bits/BorderGlow/BorderGlow';
 import { useTranslations } from '@/hooks/use-translations';
+import { cardLineClass, cardSummaryClass, cardSubtitleClass, cardTitleClass } from '@/lib/cardText';
 import { resolveServiceIcon } from '@/lib/serviceIcons';
 import type { PublicServiceOffering } from '@/types/services';
 
@@ -37,7 +38,7 @@ export function ServicesFeaturedSection({ offerings }: ServicesFeaturedSectionPr
                         const Icon = resolveServiceIcon(service.iconKey);
 
                         return (
-                            <FadeIn key={service.id} delay={index * 0.06}>
+                            <FadeIn key={service.id} delay={index * 0.06} className="h-full">
                                 <BorderGlow
                                     className="h-full"
                                     backgroundColor="var(--surface)"
@@ -56,21 +57,21 @@ export function ServicesFeaturedSection({ offerings }: ServicesFeaturedSectionPr
                                                 <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
                                                     {service.category}
                                                 </p>
-                                                <h3 className="font-heading mt-1 text-xl font-semibold text-foreground">
+                                                <h3 className={`font-heading mt-1 text-xl font-semibold text-foreground ${cardTitleClass}`}>
                                                     {service.title}
                                                 </h3>
-                                                <p className="mt-1 text-sm text-muted-foreground">
+                                                <p className={`mt-1 text-sm text-muted-foreground ${cardSubtitleClass}`}>
                                                     {service.tagline}
                                                 </p>
                                             </div>
                                         </div>
 
-                                        <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
+                                        <p className={`mt-5 text-sm leading-relaxed text-muted-foreground ${cardSummaryClass}`}>
                                             {service.description}
                                         </p>
 
-                                        <ul className="mt-5 space-y-2 border-t border-border pt-5">
-                                            {service.features.map((feature) => (
+                                        <ul className="mt-auto space-y-2 border-t border-border pt-5">
+                                            {service.features.slice(0, 3).map((feature) => (
                                                 <li
                                                     key={feature}
                                                     className="flex items-start gap-2.5 text-sm text-muted-foreground"
@@ -79,7 +80,7 @@ export function ServicesFeaturedSection({ offerings }: ServicesFeaturedSectionPr
                                                         className="mt-0.5 size-4 shrink-0 text-secondary"
                                                         aria-hidden
                                                     />
-                                                    <span>{feature}</span>
+                                                    <span className={cardLineClass}>{feature}</span>
                                                 </li>
                                             ))}
                                         </ul>

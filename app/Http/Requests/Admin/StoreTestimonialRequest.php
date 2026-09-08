@@ -2,4 +2,20 @@
 
 namespace App\Http\Requests\Admin;
 
-class StoreTestimonialRequest extends TestimonialListingRequest {}
+use App\Support\Media\TestimonialAvatarImage;
+
+class StoreTestimonialRequest extends TestimonialListingRequest
+{
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    public function rules(): array
+    {
+        return array_merge(
+            parent::rules(),
+            [
+                'avatar_image' => TestimonialAvatarImage::validationRules(required: true),
+            ],
+        );
+    }
+}

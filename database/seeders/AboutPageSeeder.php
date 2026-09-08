@@ -7,6 +7,7 @@ use App\Models\AboutJourneyStep;
 use App\Models\AboutPage;
 use App\Support\About\AboutPageDefaults;
 use App\Support\Media\AboutJourneyImage;
+use App\Support\Translatable;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -28,10 +29,10 @@ class AboutPageSeeder extends Seeder
 
             AboutJourneyStep::query()->create([
                 'status' => AboutJourneyStepStatus::Published,
-                'title' => $step['title'],
-                'description' => $step['description'],
+                'title' => Translatable::normalize($step['title']),
+                'description' => Translatable::normalize($step['description']),
                 'image_media' => $imageMedia,
-                'image_alt' => $step['image_alt'],
+                'image_alt' => Translatable::normalize($step['image_alt']),
                 'icon_key' => $step['icon_key'],
                 'sort_order' => $index + 1,
             ]);

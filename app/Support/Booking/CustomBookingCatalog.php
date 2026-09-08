@@ -4,6 +4,7 @@ namespace App\Support\Booking;
 
 use App\Models\Destination;
 use App\Support\Tours\TourFilterOptionPresenter;
+use App\Support\Translatable;
 
 class CustomBookingCatalog
 {
@@ -12,7 +13,7 @@ class CustomBookingCatalog
      */
     public static function destinationNames(): array
     {
-        return BookingPagePresenter::forPublicForm()['destinations'];
+        return AfghanistanProvinces::names();
     }
 
     /**
@@ -20,16 +21,7 @@ class CustomBookingCatalog
      */
     public static function allowedDestinationNames(): array
     {
-        $names = collect(self::destinationNames())
-            ->map(fn (string $name): string => trim($name))
-            ->filter()
-            ->values();
-
-        if (! $names->contains(fn (string $name): bool => strcasecmp($name, CustomBookingOptions::OTHER_DESTINATION) === 0)) {
-            $names->push(CustomBookingOptions::OTHER_DESTINATION);
-        }
-
-        return $names->all();
+        return self::destinationNames();
     }
 
     /**
@@ -38,7 +30,10 @@ class CustomBookingCatalog
     public static function allowedSeasonValues(): array
     {
         $seasons = collect(TourFilterOptionPresenter::forPublicHomeFinder()['seasons'])
-            ->map(fn (mixed $name): string => trim((string) $name))
+            ->flatMap(fn (array $choice): array => [
+                trim((string) ($choice['value'] ?? '')),
+                trim((string) ($choice['label'] ?? '')),
+            ])
             ->filter()
             ->values();
 
@@ -49,11 +44,63 @@ class CustomBookingCatalog
 
     public static function destinationIdForName(string $name): ?int
     {
-        $id = Destination::query()
-            ->published()
-            ->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])
-            ->value('id');
+        $needle = mb_strtolower(trim($name));
 
-        return $id !== null ? (int) $id : null;
+        if ($needle === '') {
+            return null;
+        }
+
+        foreach (Destination::query()->published()->get(['id', 'name']) as $destination) {
+            if (self::storedNameMatches($destination->name, $needle)) {
+                return $destination->id;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  list<string>  $names
+     * @return array<string, int>
+     */
+    public static function publishedDestinationIdsByName(array $names): array
+    {
+        if ($names === []) {
+            return [];
+        }
+
+        $destinations = Destination::query()->published()->get(['id', 'name']);
+        $map = [];
+
+        foreach ($names as $name) {
+            $key = mb_strtolower(trim($name));
+
+            if ($key === '') {
+                continue;
+            }
+
+            foreach ($destinations as $destination) {
+                if (self::storedNameMatches($destination->name, $key)) {
+                    $map[$key] = $destination->id;
+                    break;
+                }
+            }
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param  array<string, string>|string|null  $storedName
+     */
+    private static function storedNameMatches(array|string|null $storedName, string $needle): bool
+    {
+        foreach (Translatable::normalize($storedName) as $candidate) {
+            if (mb_strtolower(trim($candidate)) === $needle) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

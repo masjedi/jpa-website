@@ -56,7 +56,7 @@ class CustomBookingRequestReceivedTest extends TestCase
         $booking = CustomBooking::factory()->create([
             'reference' => 'JTP-2026-00001',
             'wants_complete' => true,
-            'flexibility' => 'exact',
+            'flexibility' => 'known',
             'route_preference' => 'know',
             'season' => 'Autumn',
         ]);

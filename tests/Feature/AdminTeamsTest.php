@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\TeamMemberStatus;
 use App\Models\TeamMember;
 use App\Models\User;
+use App\Support\Translatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -41,9 +42,9 @@ class AdminTeamsTest extends TestCase
 
         $this->actingAs($user)
             ->post('/admin/teams', [
-                'name' => 'Wahid Rahimi',
-                'role' => 'Founder & lead guide',
-                'bio' => 'Wahid has guided across all 34 provinces.',
+                'name' => $this->translation('Wahid Rahimi'),
+                'role' => $this->translation('Founder & lead guide'),
+                'bio' => $this->translation('Wahid has guided across all 34 provinces.'),
                 'email' => 'wahid@journey-to-afghanistan.com',
                 'whatsapp' => '+93 70 123 4567',
                 'whatsapp_href' => 'https://wa.me/93701234567',
@@ -56,16 +57,16 @@ class AdminTeamsTest extends TestCase
         $member = TeamMember::query()->first();
 
         $this->assertNotNull($member);
-        $this->assertSame('Wahid Rahimi', $member->name);
+        $this->assertSame('Wahid Rahimi', Translatable::resolve($member->name));
         $this->assertSame(TeamMemberStatus::Published, $member->status);
         $this->assertSame(1, $member->sort_order);
         $this->assertIsArray($member->avatar_media);
 
         $this->actingAs($user)
             ->patch("/admin/teams/{$member->id}", [
-                'name' => 'Wahid Rahimi',
-                'role' => 'Lead guide',
-                'bio' => 'Updated biography.',
+                'name' => $this->translation('Wahid Rahimi'),
+                'role' => $this->translation('Lead guide'),
+                'bio' => $this->translation('Updated biography.'),
                 'email' => 'wahid@journey-to-afghanistan.com',
                 'whatsapp' => '+93 70 123 4567',
                 'whatsapp_href' => 'https://wa.me/93701234567',
@@ -76,7 +77,7 @@ class AdminTeamsTest extends TestCase
         $member->refresh();
 
         $this->assertSame(TeamMemberStatus::Draft, $member->status);
-        $this->assertSame('Lead guide', $member->role);
+        $this->assertSame('Lead guide', Translatable::resolve($member->role));
 
         $this->actingAs($user)
             ->delete("/admin/teams/{$member->id}")
@@ -89,9 +90,9 @@ class AdminTeamsTest extends TestCase
     {
         TeamMember::query()->create([
             'status' => TeamMemberStatus::Published,
-            'name' => 'Published Member',
-            'role' => 'Guide',
-            'bio' => 'Published bio',
+            'name' => Translatable::normalize('Published Member'),
+            'role' => Translatable::normalize('Guide'),
+            'bio' => Translatable::normalize('Published bio'),
             'email' => 'published@example.com',
             'whatsapp' => '+93 70 111 1111',
             'whatsapp_href' => 'https://wa.me/93701111111',
@@ -100,9 +101,9 @@ class AdminTeamsTest extends TestCase
 
         TeamMember::query()->create([
             'status' => TeamMemberStatus::Draft,
-            'name' => 'Draft Member',
-            'role' => 'Coordinator',
-            'bio' => 'Draft bio',
+            'name' => Translatable::normalize('Draft Member'),
+            'role' => Translatable::normalize('Coordinator'),
+            'bio' => Translatable::normalize('Draft bio'),
             'email' => 'draft@example.com',
             'whatsapp' => '+93 70 222 2222',
             'whatsapp_href' => 'https://wa.me/93702222222',
@@ -114,6 +115,7 @@ class AdminTeamsTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('public/OurTeam')
                 ->has('members', 1)
+                ->has('bandImage')
                 ->where('members.0.name', 'Published Member'));
     }
 
@@ -123,18 +125,18 @@ class AdminTeamsTest extends TestCase
 
         $this->actingAs($user)
             ->post('/admin/teams', [
-                'name' => '',
-                'role' => '',
-                'bio' => '',
+                'name' => $this->translation(''),
+                'role' => $this->translation(''),
+                'bio' => $this->translation(''),
                 'email' => '',
                 'whatsapp' => '',
                 'whatsapp_href' => '',
                 'status' => 'Draft',
             ])
             ->assertSessionHasErrors([
-                'name',
-                'role',
-                'bio',
+                'name.en',
+                'role.en',
+                'bio.en',
                 'email',
                 'whatsapp',
                 'whatsapp_href',

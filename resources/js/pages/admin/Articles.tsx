@@ -17,6 +17,8 @@ import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
+import { TranslationLocaleBadges } from '@/components/admin/TranslationLocaleBadges';
+import { primaryTranslation } from '@/lib/translations';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 
 const ArticleFormDialog = lazy(() =>
@@ -33,31 +35,9 @@ const ContentRecordViewDialog = lazy(() =>
 
 type ArticleStatus = 'Published' | 'Draft';
 
-interface ArticleRow {
-    id: number;
-    title: string;
-    slug: string;
-    category: string;
-    summary: string;
-    date: string;
-    status: ArticleStatus;
-}
-
 interface ArticlesPageProps {
     articles: ManagedArticle[];
     teamMembers: ArticleTeamMemberOption[];
-}
-
-function buildArticleRow(article: ManagedArticle): ArticleRow {
-    return {
-        id: article.id,
-        title: article.title,
-        slug: article.slug,
-        category: article.category,
-        summary: article.summary,
-        date: article.date,
-        status: article.status,
-    };
 }
 
 const statusStyles: Record<ArticleStatus, string> = {
@@ -65,17 +45,18 @@ const statusStyles: Record<ArticleStatus, string> = {
     Draft: 'bg-accent/15 text-accent',
 };
 
-const columns: DataTableColumn<ArticleRow>[] = [
+const columns: DataTableColumn<ManagedArticle>[] = [
     {
         id: 'article',
         header: 'Article',
-        accessor: (row) => row.title,
+        accessor: (row) => primaryTranslation(row.title),
         render: (row) => (
             <div className="max-w-sm">
-                <p className="font-medium text-foreground">{row.title}</p>
+                <p className="font-medium text-foreground">{primaryTranslation(row.title)}</p>
                 <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                    {row.summary}
+                    {primaryTranslation(row.summary)}
                 </p>
+                <TranslationLocaleBadges value={row.title} />
             </div>
         ),
     },
@@ -131,7 +112,6 @@ export default function Articles({ articles, teamMembers }: ArticlesPageProps) {
     const [editingArticleId, setEditingArticleId] = useState<number | null>(null);
     const [viewingArticleId, setViewingArticleId] = useState<number | null>(null);
 
-    const rows = articles.map(buildArticleRow);
     const publishedCount = articles.filter((article) => article.status === 'Published').length;
     const editingArticle = editingArticleId
         ? articles.find((article) => article.id === editingArticleId) ?? null
@@ -145,12 +125,12 @@ export default function Articles({ articles, teamMembers }: ArticlesPageProps) {
         setFormOpen(true);
     };
 
-    const openEditForm = (row: ArticleRow) => {
+    const openEditForm = (row: ManagedArticle) => {
         setEditingArticleId(row.id);
         setFormOpen(true);
     };
 
-    const openViewDialog = (row: ArticleRow) => {
+    const openViewDialog = (row: ManagedArticle) => {
         setViewingArticleId(row.id);
         setViewOpen(true);
     };
@@ -180,7 +160,7 @@ export default function Articles({ articles, teamMembers }: ArticlesPageProps) {
         closeForm();
     };
 
-    const handleDeleteArticle = (row: ArticleRow) => {
+    const handleDeleteArticle = (row: ManagedArticle) => {
         router.delete(`/admin/articles/${row.id}`, {
             preserveScroll: true,
             onSuccess: () => router.flush('/articles'),
@@ -219,10 +199,10 @@ export default function Articles({ articles, teamMembers }: ArticlesPageProps) {
                 <PremiumDataTable
                     title="Editorial library"
                     description={`${publishedCount} published article${publishedCount === 1 ? '' : 's'} are currently visible on the public site.`}
-                    data={rows}
+                    data={articles}
                     columns={columns}
                     rowKey={(row) => row.id}
-                    selectionLabel={(row) => row.title}
+                    selectionLabel={(row) => primaryTranslation(row.title)}
                     initialPageSize={5}
                     onView={openViewDialog}
                     onEdit={openEditForm}
@@ -235,7 +215,7 @@ export default function Articles({ articles, teamMembers }: ArticlesPageProps) {
                     <ContentRecordViewDialog
                         open={viewOpen}
                         title="View article"
-                        description={viewingArticle?.title}
+                        description={viewingArticle ? primaryTranslation(viewingArticle.title) : undefined}
                         model={
                             viewingArticle
                                 ? buildArticleViewModel({

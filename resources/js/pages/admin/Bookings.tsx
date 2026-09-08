@@ -1,15 +1,20 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { ClipboardList } from 'lucide-react';
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, lazy, useCallback, useState } from 'react';
 
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
 import { adminFieldClass } from '@/components/admin/adminForm';
+import {
+    BookingPrintHost,
+    fetchAdminBooking,
+} from '@/components/admin/BookingPrintDocument';
 import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 import { mediaProfiles } from '@/lib/mediaProfiles';
+import type { AdminBookingDetail } from '@/types/adminBooking';
 import type { SharedPageProps } from '@/types/inertia';
 
 const CustomBookingFormDialog = lazy(() =>
@@ -110,6 +115,9 @@ export default function Bookings() {
     const [formOpen, setFormOpen] = useState(false);
     const [formResetKey, setFormResetKey] = useState('edit');
     const [editingBooking, setEditingBooking] = useState<BookingRow | null>(null);
+    const [printBooking, setPrintBooking] = useState<AdminBookingDetail | null>(null);
+    const [printError, setPrintError] = useState<string | undefined>();
+    const clearPrintJob = useCallback(() => setPrintBooking(null), []);
     const uploadSpec = attachmentUpload ?? {
         hint: mediaProfiles.document_attachment.hint,
         accept: mediaProfiles.document_attachment.accept,
@@ -154,6 +162,18 @@ export default function Bookings() {
         });
     };
 
+    const printSelectedBooking = async (row: BookingRow) => {
+        setPrintError(undefined);
+
+        try {
+            setPrintBooking(await fetchAdminBooking(row.id));
+        } catch (error) {
+            setPrintError(
+                error instanceof Error ? error.message : 'Could not print this booking request.',
+            );
+        }
+    };
+
     const applyFilters = (next: { search?: string; status?: string }) => {
         router.get(
             '/admin/bookings',
@@ -174,6 +194,15 @@ export default function Bookings() {
                         className="rounded-xl border border-secondary/20 bg-secondary/10 px-4 py-3 text-sm text-secondary"
                     >
                         {flash.success}
+                    </div>
+                ) : null}
+
+                {printError ? (
+                    <div
+                        role="alert"
+                        className="rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+                    >
+                        {printError}
                     </div>
                 ) : null}
 
@@ -233,6 +262,7 @@ export default function Bookings() {
                     initialPageSize={15}
                     onView={(row) => router.visit(`/admin/bookings/${row.id}`)}
                     onEdit={openEditForm}
+                    onPrint={printSelectedBooking}
                     onDelete={(row) => {
                         router.delete(`/admin/bookings/${row.id}`, { preserveScroll: true });
                     }}
@@ -260,6 +290,8 @@ export default function Bookings() {
                     </nav>
                 ) : null}
             </div>
+
+            <BookingPrintHost booking={printBooking} onDone={clearPrintJob} />
 
             <Suspense fallback={null}>
                 <CustomBookingFormDialog

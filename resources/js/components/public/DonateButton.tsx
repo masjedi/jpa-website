@@ -24,7 +24,7 @@ export function DonateButton({
             className={cn(
                 'group inline-flex items-center gap-2 rounded-full text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
                 variant === 'hero'
-                    ? 'border border-brand-on-surface/20 bg-brand-on-surface/5 px-5 py-2 text-brand-on-surface/90 hover:border-accent/50 hover:bg-accent/10 hover:text-brand-on-surface'
+                    ? 'bg-primary px-5 py-2.5 text-primary-foreground shadow-[0_8px_24px_rgba(22,59,92,0.35)] hover:opacity-95'
                     : 'border border-border bg-surface px-4 py-2 text-foreground shadow-sm hover:border-secondary/40 hover:bg-surface-muted',
                 className,
             )}
@@ -54,7 +54,7 @@ export function DonateButton({
                 aria-hidden
                 className={cn(
                     'size-1.5 rounded-full bg-accent',
-                    variant === 'hero' ? 'opacity-80' : 'opacity-100',
+                    variant === 'hero' ? 'opacity-90' : 'opacity-100',
                 )}
                 animate={
                     reducedMotion

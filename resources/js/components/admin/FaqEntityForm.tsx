@@ -1,13 +1,21 @@
-import { type FormEvent, useId, useState } from 'react';
+import { usePage } from '@inertiajs/react';
+import { type FormEvent, useId, useMemo, useState } from 'react';
 
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
     createEmptyFaqFormValues,
+    mapServerFaqFormErrors,
     type FaqFormErrors,
     type FaqFormValues,
     validateFaqFormValues,
 } from '@/components/admin/faqForm';
+import {
+    buildInitialLocaleMap,
+    localeMapToTranslatedRecord,
+    useLocaleFormFields,
+} from '@/hooks/use-locale-form-fields';
 import { cn } from '@/lib/utils';
 
 interface FaqEntityFormProps {
@@ -18,6 +26,13 @@ interface FaqEntityFormProps {
     onSubmit: (values: FaqFormValues) => void | Promise<void>;
 }
 
+const faqTranslatableFields = ['question', 'answer'] as const;
+
+const emptyFaqFields = {
+    question: '',
+    answer: '',
+};
+
 export function FaqEntityForm({
     formId,
     mode,
@@ -25,14 +40,38 @@ export function FaqEntityForm({
     onCancel,
     onSubmit,
 }: FaqEntityFormProps) {
+    const { errors: serverErrors } = usePage().props;
     const questionFieldId = useId();
     const answerFieldId = useId();
     const statusFieldId = useId();
 
-    const [values, setValues] = useState<FaqFormValues>(
-        () => initialValues ?? createEmptyFaqFormValues(),
+    const startingValues = initialValues ?? createEmptyFaqFormValues();
+    const initialByLocale = useMemo(
+        () =>
+            buildInitialLocaleMap(faqTranslatableFields, {
+                question: startingValues.question,
+                answer: startingValues.answer,
+            }),
+        [startingValues.answer, startingValues.question],
     );
-    const [errors, setErrors] = useState<FaqFormErrors>({});
+
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setField,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormFields({
+        initialByLocale,
+        emptyFields: emptyFaqFields,
+    });
+
+    const [status, setStatus] = useState<FaqFormValues['status']>(startingValues.status);
+    const [errors, setErrors] = useState<FaqFormErrors>(() =>
+        mapServerFaqFormErrors(serverErrors as Record<string, string | string[] | undefined>),
+    );
     const [submitting, setSubmitting] = useState(false);
 
     const submitLabel =
@@ -47,7 +86,15 @@ export function FaqEntityForm({
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const nextErrors = validateFaqFormValues(values);
+        const localeValues = commitAllLocales();
+        const translated = localeMapToTranslatedRecord(faqTranslatableFields, localeValues);
+        const payloadValues: FaqFormValues = {
+            question: translated.question,
+            answer: translated.answer,
+            status,
+        };
+
+        const nextErrors = validateFaqFormValues(payloadValues);
         setErrors(nextErrors);
 
         if (Object.keys(nextErrors).length > 0) {
@@ -57,11 +104,7 @@ export function FaqEntityForm({
         setSubmitting(true);
 
         try {
-            await onSubmit({
-                question: values.question.trim(),
-                answer: values.answer.trim(),
-                status: values.status,
-            });
+            await onSubmit(payloadValues);
         } finally {
             setSubmitting(false);
         }
@@ -75,6 +118,13 @@ export function FaqEntityForm({
             className="flex min-h-0 flex-1 flex-col"
         >
             <div className="grid gap-3 p-4">
+                <AdminLocaleSelector
+                    activeLocale={activeLocale}
+                    completion={completion}
+                    onChange={switchLocale}
+                    disabled={submitting}
+                />
+
                 <AdminFormField
                     id={questionFieldId}
                     label="Question"
@@ -83,10 +133,11 @@ export function FaqEntityForm({
                 >
                     <input
                         id={questionFieldId}
-                        value={values.question}
+                        value={draft.question}
+                        dir={direction}
                         disabled={submitting}
                         onChange={(event) => {
-                            setValues((current) => ({ ...current, question: event.target.value }));
+                            setField('question', event.target.value);
                             setErrors((current) => ({ ...current, question: undefined }));
                         }}
                         placeholder="Do I need a visa to visit Afghanistan?"
@@ -104,11 +155,12 @@ export function FaqEntityForm({
                 >
                     <textarea
                         id={answerFieldId}
-                        value={values.answer}
+                        value={draft.answer}
+                        dir={direction}
                         disabled={submitting}
                         rows={5}
                         onChange={(event) => {
-                            setValues((current) => ({ ...current, answer: event.target.value }));
+                            setField('answer', event.target.value);
                             setErrors((current) => ({ ...current, answer: undefined }));
                         }}
                         placeholder="Most nationalities require a visa in advance..."
@@ -125,13 +177,10 @@ export function FaqEntityForm({
                 <AdminFormField id={statusFieldId} label="Status">
                     <select
                         id={statusFieldId}
-                        value={values.status}
+                        value={status}
                         disabled={submitting}
                         onChange={(event) =>
-                            setValues((current) => ({
-                                ...current,
-                                status: event.target.value as FaqFormValues['status'],
-                            }))
+                            setStatus(event.target.value as FaqFormValues['status'])
                         }
                         className={adminFieldClass}
                     >

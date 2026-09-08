@@ -1,5 +1,6 @@
-import { type FormEvent, useId, useState } from 'react';
+import { type FormEvent, useId, useMemo, useState } from 'react';
 
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
@@ -8,6 +9,11 @@ import {
     type ServiceFormValues,
     validateServiceFormValues,
 } from '@/components/admin/serviceForm';
+import {
+    buildInitialLocaleMap,
+    localeMapToTranslatedRecord,
+    useLocaleFormFields,
+} from '@/hooks/use-locale-form-fields';
 import { cn } from '@/lib/utils';
 import type { ServiceCategory, ServiceIconOption } from '@/types/services';
 
@@ -21,6 +27,15 @@ interface ServiceEntityFormProps {
     onSubmit: (values: ServiceFormValues) => void | Promise<void>;
 }
 
+const serviceTranslatableFields = ['title', 'tagline', 'description', 'featuresText'] as const;
+
+const emptyServiceFields = {
+    title: '',
+    tagline: '',
+    description: '',
+    featuresText: '',
+};
+
 export function ServiceEntityForm({
     formId,
     mode,
@@ -30,20 +45,54 @@ export function ServiceEntityForm({
     onCancel,
     onSubmit,
 }: ServiceEntityFormProps) {
-    const titleFieldId = useId();
     const slugFieldId = useId();
-    const taglineFieldId = useId();
-    const descriptionFieldId = useId();
     const categoryFieldId = useId();
     const iconFieldId = useId();
-    const featuresFieldId = useId();
     const featuredFieldId = useId();
     const homeFieldId = useId();
     const statusFieldId = useId();
+    const titleFieldId = useId();
+    const taglineFieldId = useId();
+    const descriptionFieldId = useId();
+    const featuresFieldId = useId();
 
-    const [values, setValues] = useState<ServiceFormValues>(
-        () => initialValues ?? createEmptyServiceFormValues(iconOptions, categoryOptions),
+    const startingValues =
+        initialValues ?? createEmptyServiceFormValues(iconOptions, categoryOptions);
+    const initialByLocale = useMemo(
+        () =>
+            buildInitialLocaleMap(serviceTranslatableFields, {
+                title: startingValues.title,
+                tagline: startingValues.tagline,
+                description: startingValues.description,
+                featuresText: startingValues.featuresText,
+            }),
+        [
+            startingValues.description,
+            startingValues.featuresText,
+            startingValues.tagline,
+            startingValues.title,
+        ],
     );
+
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setField,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormFields({
+        initialByLocale,
+        emptyFields: emptyServiceFields,
+    });
+
+    const [slug, setSlug] = useState(startingValues.slug);
+    const [category, setCategory] = useState(startingValues.category);
+    const [iconKey, setIconKey] = useState(startingValues.iconKey);
+    const [isFeatured, setIsFeatured] = useState(startingValues.isFeatured);
+    const [showOnHome, setShowOnHome] = useState(startingValues.showOnHome);
+    const [status, setStatus] = useState(startingValues.status);
     const [errors, setErrors] = useState<ServiceFormErrors>({});
     const [submitting, setSubmitting] = useState(false);
 
@@ -59,7 +108,22 @@ export function ServiceEntityForm({
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const nextErrors = validateServiceFormValues(values);
+        const localeValues = commitAllLocales();
+        const translated = localeMapToTranslatedRecord(serviceTranslatableFields, localeValues);
+        const payloadValues: ServiceFormValues = {
+            title: translated.title,
+            slug,
+            tagline: translated.tagline,
+            description: translated.description,
+            category,
+            iconKey,
+            featuresText: translated.featuresText,
+            isFeatured,
+            showOnHome,
+            status,
+        };
+
+        const nextErrors = validateServiceFormValues(payloadValues);
         setErrors(nextErrors);
 
         if (Object.keys(nextErrors).length > 0) {
@@ -70,12 +134,8 @@ export function ServiceEntityForm({
 
         try {
             await onSubmit({
-                ...values,
-                title: values.title.trim(),
-                slug: values.slug.trim(),
-                tagline: values.tagline.trim(),
-                description: values.description.trim(),
-                featuresText: values.featuresText.trim(),
+                ...payloadValues,
+                slug: slug.trim(),
             });
         } finally {
             setSubmitting(false);
@@ -90,6 +150,14 @@ export function ServiceEntityForm({
             className="flex min-h-0 flex-1 flex-col"
         >
             <div className="grid gap-3 p-4 sm:grid-cols-2">
+                <AdminLocaleSelector
+                    activeLocale={activeLocale}
+                    completion={completion}
+                    onChange={switchLocale}
+                    disabled={submitting}
+                    className="sm:col-span-2"
+                />
+
                 <AdminFormField
                     id={titleFieldId}
                     label="Title"
@@ -99,10 +167,11 @@ export function ServiceEntityForm({
                 >
                     <input
                         id={titleFieldId}
-                        value={values.title}
+                        value={draft.title}
+                        dir={direction}
                         disabled={submitting}
                         onChange={(event) => {
-                            setValues((current) => ({ ...current, title: event.target.value }));
+                            setField('title', event.target.value);
                             setErrors((current) => ({ ...current, title: undefined }));
                         }}
                         placeholder="Guided tours"
@@ -115,11 +184,9 @@ export function ServiceEntityForm({
                 <AdminFormField id={slugFieldId} label="Slug">
                     <input
                         id={slugFieldId}
-                        value={values.slug}
+                        value={slug}
                         disabled={submitting}
-                        onChange={(event) =>
-                            setValues((current) => ({ ...current, slug: event.target.value }))
-                        }
+                        onChange={(event) => setSlug(event.target.value)}
                         placeholder="Generated from title"
                         className={adminFieldClass}
                     />
@@ -128,19 +195,16 @@ export function ServiceEntityForm({
                 <AdminFormField id={categoryFieldId} label="Category">
                     <select
                         id={categoryFieldId}
-                        value={values.category}
+                        value={category}
                         disabled={submitting}
                         onChange={(event) =>
-                            setValues((current) => ({
-                                ...current,
-                                category: event.target.value as ServiceCategory,
-                            }))
+                            setCategory(event.target.value as ServiceCategory)
                         }
                         className={adminFieldClass}
                     >
-                        {categoryOptions.map((category) => (
-                            <option key={category} value={category}>
-                                {category}
+                        {categoryOptions.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
                             </option>
                         ))}
                     </select>
@@ -155,10 +219,11 @@ export function ServiceEntityForm({
                 >
                     <input
                         id={taglineFieldId}
-                        value={values.tagline}
+                        value={draft.tagline}
+                        dir={direction}
                         disabled={submitting}
                         onChange={(event) => {
-                            setValues((current) => ({ ...current, tagline: event.target.value }));
+                            setField('tagline', event.target.value);
                             setErrors((current) => ({ ...current, tagline: undefined }));
                         }}
                         placeholder="Small-group journeys with experienced local guides."
@@ -177,14 +242,12 @@ export function ServiceEntityForm({
                 >
                     <textarea
                         id={descriptionFieldId}
-                        value={values.description}
+                        value={draft.description}
+                        dir={direction}
                         disabled={submitting}
                         rows={4}
                         onChange={(event) => {
-                            setValues((current) => ({
-                                ...current,
-                                description: event.target.value,
-                            }));
+                            setField('description', event.target.value);
                             setErrors((current) => ({ ...current, description: undefined }));
                         }}
                         placeholder="Join curated departures across Bamiyan, Herat and Kabul…"
@@ -204,14 +267,9 @@ export function ServiceEntityForm({
                 <AdminFormField id={iconFieldId} label="Icon">
                     <select
                         id={iconFieldId}
-                        value={values.iconKey}
+                        value={iconKey}
                         disabled={submitting}
-                        onChange={(event) =>
-                            setValues((current) => ({
-                                ...current,
-                                iconKey: event.target.value,
-                            }))
-                        }
+                        onChange={(event) => setIconKey(event.target.value)}
                         className={adminFieldClass}
                     >
                         {iconOptions.map((option) => (
@@ -225,13 +283,10 @@ export function ServiceEntityForm({
                 <AdminFormField id={statusFieldId} label="Status">
                     <select
                         id={statusFieldId}
-                        value={values.status}
+                        value={status}
                         disabled={submitting}
                         onChange={(event) =>
-                            setValues((current) => ({
-                                ...current,
-                                status: event.target.value as ServiceFormValues['status'],
-                            }))
+                            setStatus(event.target.value as ServiceFormValues['status'])
                         }
                         className={adminFieldClass}
                     >
@@ -249,14 +304,12 @@ export function ServiceEntityForm({
                 >
                     <textarea
                         id={featuresFieldId}
-                        value={values.featuresText}
+                        value={draft.featuresText}
+                        dir={direction}
                         disabled={submitting}
                         rows={4}
                         onChange={(event) => {
-                            setValues((current) => ({
-                                ...current,
-                                featuresText: event.target.value,
-                            }));
+                            setField('featuresText', event.target.value);
                             setErrors((current) => ({ ...current, featuresText: undefined }));
                         }}
                         placeholder={'English-speaking Afghan lead guide\nPermits and regional logistics included'}
@@ -278,14 +331,9 @@ export function ServiceEntityForm({
                     <input
                         id={featuredFieldId}
                         type="checkbox"
-                        checked={values.isFeatured}
+                        checked={isFeatured}
                         disabled={submitting}
-                        onChange={(event) =>
-                            setValues((current) => ({
-                                ...current,
-                                isFeatured: event.target.checked,
-                            }))
-                        }
+                        onChange={(event) => setIsFeatured(event.target.checked)}
                         className="size-4 rounded border-border text-secondary focus:ring-focus"
                     />
                     Featured on Services
@@ -295,14 +343,9 @@ export function ServiceEntityForm({
                     <input
                         id={homeFieldId}
                         type="checkbox"
-                        checked={values.showOnHome}
+                        checked={showOnHome}
                         disabled={submitting}
-                        onChange={(event) =>
-                            setValues((current) => ({
-                                ...current,
-                                showOnHome: event.target.checked,
-                            }))
-                        }
+                        onChange={(event) => setShowOnHome(event.target.checked)}
                         className="size-4 rounded border-border text-secondary focus:ring-focus"
                     />
                     Show on homepage

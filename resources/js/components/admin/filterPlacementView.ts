@@ -1,12 +1,15 @@
 import type { ContentRecordViewModel } from '@/components/admin/contentRecordViewModel';
+import { primaryTranslation } from '@/lib/translations';
 import type { TourFilterOption } from '@/types/tourFilterOptions';
 import { tourFilterOptionTypeLabels } from '@/types/tourFilterOptions';
 
 export function buildFilterPlacementViewModel(
     option: TourFilterOption,
 ): ContentRecordViewModel {
+    const name = primaryTranslation(option.name);
+
     return {
-        title: option.name,
+        title: name,
         subtitle: tourFilterOptionTypeLabels[option.type],
         status: option.status,
         showCardPreview: false,

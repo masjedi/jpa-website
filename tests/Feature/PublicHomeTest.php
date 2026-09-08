@@ -198,13 +198,17 @@ class PublicHomeTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('public/Home')
                 ->has('finderOptions.destinations', 1)
-                ->where('finderOptions.destinations.0', 'Bamiyan Valley')
+                ->where('finderOptions.destinations.0.value', 'Bamiyan Valley')
+                ->where('finderOptions.destinations.0.label', 'Bamiyan Valley')
                 ->has('finderOptions.travelStyles', 1)
-                ->where('finderOptions.travelStyles.0', 'Cultural & Heritage')
+                ->where('finderOptions.travelStyles.0.value', 'Cultural & Heritage')
+                ->where('finderOptions.travelStyles.0.label', 'Cultural & Heritage')
                 ->has('finderOptions.seasons', 1)
-                ->where('finderOptions.seasons.0', 'Spring')
+                ->where('finderOptions.seasons.0.value', 'Spring')
+                ->where('finderOptions.seasons.0.label', 'Spring')
                 ->has('finderOptions.groupTypes', 1)
-                ->where('finderOptions.groupTypes.0', 'Private tour'));
+                ->where('finderOptions.groupTypes.0.value', 'Private tour')
+                ->where('finderOptions.groupTypes.0.label', 'Private tour'));
     }
 
     /**

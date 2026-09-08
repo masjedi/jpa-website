@@ -1,12 +1,16 @@
 import { Link } from '@inertiajs/react';
-import { ArrowRight, MapPin, RotateCcw, Search } from 'lucide-react';
+import { ArrowRight, MapPin } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+import { CatalogSearchSortBar } from '@/components/public/CatalogSearchSortBar';
 import { destinationShowHref } from '@/components/public/navigation';
 import { FadeIn } from '@/components/motion/FadeIn';
 import { SpotlightCard } from '@/components/react-bits/SpotlightCard/SpotlightCard';
 import { useTranslations } from '@/hooks/use-translations';
+import { cardSummaryClass, cardTitleClass } from '@/lib/cardText';
 import type { Destination } from '@/types/destinations';
+
+type DestinationSort = 'newest' | 'title';
 
 function DestinationCard({
     destination,
@@ -22,7 +26,7 @@ function DestinationCard({
 
     if (featured) {
         return (
-            <FadeIn delay={delay}>
+            <FadeIn delay={delay} className="h-full">
                 <SpotlightCard
                     className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-shadow hover:shadow-md"
                     spotlightColor="rgba(14, 115, 115, 0.16)"
@@ -39,11 +43,11 @@ function DestinationCard({
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
                         {destination.badge ? (
-                            <span className="absolute left-3 top-3 rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-accent-foreground">
+                            <span className="absolute start-3 top-3 rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-accent-foreground">
                                 {destination.badge}
                             </span>
                         ) : null}
-                        <p className="absolute inset-x-4 bottom-4 font-heading text-xl font-semibold text-white drop-shadow">
+                        <p className="absolute inset-x-4 bottom-4 font-heading text-xl font-semibold text-white line-clamp-2 drop-shadow">
                             {destination.name}
                         </p>
                     </Link>
@@ -51,7 +55,7 @@ function DestinationCard({
                         <p className="text-xs font-medium text-secondary">
                             {destination.region}
                         </p>
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-2">
+                        <p className={`mt-2 text-sm leading-relaxed text-muted-foreground ${cardSummaryClass}`}>
                             {destination.tagline}
                         </p>
                         <div className="mt-auto flex items-center justify-between gap-3 pt-4">
@@ -76,7 +80,7 @@ function DestinationCard({
     }
 
     return (
-        <FadeIn delay={delay}>
+        <FadeIn delay={delay} className="h-full">
             <Link
                 href={destinationShowHref(destination.slug)}
                 className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface text-start shadow-sm transition-shadow hover:shadow-md"
@@ -89,20 +93,20 @@ function DestinationCard({
                         loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
-                    <span className="absolute bottom-3 left-3 rounded-md bg-black/50 px-2 py-0.5 text-xs font-medium text-white">
+                    <span className="absolute bottom-3 start-3 rounded-md bg-black/50 px-2 py-0.5 text-xs font-medium text-white">
                         {destination.region}
                     </span>
                 </div>
                 <div className="flex flex-1 flex-col p-4">
-                    <h3 className="font-heading text-base font-semibold text-foreground">
+                    <h3 className={`font-heading text-base font-semibold text-foreground ${cardTitleClass}`}>
                         {destination.name}
                     </h3>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-2">
+                    <p className={`mt-1 text-xs leading-relaxed text-muted-foreground ${cardSummaryClass}`}>
                         {destination.tagline}
                     </p>
-                    <p className="mt-3 flex items-center gap-1 text-xs font-medium text-secondary">
+                    <p className="mt-auto flex items-center gap-1 pt-3 text-xs font-medium text-secondary">
                         <span>{t('buttons.viewDestination')}</span>
-                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 rtl:rotate-180" />
                     </p>
                 </div>
             </Link>
@@ -117,21 +121,15 @@ interface DestinationsGridSectionProps {
 export function DestinationsGridSection({ destinations }: DestinationsGridSectionProps) {
     const { t } = useTranslations();
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedRegion, setSelectedRegion] = useState('all');
+    const [sort, setSort] = useState<DestinationSort>('newest');
 
-    const regions = useMemo(() => {
-        const uniqueRegions = [
-            ...new Set(destinations.map((destination) => destination.region)),
-        ].sort((a, b) => a.localeCompare(b));
-
-        return [
-            { value: 'all', label: t('destinationsPage.grid.allRegions') },
-            ...uniqueRegions.map((region) => ({
-                value: region,
-                label: region,
-            })),
-        ];
-    }, [destinations, t]);
+    const sortOptions = useMemo(
+        () => [
+            { value: 'newest', label: t('toursPage.filters.sortNewest') },
+            { value: 'title', label: t('toursPage.filters.sortTitle') },
+        ],
+        [t],
+    );
 
     const featuredDestinations = useMemo(
         () => destinations.filter((destination) => destination.isFeatured),
@@ -139,49 +137,37 @@ export function DestinationsGridSection({ destinations }: DestinationsGridSectio
     );
 
     const filteredDestinations = useMemo(() => {
-        return destinations.filter((destination) => {
-            if (searchQuery.trim()) {
-                const query = searchQuery.toLowerCase();
-                const haystack = [
-                    destination.name,
-                    destination.tagline,
-                    destination.region,
-                    destination.description,
-                    ...destination.highlights,
-                ]
-                    .join(' ')
-                    .toLowerCase();
-
-                if (!haystack.includes(query)) {
-                    return false;
-                }
+        const filtered = destinations.filter((destination) => {
+            if (!searchQuery.trim()) {
+                return true;
             }
 
-            if (
-                selectedRegion !== 'all' &&
-                destination.region !== selectedRegion
-            ) {
-                return false;
-            }
+            const query = searchQuery.toLowerCase();
+            const haystack = [
+                destination.name,
+                destination.tagline,
+                destination.region,
+                destination.description,
+                ...destination.highlights,
+            ]
+                .join(' ')
+                .toLowerCase();
 
-            return true;
+            return haystack.includes(query);
         });
-    }, [destinations, searchQuery, selectedRegion]);
+
+        if (sort === 'title') {
+            return [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        return filtered;
+    }, [destinations, searchQuery, sort]);
 
     const gridDestinations = filteredDestinations.filter(
-        (destination) =>
-            !destination.isFeatured ||
-            selectedRegion !== 'all' ||
-            searchQuery.trim() !== '',
+        (destination) => !destination.isFeatured || searchQuery.trim() !== '',
     );
 
-    const showFeatured =
-        selectedRegion === 'all' &&
-        searchQuery.trim() === '' &&
-        featuredDestinations.length > 0;
-
-    const hasActiveFilters =
-        searchQuery.trim() !== '' || selectedRegion !== 'all';
+    const showFeatured = searchQuery.trim() === '' && featuredDestinations.length > 0;
 
     return (
         <section id="destination-grid" className="bg-background py-12 sm:py-16">
@@ -205,46 +191,19 @@ export function DestinationsGridSection({ destinations }: DestinationsGridSectio
                     </div>
                 </FadeIn>
 
-                <FadeIn delay={0.05} className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <div className="relative flex-1">
-                        <Search
-                            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-                            aria-hidden
-                        />
-                        <input
-                            type="search"
-                            value={searchQuery}
-                            onChange={(event) => setSearchQuery(event.target.value)}
-                            placeholder={t('destinationsPage.grid.searchPlaceholder')}
-                            aria-label={t('destinationsPage.grid.searchAria')}
-                            className="w-full rounded-full border border-border bg-surface py-2.5 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
-                        />
-                    </div>
-                    <select
-                        value={selectedRegion}
-                        onChange={(event) => setSelectedRegion(event.target.value)}
-                        aria-label={t('common.region')}
-                        className="rounded-full border border-border bg-surface px-4 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
-                    >
-                        {regions.map((region) => (
-                            <option key={region.value} value={region.value}>
-                                {region.label}
-                            </option>
-                        ))}
-                    </select>
-                    {hasActiveFilters ? (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSearchQuery('');
-                                setSelectedRegion('all');
-                            }}
-                            className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium text-secondary hover:underline"
-                        >
-                            <RotateCcw className="size-3.5" aria-hidden />
-                            {t('common.clear')}
-                        </button>
-                    ) : null}
+                <FadeIn delay={0.05} className="mt-6">
+                    <CatalogSearchSortBar
+                        searchValue={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        searchPlaceholder={t('destinationsPage.grid.searchPlaceholder')}
+                        searchAriaLabel={t('destinationsPage.grid.searchAria')}
+                        sortValue={sort}
+                        onSortChange={(value) => setSort(value as DestinationSort)}
+                        sortOptions={sortOptions}
+                        resultsLabel={t('toursPage.catalog.resultsCount', {
+                            count: filteredDestinations.length,
+                        })}
+                    />
                 </FadeIn>
 
                 {showFeatured ? (
@@ -262,7 +221,7 @@ export function DestinationsGridSection({ destinations }: DestinationsGridSectio
 
                 {gridDestinations.length > 0 ? (
                     <div
-                        className={`grid gap-5 sm:grid-cols-2 xl:grid-cols-4 ${showFeatured ? 'mt-5' : 'mt-8'}`}
+                        className={`grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${showFeatured ? 'mt-5' : 'mt-8'}`}
                     >
                         {gridDestinations.map((destination, index) => (
                             <DestinationCard

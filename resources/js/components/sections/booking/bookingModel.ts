@@ -19,6 +19,10 @@ export function emptyCompanion(): CompanionTraveler {
         lastName: '',
         dateOfBirth: '',
         nationality: '',
+        email: '',
+        phone: '',
+        countryOfResidence: '',
+        isFirstVisit: '',
     };
 }
 
@@ -33,9 +37,10 @@ export function createInitialBookingState(): CustomBookingState {
     return {
         trip: {
             startDate: '',
-            flexibility: '',
+            endDate: '',
+            flexibility: 'known',
             season: '',
-            durationDays: 7,
+            durationDays: 0,
             destinations: [],
             otherDestination: '',
             recommendDestinations: false,
@@ -43,7 +48,7 @@ export function createInitialBookingState(): CustomBookingState {
             routePreference: '',
         },
         travelers: {
-            adults: 2,
+            adults: 1,
             children: 0,
             primary: {
                 firstName: '',
@@ -53,18 +58,21 @@ export function createInitialBookingState(): CustomBookingState {
                 email: '',
                 phone: '',
                 countryOfResidence: '',
+                isFirstVisit: '',
             },
-            companions: [emptyCompanion()],
+            companions: [],
             groupType: '',
         },
         services: {
             complete: false,
-            guide: false,
-            transportation: false,
-            accommodation: false,
+            guide: true,
+            transportation: true,
+            accommodation: true,
             airport: false,
-            domestic: false,
+            domestic: true,
+            guideCount: 0,
             guideGender: '',
+            guideLanguages: [],
             guideLanguage: '',
             guideLanguageOther: '',
             guideRequest: '',
@@ -76,6 +84,7 @@ export function createInitialBookingState(): CustomBookingState {
             roomCount: 1,
             roomsManual: false,
             accommodationNotes: '',
+            airportPickup: '',
             arrivalAssistance: '',
             arrivalDetailsLater: false,
             arrivalAirport: '',
@@ -91,7 +100,7 @@ export function createInitialBookingState(): CustomBookingState {
             domesticPreference: '',
         },
         documents: {
-            passports: [emptyPassport(), emptyPassport()],
+            passports: [emptyPassport()],
             visaStatus: '',
             insuranceStatus: '',
         },
@@ -99,7 +108,7 @@ export function createInitialBookingState(): CustomBookingState {
             emergencyName: '',
             emergencyRelationship: '',
             emergencyPhone: '',
-            dietary: '',
+            dietary: [],
             dietaryDetails: '',
             medical: '',
             medicalDetails: '',
@@ -123,20 +132,12 @@ export function companionCount(adults: number, children: number): number {
     return Math.max(0, travelerCount(adults, children) - 1);
 }
 
-export function inferredGroupType(adults: number, children: number): GroupType | null {
-    if (children > 0) {
-        return 'family';
-    }
+export function inferredGroupType(adults: number, children: number): GroupType {
+    return travelerCount(adults, children) > 1 ? 'group' : 'private';
+}
 
-    if (adults === 1) {
-        return 'solo';
-    }
-
-    if (adults === 2) {
-        return 'couple';
-    }
-
-    return null;
+export function revealedTouristCount(state: CustomBookingState): number {
+    return 1 + state.travelers.companions.length;
 }
 
 export function suggestedRoomCount(
@@ -257,6 +258,104 @@ export function syncTravelerLists(
     };
 }
 
+function withTouristCapacity(state: CustomBookingState, total: number): CustomBookingState {
+    const nextTotal = Math.min(MAX_TRAVELERS, Math.max(0, total));
+    const passportTotal = Math.max(1, nextTotal);
+    const maxCompanions = Math.max(0, nextTotal - 1);
+    const nextRoomCount = state.services.roomsManual
+        ? state.services.roomCount
+        : suggestedRoomCount(Math.max(1, nextTotal), 0, state.services.roomPreference);
+
+    return {
+        ...state,
+        travelers: {
+            ...state.travelers,
+            companions: state.travelers.companions.slice(0, maxCompanions),
+        },
+        documents: {
+            ...state.documents,
+            passports: resizeList(state.documents.passports, passportTotal, emptyPassport),
+        },
+        services: {
+            ...state.services,
+            roomCount: nextRoomCount,
+        },
+    };
+}
+
+export function setPlannedTouristCount(state: CustomBookingState, count: number): CustomBookingState {
+    const nextCount = Number.isFinite(count) ? Math.min(MAX_TRAVELERS, Math.max(0, Math.trunc(count))) : 0;
+
+    return withTouristCapacity(
+        {
+            ...state,
+            travelers: {
+                ...state.travelers,
+                adults: nextCount,
+                children: 0,
+            },
+        },
+        nextCount,
+    );
+}
+
+export function addVisibleTourist(state: CustomBookingState): CustomBookingState {
+    if (revealedTouristCount(state) >= state.travelers.adults) {
+        return state;
+    }
+
+    return {
+        ...state,
+        travelers: {
+            ...state.travelers,
+            companions: [...state.travelers.companions, emptyCompanion()],
+        },
+    };
+}
+
+export function applyGroupType(
+    state: CustomBookingState,
+    groupType: GroupType | '',
+): CustomBookingState {
+    if (groupType === 'private') {
+        return syncTravelerLists(
+            {
+                ...state,
+                travelers: {
+                    ...state.travelers,
+                    groupType,
+                },
+            },
+            1,
+            0,
+        );
+    }
+
+    if (groupType === 'group') {
+        return withTouristCapacity(
+            {
+                ...state,
+                travelers: {
+                    ...state.travelers,
+                    groupType,
+                    adults: 0,
+                    children: 0,
+                    companions: [],
+                },
+            },
+            0,
+        );
+    }
+
+    return {
+        ...state,
+        travelers: {
+            ...state.travelers,
+            groupType,
+        },
+    };
+}
+
 export function withRoomPreference(
     state: CustomBookingState,
     roomPreference: RoomPreference | '',
@@ -328,6 +427,21 @@ export function buildSuccessSummary(state: CustomBookingState): CustomBookingSuc
         travelerCount: travelerCount(state.travelers.adults, state.travelers.children),
         email: state.travelers.primary.email.trim(),
     };
+}
+
+export function durationDaysFromRange(startDate: string, endDate: string): number | null {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+        return null;
+    }
+
+    const start = new Date(`${startDate}T00:00:00`);
+    const end = new Date(`${endDate}T00:00:00`);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return null;
+    }
+
+    return Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
 }
 
 export function todayIsoDate(): string {
