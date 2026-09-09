@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import { ChevronRight, Compass } from 'lucide-react';
 
 import { FadeInOnMount } from '@/components/motion/FadeIn';
-import { customBookingHref } from '@/components/public/navigation';
+import { openCustomTourRequest } from '@/components/public/CustomTourRequestHost';
 import { useTranslations } from '@/hooks/use-translations';
 
 export function ToursHero() {
@@ -58,13 +58,14 @@ export function ToursHero() {
                     >
                         {t('buttons.browseTours')}
                     </a>
-                    <Link
-                        href={customBookingHref}
+                    <button
+                        type="button"
+                        onClick={() => openCustomTourRequest()}
                         className="inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium text-brand-on-surface/80 transition-colors hover:text-brand-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                     >
                         <Compass className="size-4 text-accent" aria-hidden />
                         <span>{t('buttons.customTrip')}</span>
-                    </Link>
+                    </button>
                 </div>
                 </FadeInOnMount>
             </div>

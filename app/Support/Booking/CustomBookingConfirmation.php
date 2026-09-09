@@ -13,18 +13,12 @@ final readonly class CustomBookingConfirmation
 {
     public function __construct(
         public string $reference,
-        public string $firstName,
-        public string $lastName,
+        public string $fullName,
         public string $email,
         public ?string $preferredDate,
-        public int $durationDays,
-        public int $travelerCount,
+        public int $numberOfTourists,
+        public string $tourType,
         public string $destinationsSummary,
-        public string $season,
-        public string $flexibility,
-        public string $routePreference,
-        public string $interestsSummary,
-        public string $servicesSummary,
         public string $brandName,
         public string $contactEmail,
         public string $whatsappDisplay,
@@ -42,11 +36,18 @@ final readonly class CustomBookingConfirmation
         return [
             'reference' => $this->reference,
             'status' => 'submitted',
-            'firstName' => $this->firstName,
+            'fullName' => $this->fullName,
             'preferredDate' => $this->preferredDate ?? '',
-            'travelerCount' => $this->travelerCount,
+            'numberOfTourists' => $this->numberOfTourists,
             'email' => $this->email,
         ];
+    }
+
+    public function firstName(): string
+    {
+        $parts = preg_split('/\s+/', trim($this->fullName)) ?: [];
+
+        return (string) ($parts[0] ?? $this->fullName);
     }
 
     public function embeddedLogoSrc(?object $message): string
@@ -72,58 +73,14 @@ final readonly class CustomBookingConfirmation
             $logoUrl = $baseUrl.$logoUrl;
         }
 
-        $primary = $booking->primaryTraveler;
-        $season = (string) ($booking->season ?? '');
-        if ($season === CustomBookingOptions::RECOMMEND_SEASON) {
-            $season = 'Recommend the best time';
-        }
-
-        $services = [];
-        if ($booking->wants_complete) {
-            $services[] = 'Complete custom package';
-        }
-        if ($booking->wants_guide) {
-            $services[] = 'Tour guide';
-        }
-        if ($booking->wants_transportation) {
-            $services[] = 'Transportation';
-        }
-        if ($booking->wants_accommodation) {
-            $services[] = 'Accommodation';
-        }
-        if ($booking->wants_airport) {
-            $services[] = 'Airport pickup/drop-off';
-        }
-        if ($booking->wants_domestic) {
-            $services[] = 'Domestic travel arrangements';
-        }
-
-        $destinations = $booking->destinations
-            ->pluck('name')
-            ->filter()
-            ->implode(', ');
-
-        if ($destinations === '') {
-            $destinations = $booking->recommend_destinations ? 'Recommend destinations' : 'To be recommended';
-        }
-
         return new self(
             reference: (string) $booking->reference,
-            firstName: (string) ($primary?->first_name ?? ''),
-            lastName: (string) ($primary?->last_name ?? ''),
-            email: mb_strtolower((string) ($primary?->email ?? '')),
-            preferredDate: $booking->start_date?->toDateString(),
-            durationDays: (int) $booking->duration_days,
-            travelerCount: (int) $booking->traveler_count,
-            destinationsSummary: $destinations,
-            season: $season,
-            flexibility: CustomBookingOptions::label('flexibility', (string) $booking->flexibility),
-            routePreference: CustomBookingOptions::label('route', (string) $booking->route_preference),
-            interestsSummary: $booking->interests
-                ->pluck('interest')
-                ->map(fn (mixed $interest): string => CustomBookingOptions::label('interest', (string) $interest))
-                ->implode(', '),
-            servicesSummary: implode(', ', $services) ?: 'To be confirmed',
+            fullName: (string) $booking->full_name,
+            email: mb_strtolower((string) $booking->email),
+            preferredDate: CustomBookingPresenter::preferredDateLabel($booking),
+            numberOfTourists: (int) $booking->number_of_tourists,
+            tourType: (string) $booking->tour_type,
+            destinationsSummary: (string) $booking->preferred_destinations,
             brandName: Brand::appName(),
             contactEmail: (string) $settings['contactEmail'],
             whatsappDisplay: (string) $settings['whatsappDisplay'],

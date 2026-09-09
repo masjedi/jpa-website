@@ -25,12 +25,19 @@ class AdminNotificationRecorder
 
     public static function forCustomBooking(CustomBooking $booking): AdminNotification
     {
-        $name = trim((string) ($booking->primaryTraveler?->displayName() ?? ''));
+        $name = trim((string) $booking->full_name);
+        $isSeasonalPackage = $booking->request_kind?->isSeasonalPackage() ?? false;
+        $packageTitle = trim((string) ($booking->package_title ?? ''));
 
         return AdminNotification::query()->create([
             'type' => AdminNotificationType::CustomBooking,
-            'title' => 'New custom tour request',
-            'description' => ($name !== '' ? $name : 'A traveler').' submitted '.$booking->reference.'.',
+            'title' => $isSeasonalPackage ? 'New seasonal package request' : 'New custom tour request',
+            'description' => $isSeasonalPackage
+                ? ($name !== '' ? $name : 'A traveler')
+                    .' requested '
+                    .($packageTitle !== '' ? $packageTitle : 'a seasonal package')
+                    .' ('.$booking->reference.').'
+                : ($name !== '' ? $name : 'A traveler').' submitted '.$booking->reference.'.',
             'href' => '/admin/bookings/'.$booking->id,
             'read_at' => null,
         ]);

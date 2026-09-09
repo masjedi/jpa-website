@@ -1,11 +1,10 @@
 New custom tour request {{ $confirmation->reference }}
 
-Traveler: {{ $confirmation->firstName }} {{ $confirmation->lastName }}
+Traveler: {{ $confirmation->fullName }}
 Email: {{ $confirmation->email }}
-Preferred date: {{ $confirmation->preferredDate ? \Illuminate\Support\Carbon::parse($confirmation->preferredDate)->format('j F Y') : 'To be decided' }}
-Duration: {{ $confirmation->durationDays }} days
-Travelers: {{ $confirmation->travelerCount }}
+Preferred date: {{ $confirmation->preferredDate ?: 'To be decided' }}
+Tour type: {{ ucfirst($confirmation->tourType) }}
+Tourists: {{ $confirmation->numberOfTourists }}
 Destinations: {{ $confirmation->destinationsSummary }}
-Services: {{ $confirmation->servicesSummary }}
 
-This is not a confirmed reservation. Passport, medical, and emergency details are not included in this email.
+This is not a confirmed reservation.

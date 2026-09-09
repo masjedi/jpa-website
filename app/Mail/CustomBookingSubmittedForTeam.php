@@ -47,8 +47,6 @@ class CustomBookingSubmittedForTeam extends Mailable implements ShouldQueue
 
     private function confirmation(): CustomBookingConfirmation
     {
-        $this->booking->loadMissing(['primaryTraveler', 'destinations', 'interests']);
-
         return CustomBookingConfirmation::fromBooking($this->booking);
     }
 }

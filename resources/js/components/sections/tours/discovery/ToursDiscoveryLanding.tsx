@@ -3,7 +3,10 @@ import { RotateCcw, Search } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 
 import { CatalogSearchSortBar } from '@/components/public/CatalogSearchSortBar';
-import { customBookingHref } from '@/components/public/navigation';
+import {
+    openCustomTourRequest,
+    openSeasonalPackageRequest,
+} from '@/components/public/CustomTourRequestHost';
 import { FadeIn, RevealItem, RevealStagger } from '@/components/motion/FadeIn';
 import { DestinationDiscoveryCard } from '@/components/sections/tours/discovery/DestinationDiscoveryCard';
 import { DiscoveryHero } from '@/components/sections/tours/discovery/DiscoveryHero';
@@ -191,12 +194,7 @@ export function ToursDiscoveryLanding({
     };
 
     const openInquiryForPackage = (pkg: TourPackage) => {
-        setInquiryInitialData({
-            tourTitle: pkg.title,
-            preferredDate: '',
-            travelerCount: '2',
-        });
-        setInquiryOpen(true);
+        openSeasonalPackageRequest(pkg.title, pkg.priceEstimate);
     };
 
     return (
@@ -294,12 +292,13 @@ export function ToursDiscoveryLanding({
                                             {t('common.resetFilters')}
                                         </button>
                                     ) : null}
-                                    <Link
-                                        href={customBookingHref}
+                                    <button
+                                        type="button"
+                                        onClick={() => openCustomTourRequest()}
                                         className="inline-flex items-center justify-center rounded-full border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                     >
                                         {t('buttons.sendTripInquiry')}
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         )}

@@ -1,8 +1,9 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ChevronDown, X } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';
 
 import {
+    adminNavBadgeForHref,
     adminNavEntries,
     isAdminNavActive,
     isAdminNavGroupActive,
@@ -12,11 +13,23 @@ import {
 import { BrandLogo, brandLogoVariantForTheme } from '@/components/public/BrandLogo';
 import { useAppearance } from '@/hooks/use-appearance';
 import { cn } from '@/lib/utils';
+import type { SharedPageProps } from '@/types/inertia';
 
 interface AdminSidebarProps {
     currentPath: string;
     mobileOpen: boolean;
     onMobileClose: () => void;
+}
+
+type BadgeCounts = {
+    unreadMessages?: number;
+};
+
+function withDynamicBadge(item: AdminNavItem, counts: BadgeCounts): AdminNavItem {
+    return {
+        ...item,
+        badge: adminNavBadgeForHref(item.href, counts) ?? item.badge,
+    };
 }
 
 function AdminNavLink({
@@ -79,16 +92,19 @@ function AdminNavGroupSection({
     currentPath,
     onNavigate,
     isDark,
+    badgeCounts,
 }: {
     group: AdminNavGroup;
     currentPath: string;
     onNavigate: () => void;
     isDark: boolean;
+    badgeCounts: BadgeCounts;
 }) {
     const panelId = useId();
     const hasActiveChild = isAdminNavGroupActive(currentPath, group.items);
     const [open, setOpen] = useState(hasActiveChild);
     const Icon = group.icon;
+    const items = group.items.map((item) => withDynamicBadge(item, badgeCounts));
 
     useEffect(() => {
         if (hasActiveChild) {
@@ -145,7 +161,7 @@ function AdminNavGroupSection({
                         isDark ? 'border-white/10' : 'border-border',
                     )}
                 >
-                    {group.items.map((item) => (
+                    {items.map((item) => (
                         <AdminNavLink
                             key={item.href}
                             item={item}
@@ -164,6 +180,10 @@ function AdminNavGroupSection({
 export function AdminSidebar({ currentPath, mobileOpen, onMobileClose }: AdminSidebarProps) {
     const { resolved } = useAppearance();
     const isDark = resolved === 'dark';
+    const { adminFeed } = usePage<SharedPageProps>().props;
+    const badgeCounts: BadgeCounts = {
+        unreadMessages: adminFeed?.unreadMessages ?? 0,
+    };
 
     return (
         <>
@@ -234,6 +254,7 @@ export function AdminSidebar({ currentPath, mobileOpen, onMobileClose }: AdminSi
                                     currentPath={currentPath}
                                     onNavigate={onMobileClose}
                                     isDark={isDark}
+                                    badgeCounts={badgeCounts}
                                 />
                             );
                         }
@@ -241,7 +262,7 @@ export function AdminSidebar({ currentPath, mobileOpen, onMobileClose }: AdminSi
                         return (
                             <AdminNavLink
                                 key={entry.href}
-                                item={entry}
+                                item={withDynamicBadge(entry, badgeCounts)}
                                 currentPath={currentPath}
                                 onNavigate={onMobileClose}
                                 isDark={isDark}

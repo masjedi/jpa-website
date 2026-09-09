@@ -53,6 +53,7 @@ export const adminNavEntries: AdminNavEntry[] = [
             { label: 'Destinations', href: '/admin/destinations', icon: Compass },
             { label: 'Services', href: '/admin/services', icon: Briefcase },
             { label: 'About page', href: '/admin/about', icon: Info },
+            { label: 'Legal pages', href: '/admin/legal-pages', icon: FileText },
             { label: 'Articles', href: '/admin/articles', icon: BookOpen },
             { label: 'Gallery', href: '/admin/gallery', icon: Image },
             { label: 'FAQ', href: '/admin/faq', icon: CircleHelp },
@@ -63,10 +64,9 @@ export const adminNavEntries: AdminNavEntry[] = [
                 label: 'Inquiries',
                 href: '/admin/inquiries',
                 icon: MessageSquareText,
-                badge: '3',
             },
             { label: 'Website chat', href: '/admin/chat', icon: MessagesSquare },
-            { label: 'Custom bookings', href: '/admin/bookings', icon: ClipboardList },
+            { label: 'Tour bookings', href: '/admin/bookings', icon: ClipboardList },
         ],
     },
     { type: 'item', label: 'Invoices', href: '/admin/invoices', icon: FileText },
@@ -94,4 +94,23 @@ export function isAdminNavActive(currentPath: string, href: string): boolean {
 
 export function isAdminNavGroupActive(currentPath: string, items: AdminNavItem[]): boolean {
     return items.some((item) => isAdminNavActive(currentPath, item.href));
+}
+
+export function adminNavBadgeForHref(
+    href: string,
+    counts: { unreadMessages?: number; unreadChat?: number } = {},
+): string | undefined {
+    if (href === '/admin/inquiries') {
+        const unread = counts.unreadMessages ?? 0;
+
+        return unread > 0 ? String(unread > 99 ? '99+' : unread) : undefined;
+    }
+
+    if (href === '/admin/chat') {
+        const unread = counts.unreadChat ?? 0;
+
+        return unread > 0 ? String(unread > 99 ? '99+' : unread) : undefined;
+    }
+
+    return undefined;
 }

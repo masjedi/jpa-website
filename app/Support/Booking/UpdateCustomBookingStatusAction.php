@@ -11,22 +11,16 @@ class UpdateCustomBookingStatusAction
 {
     public function handle(CustomBooking $booking, CustomBookingStatus $status, ?User $user): CustomBooking
     {
+        unset($user);
+
         if (! $booking->status->canTransitionTo($status)) {
             throw ValidationException::withMessages([
                 'status' => 'This request cannot move to '.$status->frontendLabel().' from '.$booking->status->frontendLabel().'.',
             ]);
         }
 
-        $from = $booking->status;
-
         $booking->update([
             'status' => $status,
-        ]);
-
-        $booking->statusChanges()->create([
-            'from_status' => $from,
-            'to_status' => $status,
-            'user_id' => $user?->id,
         ]);
 
         return $booking->refresh();

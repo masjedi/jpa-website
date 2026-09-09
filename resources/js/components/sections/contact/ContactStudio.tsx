@@ -123,6 +123,8 @@ export function ContactStudio() {
 
         post('/inquiries/contact', {
             preserveScroll: true,
+            preserveState: true,
+            only: ['errors', 'flash'],
             onSuccess: () => {
                 setSubmitted(true);
                 reset('name', 'email', 'subject', 'message');

@@ -103,6 +103,8 @@ export function TourInquiryModal({
 
         post('/inquiries/tour', {
             preserveScroll: true,
+            preserveState: true,
+            only: ['errors', 'flash'],
             onSuccess: () => {
                 setSubmittedName(data.fullName);
                 setSubmittedTour(data.tourTitle);

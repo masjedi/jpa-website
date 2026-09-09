@@ -4,12 +4,11 @@ namespace App\Support\Chat;
 
 use App\Enums\ChatConversationStatus;
 use App\Enums\ChatSenderType;
-use App\Mail\NewChatConversationForTeam;
+use App\Jobs\ProcessNewChatConversationJob;
 use App\Models\ChatConversation;
 use App\Models\ChatMessage;
 use App\Support\Admin\AdminNotificationRecorder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class SendVisitorChatMessageAction
@@ -65,7 +64,8 @@ class SendVisitorChatMessageAction
         });
 
         if ($result['isFirstMessage']) {
-            Mail::queue(new NewChatConversationForTeam($result['conversation'], $result['message']));
+            // Admin DB notification stays transactional above; email is queued after commit.
+            ProcessNewChatConversationJob::dispatch($result['conversation'], $result['message']);
         }
 
         return $result;

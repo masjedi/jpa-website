@@ -43,7 +43,7 @@ export interface DataTableColumn<T extends object> {
 interface PremiumDataTableProps<T extends object> {
     title: string;
     description?: string;
-    data: readonly T[];
+    data?: readonly T[] | null;
     columns: readonly DataTableColumn<T>[];
     rowKey: (row: T) => string | number;
     emptyTitle?: string;
@@ -109,6 +109,7 @@ export function PremiumDataTable<T extends object>({
     onDelete,
     onPrint,
 }: PremiumDataTableProps<T>) {
+    const rows = data ?? [];
     const [searchQuery, setSearchQuery] = useState('');
     const [filterColumnId, setFilterColumnId] = useState(columns[0]?.id ?? '');
     const [filterValue, setFilterValue] = useState('');
@@ -129,8 +130,8 @@ export function PremiumDataTable<T extends object>({
     const [processingSelection, setProcessingSelection] = useState(false);
 
     const selectedRow = useMemo(
-        () => data.find((row) => rowKey(row) === selectedRowKey) ?? null,
-        [data, rowKey, selectedRowKey],
+        () => rows.find((row) => rowKey(row) === selectedRowKey) ?? null,
+        [rows, rowKey, selectedRowKey],
     );
 
     const selectedRowLabel = selectedRow
@@ -147,7 +148,7 @@ export function PremiumDataTable<T extends object>({
         const normalizedFilter = filterValue.trim().toLocaleLowerCase();
         const filterColumn = columns.find((column) => column.id === filterColumnId);
 
-        const matchingRows = data.filter((row) => {
+        const matchingRows = rows.filter((row) => {
             const matchesSearch =
                 !normalizedSearch ||
                 columns
@@ -202,7 +203,7 @@ export function PremiumDataTable<T extends object>({
 
             return sort.direction === 'asc' ? comparison : -comparison;
         });
-    }, [columns, data, filterColumnId, filterValue, rowKey, searchQuery, sort]);
+    }, [columns, rows, filterColumnId, filterValue, rowKey, searchQuery, sort]);
 
     const totalPages = Math.max(1, Math.ceil(processedRows.length / pageSize));
     const safePage = Math.min(page, totalPages);
@@ -647,7 +648,7 @@ export function PremiumDataTable<T extends object>({
                                 <ToolbarButton
                                     label="Edit selected record"
                                     onClick={() => setDialog('edit')}
-                                    disabled={!selectedRow}
+                                    disabled={!selectedRow || !onEdit}
                                 >
                                     <Pencil className="size-4" aria-hidden />
                                 </ToolbarButton>

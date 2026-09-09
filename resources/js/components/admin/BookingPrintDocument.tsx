@@ -1,385 +1,261 @@
-import { useEffect, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
+import type { ReactNode } from 'react';
 
-import { useSiteSettings } from '@/hooks/use-site-settings';
-import type { AdminBookingDetail } from '@/types/adminBooking';
+export interface AdminBookingDetail {
+    id: number;
+    reference: string;
+    status: string;
+    statusValue: string;
+    requestKind?: string;
+    requestKindLabel?: string;
+    isSeasonalPackage?: boolean;
+    packageTitle?: string;
+    packagePrice?: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    passportNumber: string;
+    country: string;
+    tourType: string;
+    tourTypeValue: string;
+    numberOfTourists: number;
+    touristGenders: string[];
+    touristGendersLabel: string;
+    guidePreference: string;
+    guidePreferenceLabel: string;
+    preferredDate: string;
+    preferredDateStart: string;
+    preferredDateEnd: string;
+    alternativeDate: string;
+    preferredDestinations: string;
+    otherRequests: string;
+    submitted: string;
+    nextStatus: string | null;
+    nextStatusLabel: string | null;
+}
 
-export const BOOKING_PRINT_STYLES = `
-    .booking-print-only {
-        position: absolute;
-        width: 0;
-        height: 0;
-        overflow: hidden;
-        opacity: 0;
-        pointer-events: none;
+interface BookingPrintDocumentProps {
+    booking: AdminBookingDetail;
+}
+
+function escapeHtml(value: string): string {
+    return value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+function buildBookingPrintHtml(booking: AdminBookingDetail): string {
+    const row = (label: string, value: string) =>
+        `<div class="row"><span class="label">${escapeHtml(label)}</span><span class="value">${escapeHtml(value || '—')}</span></div>`;
+
+    const section = (title: string, rows: string) =>
+        `<section><h2>${escapeHtml(title)}</h2>${rows}</section>`;
+
+    return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Tour Request ${escapeHtml(booking.reference)}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px;
+      color: #1a2430;
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.5;
+      background: #fff;
     }
+    h1 {
+      margin: 0 0 8px;
+      text-align: center;
+      color: #163B5C;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    .meta {
+      margin: 0 0 28px;
+      text-align: center;
+      color: #4b5563;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 13px;
+    }
+    section {
+      margin: 0 0 20px;
+      padding: 0 0 16px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    section:last-of-type { border-bottom: 0; }
+    h2 {
+      margin: 0 0 12px;
+      color: #163B5C;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 12px;
+      margin: 0 0 8px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 13px;
+    }
+    .label { color: #6b7280; font-weight: 600; }
+    .value { color: #111827; }
     @media print {
-        body.printing-booking * {
-            visibility: hidden !important;
-        }
-        body.printing-booking .booking-print-root,
-        body.printing-booking .booking-print-root * {
-            visibility: visible !important;
-        }
-        body.printing-booking .booking-print-root {
-            position: absolute !important;
-            inset: 0 !important;
-            width: 100% !important;
-            max-width: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #ffffff !important;
-            color: #0f172a !important;
-            box-shadow: none !important;
-            border: 0 !important;
-            border-radius: 0 !important;
-            overflow: visible !important;
-            opacity: 1 !important;
-            z-index: 2147483647 !important;
-        }
-        body.printing-booking .booking-no-print {
-            display: none !important;
-        }
-        body.printing-booking .booking-print-only {
-            display: block !important;
-            position: static !important;
-            width: auto !important;
-            height: auto !important;
-            overflow: visible !important;
-            opacity: 1 !important;
-            pointer-events: auto !important;
-        }
-        body.printing-booking .booking-print-sheet {
-            padding: 14mm 12mm !important;
-            background: #ffffff !important;
-            color: #0f172a !important;
-        }
-        body.printing-booking .booking-letterhead,
-        body.printing-booking .booking-section-divider,
-        body.printing-booking .booking-detail-row {
-            border-color: #cbd5e1 !important;
-        }
-        body.printing-booking .booking-print-status {
-            border: 1px solid #a1a1aa !important;
-            color: #18181b !important;
-            background: #ffffff !important;
-        }
-        body.printing-booking .booking-detail-label {
-            color: #64748b !important;
-        }
-        body.printing-booking .booking-detail-value {
-            color: #0f172a !important;
-        }
-        body.printing-booking .booking-print-section {
-            break-inside: avoid;
-        }
-        body.printing-booking a {
-            color: #0f172a !important;
-            text-decoration: none !important;
-        }
+      body { padding: 12mm; }
     }
-`;
-
-export function startBookingPrint(): void {
-    const root = document.querySelector('.booking-print-root');
-    const images = root ? Array.from(root.querySelectorAll('img')) : [];
-
-    const waitForImages = Promise.all(
-        images.map((image) => {
-            if (image.complete) {
-                return Promise.resolve();
-            }
-
-            return new Promise<void>((resolve) => {
-                image.addEventListener('load', () => resolve(), { once: true });
-                image.addEventListener('error', () => resolve(), { once: true });
-            });
-        }),
-    );
-
-    void waitForImages.then(() => {
-        document.body.classList.add('printing-booking');
-        const cleanup = () => {
-            document.body.classList.remove('printing-booking');
-            window.removeEventListener('afterprint', cleanup);
-        };
-        window.addEventListener('afterprint', cleanup);
-        window.print();
-        window.setTimeout(cleanup, 1500);
-    });
+  </style>
+</head>
+<body>
+  <h1>Tour Request Form</h1>
+  <p class="meta"><strong>Reference:</strong> ${escapeHtml(booking.reference)} · <strong>Status:</strong> ${escapeHtml(booking.status)} · <strong>Submitted:</strong> ${escapeHtml(booking.submitted)}</p>
+  ${
+      booking.isSeasonalPackage
+          ? section(
+                'Seasonal Package',
+                [
+                    row('Request type', 'Seasonal package (not a custom tour)'),
+                    row('Package title', booking.packageTitle || '—'),
+                    row('Package price', booking.packagePrice || 'Not listed'),
+                ].join(''),
+            )
+          : section('Request type', row('Type', 'Custom tour request'))
+  }
+  ${section(
+      '1. Personal Details',
+      [
+          row('Full Name', booking.fullName),
+          row('Email', booking.email),
+          row('Phone Number', booking.phone),
+          row('Passport Number', booking.passportNumber),
+          row('Country', booking.country),
+      ].join(''),
+  )}
+  ${section(
+      '2. Tour Details',
+      [
+          row('Tour Type', booking.tourType),
+          row('Number of Tourists', String(booking.numberOfTourists)),
+          row('Tourists', booking.touristGendersLabel),
+      ].join(''),
+  )}
+  ${section('3. Tour Guide', row('Guide Preference', booking.guidePreferenceLabel))}
+  ${section(
+      '4. Dates',
+      [
+          row('Preferred Date', booking.preferredDate),
+          row('Alternative/Available Date', booking.alternativeDate || '—'),
+      ].join(''),
+  )}
+  ${section('5. Destinations', row('Preferred destination(s)', booking.preferredDestinations))}
+  ${section('6. Other Requests', row('Special requirements', booking.otherRequests || '—'))}
+</body>
+</html>`;
 }
 
-export async function fetchAdminBooking(id: number): Promise<AdminBookingDetail> {
-    const response = await fetch(`/admin/bookings/${id}`, {
-        credentials: 'same-origin',
-        headers: {
-            Accept: 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error('Could not load this booking request.');
-    }
-
-    const payload = (await response.json()) as { booking?: AdminBookingDetail };
-
-    if (!payload.booking) {
-        throw new Error('Could not load this booking request.');
-    }
-
-    return payload.booking;
-}
-
-function hasValue(value: string | number | boolean | null | undefined): boolean {
-    return !(value === null || value === undefined || value === '' || value === false);
-}
-
-function display(value: string | number | boolean | null | undefined): string {
-    if (value === true) {
-        return 'Yes';
-    }
-
-    if (value === false || value === null || value === undefined || value === '') {
-        return '';
-    }
-
-    return String(value);
-}
-
-function PrintRow({ label, value }: { label: string; value: string | number | boolean | null | undefined }) {
-    if (!hasValue(value)) {
-        return null;
-    }
-
+/** Kept for optional on-screen preview; print uses buildBookingPrintHtml. */
+export function BookingPrintDocument({ booking }: BookingPrintDocumentProps) {
     return (
-        <div className="booking-detail-row grid gap-1 border-b border-border/70 py-2.5 sm:grid-cols-[11rem_minmax(0,1fr)] sm:items-baseline sm:gap-4">
-            <dt className="booking-detail-label text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                {label}
-            </dt>
-            <dd className="booking-detail-value text-sm font-medium text-foreground">{display(value)}</dd>
+        <div className="booking-print-sheet bg-white p-8 text-black">
+            <h1 className="mb-6 text-center text-2xl font-semibold text-[#163B5C]">
+                {booking.isSeasonalPackage ? 'Seasonal Package Request' : 'Tour Request Form'}
+            </h1>
+            <p className="mb-6 text-sm">
+                <strong>Reference:</strong> {booking.reference} · <strong>Status:</strong> {booking.status}
+            </p>
+            {booking.isSeasonalPackage ? (
+                <PrintSection title="Seasonal Package">
+                    <PrintRow label="Request type" value="Seasonal package (not a custom tour)" />
+                    <PrintRow label="Package title" value={booking.packageTitle || '—'} />
+                    <PrintRow label="Package price" value={booking.packagePrice || 'Not listed'} />
+                </PrintSection>
+            ) : (
+                <PrintSection title="Request type">
+                    <PrintRow label="Type" value="Custom tour request" />
+                </PrintSection>
+            )}
+            <PrintSection title="1. Personal Details">
+                <PrintRow label="Full Name" value={booking.fullName} />
+                <PrintRow label="Email" value={booking.email} />
+                <PrintRow label="Phone Number" value={booking.phone} />
+                <PrintRow label="Passport Number" value={booking.passportNumber} />
+                <PrintRow label="Country" value={booking.country} />
+            </PrintSection>
+            <PrintSection title="2. Tour Details">
+                <PrintRow label="Tour Type" value={booking.tourType} />
+                <PrintRow label="Number of Tourists" value={String(booking.numberOfTourists)} />
+                <PrintRow label="Tourists" value={booking.touristGendersLabel} />
+            </PrintSection>
+            <PrintSection title="3. Tour Guide">
+                <PrintRow label="Guide Preference" value={booking.guidePreferenceLabel} />
+            </PrintSection>
+            <PrintSection title="4. Dates">
+                <PrintRow label="Preferred Date" value={booking.preferredDate} />
+                <PrintRow label="Alternative/Available Date" value={booking.alternativeDate || '—'} />
+            </PrintSection>
+            <PrintSection title="5. Destinations">
+                <PrintRow label="Preferred destination(s)" value={booking.preferredDestinations} />
+            </PrintSection>
+            <PrintSection title="6. Other Requests">
+                <PrintRow label="Special requirements" value={booking.otherRequests || '—'} />
+            </PrintSection>
         </div>
     );
 }
 
 function PrintSection({ title, children }: { title: string; children: ReactNode }) {
     return (
-        <section className="booking-print-section booking-section-divider mt-8 border-t border-border pt-5">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                {title}
-            </h3>
-            <dl className="mt-3">{children}</dl>
+        <section className="mb-5 border-b border-slate-200 pb-4">
+            <h2 className="mb-3 text-lg font-semibold text-[#163B5C]">{title}</h2>
+            <div className="space-y-2">{children}</div>
         </section>
     );
 }
 
-export function BookingPrintDocument({ booking }: { booking: AdminBookingDetail }) {
-    const { brandName, contactEmail, officeLocation, whatsappDisplay, logoColor } = useSiteSettings();
-    const attachments = booking.attachments ?? [];
-    const destinations = booking.recommendDestinations
-        ? booking.destinations.length > 0
-            ? `${booking.destinations.join(', ')} · Recommend destinations`
-            : 'Recommend destinations'
-        : booking.destinations.join(', ');
-    const dietary = booking.dietaryDetails
-        ? [booking.dietary, booking.dietaryDetails].filter(Boolean).join(' · ')
-        : booking.dietary;
-
+function PrintRow({ label, value }: { label: string; value: string }) {
     return (
-        <div className="booking-print-sheet">
-            <div className="booking-letterhead border-b border-border pb-6">
-                <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0">
-                        <img
-                            src={logoColor}
-                            alt={brandName}
-                            width={320}
-                            height={72}
-                            className="h-11 w-auto object-contain object-left"
-                        />
-                        <p className="mt-4 max-w-xs text-sm font-medium text-foreground">{brandName}</p>
-                        <p className="mt-2 text-sm text-muted-foreground">{officeLocation}</p>
-                        <p className="mt-1 text-sm text-muted-foreground">{contactEmail}</p>
-                        <p className="text-sm text-muted-foreground">WhatsApp {whatsappDisplay}</p>
-                    </div>
-
-                    <div className="min-w-[13rem] text-start sm:text-end">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-secondary">
-                            Custom tour request
-                        </p>
-                        <p className="mt-2 font-heading text-2xl font-semibold text-foreground">
-                            {booking.reference}
-                        </p>
-                        <dl className="mt-4 space-y-2 text-sm">
-                            <div className="flex justify-between gap-4 sm:justify-end">
-                                <dt className="text-muted-foreground">Received</dt>
-                                <dd className="font-medium text-foreground">{booking.receivedAt || '—'}</dd>
-                            </div>
-                            <div className="flex justify-between gap-4 sm:justify-end">
-                                <dt className="text-muted-foreground">Tourists</dt>
-                                <dd className="font-medium text-foreground">{booking.travelerCount}</dd>
-                            </div>
-                            <div className="flex justify-between gap-4 sm:justify-end">
-                                <dt className="text-muted-foreground">Primary</dt>
-                                <dd className="font-medium text-foreground">{booking.travelerName || '—'}</dd>
-                            </div>
-                        </dl>
-                        <span className="booking-print-status mt-4 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ring-border">
-                            {booking.status}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <PrintSection title="Trip preferences">
-                <PrintRow label="Preferred dates" value={booking.preferredDate} />
-                <PrintRow label="I am not sure yet" value={booking.flexibility} />
-                <PrintRow label="Season" value={booking.season} />
-                <PrintRow
-                    label="Duration"
-                    value={booking.durationDays > 0 ? `${booking.durationDays} days` : 'To be decided'}
-                />
-                <PrintRow label="Destinations" value={destinations} />
-                <PrintRow label="Tour interests" value={booking.interests.join(', ')} />
-                <PrintRow label="Route" value={booking.routePreference} />
-            </PrintSection>
-
-            <PrintSection title="Tourists">
-                <PrintRow label="Group type" value={booking.groupType} />
-                <PrintRow label="Number of tourists" value={booking.travelerCount} />
-                {booking.travelers.map((traveler, index) => (
-                    <div key={traveler.id} className="border-b border-border/70 py-3 last:border-b-0">
-                        <p className="text-sm font-semibold text-foreground">
-                            {traveler.isPrimary ? 'Tourist 1' : `Tourist ${index + 1}`}: {traveler.name}
-                        </p>
-                        <dl className="mt-2">
-                            <PrintRow label="Email" value={traveler.email} />
-                            <PrintRow label="Phone" value={traveler.phone} />
-                            <PrintRow label="Date of birth" value={traveler.dateOfBirth} />
-                            <PrintRow label="Nationality" value={traveler.nationality} />
-                            <PrintRow label="Country of residence" value={traveler.countryOfResidence} />
-                            <PrintRow label="Is it first your visit?" value={traveler.isFirstVisit} />
-                        </dl>
-                    </div>
-                ))}
-            </PrintSection>
-
-            <PrintSection title="Services">
-                <PrintRow label="Number of guides" value={booking.guideCount} />
-                <PrintRow label="Languages" value={booking.guideLanguages} />
-                <PrintRow label="Male and female" value={booking.guideGender} />
-                <PrintRow label="Type of Vehicle" value={booking.vehicle} />
-                <PrintRow label="Transportation Coverage" value={booking.transportCoverage} />
-                <PrintRow label="Airport Pickup / drop-off" value={booking.airportPickup} />
-                <PrintRow label="Domestic Transportation" value={booking.domesticPreference} />
-                <PrintRow label="Accommodation Level" value={booking.accommodationLevel} />
-                <PrintRow label="Room type" value={booking.roomPreference} />
-                <PrintRow label="Number of rooms" value={booking.roomCount} />
-            </PrintSection>
-
-            <PrintSection title="Passport Information">
-                {booking.documents.map((document, index) => (
-                    <PrintRow
-                        key={`${document.issuingCountry}-${index}`}
-                        label={index === 0 ? 'Primary passport' : `Traveler ${index + 1} passport`}
-                        value={`${document.issuingCountry || 'Country not provided'} · expiry ${document.expiryDate || '—'}`}
-                    />
-                ))}
-                <PrintRow label="Visa status" value={booking.visaStatus} />
-            </PrintSection>
-
-            <PrintSection title="Emergency Contact">
-                <PrintRow
-                    label="Emergency contact"
-                    value={
-                        booking.emergencyName
-                            ? `${booking.emergencyName} (${booking.emergencyRelationship}) · ${booking.emergencyPhone}`
-                            : ''
-                    }
-                />
-                <PrintRow label="Dietary requirement" value={dietary} />
-                <PrintRow
-                    label="Do you have any medical accessibility requirement?"
-                    value={booking.medical}
-                />
-                <PrintRow label="Preferred contact method" value={booking.contactMethod} />
-            </PrintSection>
-
-            {attachments.length > 0 ? (
-                <PrintSection title="Customer files">
-                    {attachments.map((attachment) => (
-                        <PrintRow
-                            key={attachment.id}
-                            label={attachment.name}
-                            value={`${attachment.sizeLabel} · ${attachment.uploadedBy} · ${attachment.uploadedAt}`}
-                        />
-                    ))}
-                </PrintSection>
-            ) : null}
-
-            {booking.history.length > 0 ? (
-                <PrintSection title="Workflow">
-                    {booking.history.map((item) => (
-                        <PrintRow
-                            key={`${item.at}-${item.to}`}
-                            label={item.at}
-                            value={`${item.from ? `${item.from} → ` : ''}${item.to} · ${item.by}`}
-                        />
-                    ))}
-                </PrintSection>
-            ) : null}
-
-            <p className="mt-8 border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground">
-                This record confirms that a custom tour request was submitted through the website. It does
-                not reserve a seat, confirm a trip, or constitute a booking confirmation.
-            </p>
-        </div>
+        <p className="text-sm">
+            <span className="font-medium text-slate-600">{label}: </span>
+            <span>{value}</span>
+        </p>
     );
 }
 
-export function BookingPrintHost({
-    booking,
-    onDone,
-}: {
-    booking: AdminBookingDetail | null;
-    onDone: () => void;
-}) {
-    useEffect(() => {
-        if (!booking) {
-            return;
-        }
+export function startBookingPrint(booking: AdminBookingDetail): void {
+    const printWindow = window.open('', '_blank', 'width=900,height=1000');
 
-        let finished = false;
-        const finish = () => {
-            if (finished) {
-                return;
-            }
-            finished = true;
-            onDone();
-        };
-
-        const start = window.setTimeout(() => startBookingPrint(), 50);
-        window.addEventListener('afterprint', finish);
-        const timeout = window.setTimeout(finish, 60_000);
-
-        return () => {
-            window.removeEventListener('afterprint', finish);
-            window.clearTimeout(start);
-            window.clearTimeout(timeout);
-        };
-    }, [booking, onDone]);
-
-    if (!booking || typeof document === 'undefined') {
-        return null;
+    if (!printWindow) {
+        window.alert('Please allow pop-ups to print this tour request.');
+        return;
     }
 
-    return createPortal(
-        <>
-            <style>{BOOKING_PRINT_STYLES}</style>
-            <div className="booking-print-root pointer-events-none fixed inset-0 -z-10 overflow-hidden opacity-0">
-                <BookingPrintDocument booking={booking} />
-            </div>
-        </>,
-        document.body,
-    );
+    printWindow.document.open();
+    printWindow.document.write(buildBookingPrintHtml(booking));
+    printWindow.document.close();
+    printWindow.focus();
+    window.setTimeout(() => {
+        printWindow.print();
+    }, 250);
+}
+
+export async function fetchAdminBooking(id: number): Promise<AdminBookingDetail> {
+    const response = await fetch(`/admin/bookings/${id}`, {
+        headers: {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+    });
+
+    if (!response.ok) {
+        throw new Error('Unable to load booking.');
+    }
+
+    const payload = (await response.json()) as { booking: AdminBookingDetail };
+
+    return payload.booking;
 }

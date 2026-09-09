@@ -31,9 +31,10 @@ class InquiryController extends Controller
     public function storeTour(StoreTourInquiryRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $isSeasonalPackage = ($validated['requestKind'] ?? null) === 'seasonal_package';
 
         Inquiry::query()->create([
-            'source' => InquirySource::TourInquiry,
+            'source' => $isSeasonalPackage ? InquirySource::SeasonalPackage : InquirySource::TourInquiry,
             'status' => InquiryStatus::New,
             'name' => trim((string) $validated['fullName']),
             'email' => mb_strtolower(trim((string) $validated['email'])),
@@ -43,9 +44,18 @@ class InquiryController extends Controller
             'nationality' => filled($validated['nationality'] ?? null) ? trim((string) $validated['nationality']) : null,
             'preferred_date' => filled($validated['preferredDate'] ?? null) ? trim((string) $validated['preferredDate']) : null,
             'traveler_count' => filled($validated['travelerCount'] ?? null) ? trim((string) $validated['travelerCount']) : null,
+            'package_price' => $isSeasonalPackage && filled($validated['packagePrice'] ?? null)
+                ? trim((string) $validated['packagePrice'])
+                : null,
+            'request_kind' => $isSeasonalPackage ? 'seasonal_package' : 'tour',
             'read_at' => null,
         ]);
 
-        return back()->with('success', 'Thank you for your inquiry. Our team will reply with a tailored proposal.');
+        return back()->with(
+            'success',
+            $isSeasonalPackage
+                ? 'Thank you for your seasonal package request. Our team will reply with next steps.'
+                : 'Thank you for your inquiry. Our team will reply with a tailored proposal.',
+        );
     }
 }

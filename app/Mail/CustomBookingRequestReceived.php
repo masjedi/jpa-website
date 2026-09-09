@@ -28,7 +28,7 @@ class CustomBookingRequestReceived extends Mailable implements ShouldQueue
         return new Envelope(
             from: new Address((string) config('mail.from.address'), $confirmation->brandName),
             to: [
-                new Address($confirmation->email, trim($confirmation->firstName.' '.$confirmation->lastName)),
+                new Address($confirmation->email, $confirmation->fullName),
             ],
             subject: "Your custom tour request {$confirmation->reference} has been received",
             replyTo: [
@@ -50,8 +50,6 @@ class CustomBookingRequestReceived extends Mailable implements ShouldQueue
 
     private function confirmation(): CustomBookingConfirmation
     {
-        $this->booking->loadMissing(['primaryTraveler', 'destinations', 'interests']);
-
         return CustomBookingConfirmation::fromBooking($this->booking);
     }
 }

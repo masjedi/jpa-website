@@ -62,7 +62,7 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
-                'customBookingSuccess' => fn () => $request->session()->get('customBookingSuccess'),
+                'customBookingSuccess' => fn () => $request->session()->pull('customBookingSuccess'),
             ],
             'adminFeed' => fn () => $user !== null && $request->is('admin', 'admin/*')
                 ? AdminFeedPresenter::forNavbar()

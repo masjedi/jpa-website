@@ -1,5 +1,5 @@
 import { Form, usePage } from '@inertiajs/react';
-import { KeyRound, Shield, UserRound } from 'lucide-react';
+import { KeyRound, Mail, Shield, UserRound } from 'lucide-react';
 import { useState } from 'react';
 
 import { AdminFormField } from '@/components/admin/AdminFormField';
@@ -18,6 +18,7 @@ interface AccountPageProps {
 
 export default function Account({ account }: AccountPageProps) {
     const { flash } = usePage().props;
+    const [showEmailPassword, setShowEmailPassword] = useState(false);
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -60,6 +61,88 @@ export default function Account({ account }: AccountPageProps) {
                         </dd>
                     </div>
                 </dl>
+            </AdminSectionPanel>
+
+            <AdminSectionPanel
+                title="Change email"
+                description="Enter a new email address and confirm with your current password. This becomes your dashboard login username."
+            >
+                <Form
+                    action="/admin/account/email"
+                    method="post"
+                    className="mx-auto max-w-xl space-y-4"
+                    resetOnSuccess={['current_password']}
+                >
+                    {({ errors, processing }) => (
+                        <>
+                            <input type="hidden" name="_method" value="patch" />
+
+                            <AdminFormField
+                                id="email"
+                                label="New email"
+                                required
+                                error={errors.email}
+                            >
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    defaultValue={account.email}
+                                    autoComplete="username"
+                                    required
+                                    dir="ltr"
+                                    aria-invalid={Boolean(errors.email)}
+                                    className={cn(
+                                        adminFieldClass,
+                                        errors.email && adminFieldErrorClass,
+                                    )}
+                                />
+                            </AdminFormField>
+
+                            <AdminFormField
+                                id="email_current_password"
+                                label="Current password"
+                                required
+                                error={errors.current_password}
+                            >
+                                <input
+                                    id="email_current_password"
+                                    name="current_password"
+                                    type={showEmailPassword ? 'text' : 'password'}
+                                    autoComplete="current-password"
+                                    required
+                                    aria-invalid={Boolean(errors.current_password)}
+                                    className={cn(
+                                        adminFieldClass,
+                                        errors.current_password && adminFieldErrorClass,
+                                    )}
+                                />
+                            </AdminFormField>
+
+                            <button
+                                type="button"
+                                onClick={() => setShowEmailPassword((visible) => !visible)}
+                                className="text-xs font-medium text-secondary hover:underline"
+                            >
+                                {showEmailPassword ? 'Hide current password' : 'Show current password'}
+                            </button>
+
+                            <div className="flex items-center gap-2 rounded-xl border border-border bg-surface-muted/60 px-3 py-2.5 text-xs text-muted-foreground">
+                                <Shield className="size-4 shrink-0 text-secondary" aria-hidden />
+                                After saving, sign in with the new email and your existing password.
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                <Mail className="size-4" aria-hidden />
+                                {processing ? 'Saving…' : 'Update email'}
+                            </button>
+                        </>
+                    )}
+                </Form>
             </AdminSectionPanel>
 
             <AdminSectionPanel

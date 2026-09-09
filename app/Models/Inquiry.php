@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Model;
     'nationality',
     'preferred_date',
     'traveler_count',
+    'package_price',
+    'request_kind',
     'read_at',
 ])]
 class Inquiry extends Model

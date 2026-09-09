@@ -177,9 +177,9 @@
     "bookNowDialog": {
         "title": "Buchen Sie Ihre Tour",
         "description": "Damit senden Sie eine Anfrage. Es wird kein Platz reserviert und keine Reise bestätigt.",
-        "customTitle": "Individuelles Paket",
+        "customTitle": "Individuelle Tour",
         "customDescription": "Planen Sie Ihre eigene Afghanistan-Reise mit unserem Team.",
-        "fixedTitle": "Festes Paket",
+        "fixedTitle": "Saisonale Tour",
         "fixedDescription": "Wählen Sie ein anfragebereites Tourpaket."
     },
     "whatsapp": {

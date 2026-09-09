@@ -177,10 +177,10 @@
     "bookNowDialog": {
         "title": "Book your tour",
         "description": "This sends a request. It does not reserve a seat or confirm a trip.",
-        "customTitle": "Custom Package",
+        "customTitle": "Custom Tour",
         "customDescription": "Plan your own Afghanistan itinerary with our team.",
-        "fixedTitle": "Fixed package",
-        "fixedDescription": "Choose a ready-to-request tour package."
+        "fixedTitle": "Seasonal Tour",
+        "fixedDescription": "Choose a ready-to-request seasonal tour."
     },
     "whatsapp": {
         "chat": "Chat on WhatsApp at :number"

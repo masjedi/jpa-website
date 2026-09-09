@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             HeroSectionSeeder::class,
             SiteSettingsSeeder::class,
             AboutPageSeeder::class,
+            LegalPageSeeder::class,
             TourFilterOptionSeeder::class,
             TourSeeder::class,
             DestinationSeeder::class,

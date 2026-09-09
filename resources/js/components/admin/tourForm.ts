@@ -43,25 +43,33 @@ export const emptyTourFilterOptions: TourFilterFieldOptions = {
 };
 
 export function firstTourFilterOption(
-    options: readonly string[],
+    options: readonly (string | { value: string; label?: string })[],
     preferred?: string,
 ): string {
-    if (preferred && options.includes(preferred)) {
+    const values = options.map((option) => (typeof option === 'string' ? option : option.value));
+
+    if (preferred && values.includes(preferred)) {
         return preferred;
     }
 
-    return options[0] ?? preferred ?? '';
+    return values[0] ?? preferred ?? '';
 }
 
 export function withCurrentTourFilterOption(
-    options: readonly string[],
+    options: readonly (string | { value: string; label?: string })[],
     current: string,
-): string[] {
-    if (current && !options.includes(current)) {
-        return [current, ...options];
+): Array<{ value: string; label: string }> {
+    const choices = options.map((option) =>
+        typeof option === 'string'
+            ? { value: option, label: option }
+            : { value: option.value, label: option.label ?? option.value },
+    );
+
+    if (current && !choices.some((option) => option.value === current)) {
+        return [{ value: current, label: current }, ...choices];
     }
 
-    return [...options];
+    return choices;
 }
 
 function createEmptyTranslatedStringWithDefault(defaults: Partial<TranslatedString> = {}): TranslatedString {

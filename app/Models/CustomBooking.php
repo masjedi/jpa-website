@@ -2,78 +2,34 @@
 
 namespace App\Models;
 
+use App\Enums\CustomBookingRequestKind;
 use App\Enums\CustomBookingStatus;
 use Database\Factories\CustomBookingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'reference',
     'status',
-    'adults',
-    'children',
-    'traveler_count',
-    'group_type',
-    'start_date',
-    'end_date',
-    'flexibility',
-    'season',
-    'duration_days',
-    'other_destination',
-    'recommend_destinations',
-    'route_preference',
-    'visa_status',
-    'insurance_status',
-    'emergency_name',
-    'emergency_relationship',
-    'emergency_phone',
-    'dietary',
-    'dietary_options',
-    'dietary_details',
-    'medical',
-    'medical_details',
-    'contact_method',
-    'special_requests',
-    'accuracy',
-    'terms',
-    'privacy',
-    'marketing',
-    'wants_complete',
-    'wants_guide',
-    'guide_count',
-    'guide_gender',
-    'wants_transportation',
-    'wants_accommodation',
-    'wants_airport',
-    'wants_domestic',
-    'guide_language',
-    'guide_languages',
-    'guide_language_other',
-    'guide_request',
-    'vehicle',
-    'transport_coverage',
-    'transport_notes',
-    'accommodation_level',
-    'room_preference',
-    'room_count',
-    'accommodation_notes',
-    'arrival_assistance',
-    'arrival_details_later',
-    'arrival_airport',
-    'arrival_date',
-    'arrival_time',
-    'arrival_flight',
-    'departure_assistance',
-    'departure_details_later',
-    'departure_airport',
-    'departure_date',
-    'departure_time',
-    'departure_flight',
-    'domestic_preference',
+    'request_kind',
+    'package_title',
+    'package_price',
+    'full_name',
+    'email',
+    'phone',
+    'passport_number',
+    'country',
+    'tour_type',
+    'number_of_tourists',
+    'tourist_genders',
+    'guide_preference',
+    'preferred_date',
+    'preferred_date_end',
+    'alternative_date',
+    'preferred_destinations',
+    'other_requests',
 ])]
 class CustomBooking extends Model
 {
@@ -87,96 +43,36 @@ class CustomBooking extends Model
     {
         return [
             'status' => CustomBookingStatus::class,
-            'start_date' => 'date',
-            'end_date' => 'date',
-            'recommend_destinations' => 'boolean',
-            'accuracy' => 'boolean',
-            'terms' => 'boolean',
-            'privacy' => 'boolean',
-            'marketing' => 'boolean',
-            'wants_complete' => 'boolean',
-            'wants_guide' => 'boolean',
-            'guide_languages' => 'array',
-            'dietary_options' => 'array',
-            'wants_transportation' => 'boolean',
-            'wants_accommodation' => 'boolean',
-            'wants_airport' => 'boolean',
-            'wants_domestic' => 'boolean',
-            'arrival_details_later' => 'boolean',
-            'departure_details_later' => 'boolean',
-            'arrival_date' => 'date',
-            'departure_date' => 'date',
-            'emergency_name' => 'encrypted',
-            'emergency_relationship' => 'encrypted',
-            'emergency_phone' => 'encrypted',
-            'medical_details' => 'encrypted',
-            'arrival_flight' => 'encrypted',
-            'departure_flight' => 'encrypted',
+            'request_kind' => CustomBookingRequestKind::class,
+            'tourist_genders' => 'array',
+            'number_of_tourists' => 'integer',
+            'preferred_date' => 'date',
+            'preferred_date_end' => 'date',
+            'alternative_date' => 'date',
         ];
     }
 
     /**
-     * @return HasMany<CustomBookingTraveler, $this>
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
-    public function travelers(): HasMany
+    public function scopeSearch(Builder $query, ?string $search): Builder
     {
-        return $this->hasMany(CustomBookingTraveler::class)->orderBy('sort_order');
-    }
+        $term = trim((string) $search);
 
-    /**
-     * @return HasOne<CustomBookingTraveler, $this>
-     */
-    public function primaryTraveler(): HasOne
-    {
-        return $this->hasOne(CustomBookingTraveler::class)->where('is_primary', true);
-    }
+        if ($term === '') {
+            return $query;
+        }
 
-    /**
-     * @return HasMany<CustomBookingDocument, $this>
-     */
-    public function documents(): HasMany
-    {
-        return $this->hasMany(CustomBookingDocument::class)->orderBy('sort_order');
-    }
-
-    /**
-     * @return HasMany<CustomBookingAttachment, $this>
-     */
-    public function attachments(): HasMany
-    {
-        return $this->hasMany(CustomBookingAttachment::class)->orderBy('sort_order')->orderByDesc('id');
-    }
-
-    /**
-     * @return HasMany<CustomBookingDestination, $this>
-     */
-    public function destinations(): HasMany
-    {
-        return $this->hasMany(CustomBookingDestination::class);
-    }
-
-    /**
-     * @return HasMany<CustomBookingInterest, $this>
-     */
-    public function interests(): HasMany
-    {
-        return $this->hasMany(CustomBookingInterest::class);
-    }
-
-    /**
-     * @return HasMany<CustomBookingStatusChange, $this>
-     */
-    public function statusChanges(): HasMany
-    {
-        return $this->hasMany(CustomBookingStatusChange::class)->orderByDesc('id');
-    }
-
-    /**
-     * @param  Builder<CustomBooking>  $query
-     * @return Builder<CustomBooking>
-     */
-    public function scopeLatestFirst(Builder $query): Builder
-    {
-        return $query->orderByDesc('created_at')->orderByDesc('id');
+        return $query->where(function (Builder $builder) use ($term): void {
+            $builder
+                ->where('reference', 'like', "%{$term}%")
+                ->orWhere('full_name', 'like', "%{$term}%")
+                ->orWhere('email', 'like', "%{$term}%")
+                ->orWhere('phone', 'like', "%{$term}%")
+                ->orWhere('country', 'like', "%{$term}%")
+                ->orWhere('package_title', 'like', "%{$term}%")
+                ->orWhere('preferred_destinations', 'like', "%{$term}%");
+        });
     }
 }

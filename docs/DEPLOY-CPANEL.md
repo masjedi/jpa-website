@@ -70,21 +70,29 @@ Do **not** run the full `DatabaseSeeder` on production unless you intentionally 
 
 ## 5. Queue worker (required for booking emails)
 
-Booking confirmation emails are queued (`QUEUE_CONNECTION=database`).
+Booking confirmation emails and follow-up notifications are queued. Forms only validate, save the record, and return success; SMTP runs in the background.
 
-Add a cPanel **Cron Job** (every minute):
-
-```bash
-cd /home/USER/path-to-app && php artisan queue:work database --stop-when-empty --max-time=55 >> /dev/null 2>&1
-```
-
-If you cannot run cron, set:
+Set:
 
 ```env
-QUEUE_CONNECTION=sync
+QUEUE_CONNECTION=database
 ```
 
-Emails will send during form submit (slower, but no worker needed).
+Ensure the `jobs` / `failed_jobs` tables exist (`php artisan migrate --force`).
+
+Add a cPanel **Cron Job** (every minute) — pick one:
+
+```bash
+cd /home/USER/path-to-app && php artisan queue:work --stop-when-empty --max-time=55 >> /dev/null 2>&1
+```
+
+Or via the Laravel scheduler (same effect; `routes/console.php` already schedules the worker):
+
+```bash
+cd /home/USER/path-to-app && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Do **not** set `QUEUE_CONNECTION=sync` on production. Sync sends SMTP during the HTTP request and commonly makes booking forms take several seconds.
 
 ## 6. Permissions
 

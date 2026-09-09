@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\HeroSectionController;
 use App\Http\Controllers\Admin\HomeFinderController;
 use App\Http\Controllers\Admin\InquiriesController;
 use App\Http\Controllers\Admin\InvoicesController;
+use App\Http\Controllers\Admin\LegalPagesController;
 use App\Http\Controllers\Admin\ProtectedMediaController;
 use App\Http\Controllers\Admin\ServicesController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -85,6 +86,9 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         Route::post('about/journey-steps', [AdminAboutPageController::class, 'storeJourneyStep'])->name('about.journey-steps.store');
         Route::patch('about/journey-steps/{aboutJourneyStep}', [AdminAboutPageController::class, 'updateJourneyStep'])->name('about.journey-steps.update');
         Route::delete('about/journey-steps/{aboutJourneyStep}', [AdminAboutPageController::class, 'destroyJourneyStep'])->name('about.journey-steps.destroy');
+        Route::get('legal-pages', [LegalPagesController::class, 'index'])->name('legal-pages.index');
+        Route::get('legal-pages/{key}/edit', [LegalPagesController::class, 'edit'])->name('legal-pages.edit');
+        Route::patch('legal-pages/{key}', [LegalPagesController::class, 'update'])->name('legal-pages.update');
         Route::get('teams', [TeamsController::class, 'index'])->name('teams.index');
         Route::post('teams', [TeamsController::class, 'store'])->name('teams.store');
         Route::patch('teams/{teamMember}', [TeamsController::class, 'update'])->name('teams.update');
@@ -113,14 +117,13 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         Route::delete('invoices/{invoice}', [InvoicesController::class, 'destroy'])->name('invoices.destroy');
         Route::get('bookings', [CustomBookingsController::class, 'index'])->name('bookings.index');
         Route::get('bookings/{customBooking}', [CustomBookingsController::class, 'show'])->name('bookings.show');
+        Route::patch('bookings/{customBooking}', [CustomBookingsController::class, 'update'])->name('bookings.update');
         Route::patch('bookings/{customBooking}/status', [CustomBookingsController::class, 'updateStatus'])->name('bookings.status');
-        Route::post('bookings/{customBooking}/attachments', [CustomBookingsController::class, 'storeAttachments'])->name('bookings.attachments.store');
-        Route::get('bookings/{customBooking}/attachments/{customBookingAttachment}/download', [CustomBookingsController::class, 'downloadAttachment'])->name('bookings.attachments.download');
-        Route::delete('bookings/{customBooking}/attachments/{customBookingAttachment}', [CustomBookingsController::class, 'destroyAttachment'])->name('bookings.attachments.destroy');
         Route::delete('bookings/{customBooking}', [CustomBookingsController::class, 'destroy'])->name('bookings.destroy');
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::patch('settings', [SettingsController::class, 'update'])->name('settings.update');
         Route::get('account', [AccountController::class, 'index'])->name('account.index');
+        Route::patch('account/email', [AccountController::class, 'updateEmail'])->name('account.email.update');
         Route::patch('account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
         Route::get('media/{profile}/{id}', [ProtectedMediaController::class, 'show'])
             ->where('profile', '[a-z_]+')

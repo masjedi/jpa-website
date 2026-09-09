@@ -1,38 +1,34 @@
-import { Link, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { ClipboardList } from 'lucide-react';
-import { Suspense, lazy, useCallback, useState } from 'react';
 
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
 import { adminFieldClass } from '@/components/admin/adminForm';
 import {
-    BookingPrintHost,
     fetchAdminBooking,
+    startBookingPrint,
 } from '@/components/admin/BookingPrintDocument';
 import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
-import { mediaProfiles } from '@/lib/mediaProfiles';
-import type { AdminBookingDetail } from '@/types/adminBooking';
 import type { SharedPageProps } from '@/types/inertia';
-
-const CustomBookingFormDialog = lazy(() =>
-    import('@/components/admin/CustomBookingFormDialog').then((module) => ({
-        default: module.CustomBookingFormDialog,
-    })),
-);
 
 interface BookingRow {
     id: number;
     reference: string;
     status: string;
-    statusValue: string;
-    travelerName: string;
+    fullName: string;
     email: string;
     preferredDate: string;
-    travelerCount: number;
-    received: string;
+    numberOfTourists: number;
+    tourType: string;
+    submitted: string;
+    requestKind?: string;
+    requestKindLabel?: string;
+    isSeasonalPackage?: boolean;
+    packageTitle?: string;
+    packagePrice?: string;
 }
 
 interface PaginatedBookings {
@@ -42,7 +38,6 @@ interface PaginatedBookings {
         total: number;
         current_page: number;
         last_page: number;
-        links?: { url: string | null; label: string; active: boolean }[];
     };
 }
 
@@ -50,12 +45,6 @@ interface BookingsPageProps extends SharedPageProps {
     bookings: PaginatedBookings;
     filters: { search: string; status: string };
     statusOptions: { value: string; label: string }[];
-    attachmentUpload?: {
-        hint: string;
-        accept: string;
-        max_files: number;
-        max_upload_kilobytes: number;
-    };
 }
 
 const statusStyles: Record<string, string> = {
@@ -77,16 +66,41 @@ const columns: DataTableColumn<BookingRow>[] = [
     {
         id: 'traveler',
         header: 'Traveler',
-        accessor: (row) => row.travelerName,
+        accessor: (row) => row.fullName,
         render: (row) => (
             <div>
-                <p className="font-medium text-foreground">{row.travelerName}</p>
+                <p className="font-medium text-foreground">{row.fullName}</p>
                 <p className="text-xs text-muted-foreground">{row.email}</p>
             </div>
         ),
     },
+    {
+        id: 'requestKind',
+        header: 'Request type',
+        accessor: (row) => row.requestKindLabel ?? 'Custom tour',
+        render: (row) => (
+            <div>
+                <span
+                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+                        row.isSeasonalPackage
+                            ? 'bg-secondary/10 text-secondary'
+                            : 'bg-surface-muted text-muted-foreground'
+                    }`}
+                >
+                    {row.isSeasonalPackage ? 'Seasonal package' : 'Custom tour'}
+                </span>
+                {row.isSeasonalPackage && row.packageTitle ? (
+                    <p className="mt-1 text-xs text-muted-foreground">{row.packageTitle}</p>
+                ) : null}
+                {row.isSeasonalPackage && row.packagePrice ? (
+                    <p className="text-xs text-muted-foreground">Price: {row.packagePrice}</p>
+                ) : null}
+            </div>
+        ),
+    },
     { id: 'preferredDate', header: 'Preferred date', accessor: (row) => row.preferredDate },
-    { id: 'travelers', header: 'Travelers', accessor: (row) => row.travelerCount },
+    { id: 'tourists', header: 'Tourists', accessor: (row) => row.numberOfTourists },
+    { id: 'tourType', header: 'Tour type', accessor: (row) => row.tourType },
     {
         id: 'status',
         header: 'Status',
@@ -99,216 +113,99 @@ const columns: DataTableColumn<BookingRow>[] = [
             </span>
         ),
     },
-    { id: 'received', header: 'Received', accessor: (row) => row.received },
+    { id: 'submitted', header: 'Submitted', accessor: (row) => row.submitted },
 ];
 
-export default function Bookings() {
-    const {
-        bookings,
-        filters,
-        statusOptions = [],
-        attachmentUpload,
-        flash,
-    } = usePage<BookingsPageProps>().props;
-    const rows = bookings?.data ?? [];
-    const [search, setSearch] = useState(filters?.search ?? '');
-    const [formOpen, setFormOpen] = useState(false);
-    const [formResetKey, setFormResetKey] = useState('edit');
-    const [editingBooking, setEditingBooking] = useState<BookingRow | null>(null);
-    const [printBooking, setPrintBooking] = useState<AdminBookingDetail | null>(null);
-    const [printError, setPrintError] = useState<string | undefined>();
-    const clearPrintJob = useCallback(() => setPrintBooking(null), []);
-    const uploadSpec = attachmentUpload ?? {
-        hint: mediaProfiles.document_attachment.hint,
-        accept: mediaProfiles.document_attachment.accept,
-        max_files: mediaProfiles.document_attachment.maxFiles,
-        max_upload_kilobytes: mediaProfiles.document_attachment.maxUploadKilobytes,
-    };
+export default function Bookings({ bookings, filters, statusOptions }: BookingsPageProps) {
+    const { flash } = usePage().props;
+    const bookingRows = bookings?.data ?? [];
 
-    const openEditForm = (row: BookingRow) => {
-        setEditingBooking(row);
-        setFormResetKey(`edit-${row.id}-${Date.now()}`);
-        setFormOpen(true);
-    };
-
-    const submitEditForm = (files: File[]): Promise<void> => {
-        if (editingBooking === null) {
-            return Promise.resolve();
-        }
-
-        const formData = new FormData();
-
-        for (const file of files) {
-            formData.append('attachments[]', file);
-        }
-
-        return new Promise((resolve, reject) => {
-            router.post(`/admin/bookings/${editingBooking.id}/attachments`, formData, {
-                forceFormData: true,
-                preserveScroll: true,
-                onSuccess: () => resolve(),
-                onError: (submitErrors) => {
-                    const message =
-                        submitErrors.attachments ??
-                        Object.values(submitErrors).find((value) => Boolean(value));
-
-                    reject(
-                        new Error(
-                            message || 'Could not attach files. Check the file type and size.',
-                        ),
-                    );
-                },
-            });
-        });
-    };
-
-    const printSelectedBooking = async (row: BookingRow) => {
-        setPrintError(undefined);
-
+    const handlePrint = async (row: BookingRow) => {
         try {
-            setPrintBooking(await fetchAdminBooking(row.id));
-        } catch (error) {
-            setPrintError(
-                error instanceof Error ? error.message : 'Could not print this booking request.',
-            );
+            const detail = await fetchAdminBooking(row.id);
+            startBookingPrint(detail);
+        } catch {
+            window.alert('Unable to load this tour request for printing.');
         }
-    };
-
-    const applyFilters = (next: { search?: string; status?: string }) => {
-        router.get(
-            '/admin/bookings',
-            {
-                search: next.search ?? search,
-                status: next.status ?? filters.status,
-            },
-            { preserveState: true, preserveScroll: true },
-        );
     };
 
     return (
-        <>
-            <div className="space-y-4">
-                {flash.success ? (
-                    <div
-                        role="status"
-                        className="rounded-xl border border-secondary/20 bg-secondary/10 px-4 py-3 text-sm text-secondary"
-                    >
-                        {flash.success}
-                    </div>
-                ) : null}
-
-                {printError ? (
-                    <div
-                        role="alert"
-                        className="rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-                    >
-                        {printError}
-                    </div>
-                ) : null}
-
-                <AdminSectionHeader
-                    eyebrow="Public website"
-                    title="Custom bookings"
-                    description="Review submitted custom tour requests. These are inquiries, not confirmed reservations."
-                    icon={ClipboardList}
-                />
-
-                <form
-                    className="flex flex-col gap-3 sm:flex-row sm:items-end"
-                    onSubmit={(event) => {
-                        event.preventDefault();
-                        applyFilters({ search });
-                    }}
+        <div className="space-y-4">
+            {flash.success ? (
+                <div
+                    role="status"
+                    className="rounded-xl border border-secondary/20 bg-secondary/10 px-4 py-3 text-sm text-secondary"
                 >
-                    <label className="min-w-0 flex-1 text-xs font-medium text-muted-foreground">
-                        Search
-                        <input
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                            placeholder="Reference, name, or email"
-                            className={`${adminFieldClass} mt-1.5`}
-                        />
-                    </label>
-                    <label className="w-full text-xs font-medium text-muted-foreground sm:w-56">
-                        Status
-                        <select
-                            value={filters?.status ?? ''}
-                            onChange={(event) => applyFilters({ status: event.target.value })}
-                            className={`${adminFieldClass} mt-1.5`}
-                        >
-                            <option value="">All statuses</option>
-                            {statusOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <button
-                        type="submit"
-                        className="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground"
-                    >
-                        Search
-                    </button>
-                </form>
+                    {flash.success}
+                </div>
+            ) : null}
 
-                <PremiumDataTable
-                    title="Submitted requests"
-                    description="Newest first. Open a request to view traveler, service, and document details."
-                    data={rows}
-                    columns={columns}
-                    rowKey={(row) => row.id}
-                    selectionLabel={(row) => row.reference}
-                    initialPageSize={15}
-                    onView={(row) => router.visit(`/admin/bookings/${row.id}`)}
-                    onEdit={openEditForm}
-                    onPrint={printSelectedBooking}
-                    onDelete={(row) => {
-                        router.delete(`/admin/bookings/${row.id}`, { preserveScroll: true });
+            <AdminSectionHeader
+                eyebrow="Requests"
+                title="Tour bookings"
+                description="Custom tour and seasonal package requests from the shared Tour Request Form. Seasonal packages are labeled with package title and price."
+                icon={ClipboardList}
+            />
+
+            <div className="flex flex-wrap gap-3">
+                <input
+                    defaultValue={filters.search}
+                    placeholder="Search name, email, reference…"
+                    className={`${adminFieldClass} max-w-sm`}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                            router.get(
+                                '/admin/bookings',
+                                {
+                                    search: (event.target as HTMLInputElement).value,
+                                    status: filters.status || undefined,
+                                },
+                                { preserveState: true },
+                            );
+                        }
                     }}
                 />
-
-                {((bookings.meta?.links ?? bookings.links) ?? []).length > 3 ? (
-                    <nav className="flex flex-wrap justify-center gap-1" aria-label="Pagination">
-                        {((bookings.meta?.links ?? bookings.links) ?? []).map((link) =>
-                            link.url ? (
-                                <Link
-                                    key={link.label}
-                                    href={link.url}
-                                    preserveScroll
-                                    className={`rounded-md px-3 py-1.5 text-xs ${link.active ? 'bg-primary text-primary-foreground' : 'border border-border text-foreground hover:bg-surface-muted'}`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ) : (
-                                <span
-                                    key={link.label}
-                                    className="rounded-md px-3 py-1.5 text-xs text-muted-foreground"
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ),
-                        )}
-                    </nav>
-                ) : null}
+                <select
+                    defaultValue={filters.status}
+                    className={`${adminFieldClass} max-w-xs`}
+                    onChange={(event) =>
+                        router.get(
+                            '/admin/bookings',
+                            {
+                                search: filters.search || undefined,
+                                status: event.target.value || undefined,
+                            },
+                            { preserveState: true },
+                        )
+                    }
+                >
+                    <option value="">All statuses</option>
+                    {statusOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
             </div>
 
-            <BookingPrintHost booking={printBooking} onDone={clearPrintJob} />
-
-            <Suspense fallback={null}>
-                <CustomBookingFormDialog
-                    open={formOpen}
-                    resetKey={formResetKey}
-                    reference={editingBooking?.reference ?? ''}
-                    travelerName={editingBooking?.travelerName ?? ''}
-                    email={editingBooking?.email ?? ''}
-                    accept={uploadSpec.accept}
-                    hint={uploadSpec.hint}
-                    maxFiles={uploadSpec.max_files}
-                    onClose={() => setFormOpen(false)}
-                    onSubmit={submitEditForm}
-                />
-            </Suspense>
-        </>
+            <PremiumDataTable
+                title="Tour requests"
+                description="Custom tour and seasonal package request form submissions."
+                data={bookingRows}
+                columns={columns}
+                rowKey={(row) => row.id}
+                selectionLabel={(row) => row.reference}
+                onView={(row) => router.visit(`/admin/bookings/${row.id}`)}
+                onEdit={(row) => router.visit(`/admin/bookings/${row.id}?edit=1`)}
+                onPrint={(row) => handlePrint(row)}
+                onDelete={(row) => {
+                    if (confirm(`Delete ${row.reference}?`)) {
+                        router.delete(`/admin/bookings/${row.id}`, { preserveScroll: true });
+                    }
+                }}
+            />
+        </div>
     );
 }
 
-Bookings.layout = withAdminLayout('Custom bookings');
+Bookings.layout = withAdminLayout('Tour bookings');

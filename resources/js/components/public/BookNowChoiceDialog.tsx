@@ -1,8 +1,9 @@
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { ChevronRight, Compass, MapPinned, X } from 'lucide-react';
 import { useEffect, useId, useRef } from 'react';
 
-import { customBookingHref, tourPackagesHref } from '@/components/public/navigation';
+import { openCustomTourRequest } from '@/components/public/CustomTourRequestHost';
+import { tourPackagesHref } from '@/components/public/navigation';
 import { useTranslations } from '@/hooks/use-translations';
 
 interface BookNowChoiceDialogProps {
@@ -15,7 +16,7 @@ const choiceClassName =
 
 export function BookNowChoiceDialog({ isOpen, onClose }: BookNowChoiceDialogProps) {
     const titleId = useId();
-    const firstChoiceRef = useRef<HTMLAnchorElement>(null);
+    const firstChoiceRef = useRef<HTMLButtonElement>(null);
     const { t } = useTranslations();
 
     useEffect(() => {
@@ -57,7 +58,10 @@ export function BookNowChoiceDialog({ isOpen, onClose }: BookNowChoiceDialogProp
                 onClick={(event) => event.stopPropagation()}
             >
                 <div className="flex items-center justify-between gap-4 border-b border-border px-6 py-5 sm:px-7">
-                    <h2 id={titleId} className="font-heading text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                    <h2
+                        id={titleId}
+                        className="font-heading text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
+                    >
                         {t('bookNowDialog.title')}
                     </h2>
                     <button
@@ -71,10 +75,13 @@ export function BookNowChoiceDialog({ isOpen, onClose }: BookNowChoiceDialogProp
                 </div>
 
                 <div className="grid gap-3 p-6 sm:p-7">
-                    <Link
+                    <button
                         ref={firstChoiceRef}
-                        href={customBookingHref}
-                        onClick={onClose}
+                        type="button"
+                        onClick={() => {
+                            onClose();
+                            openCustomTourRequest();
+                        }}
                         className={choiceClassName}
                     >
                         <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary/10 text-secondary">
@@ -87,7 +94,7 @@ export function BookNowChoiceDialog({ isOpen, onClose }: BookNowChoiceDialogProp
                             className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-secondary rtl:rotate-180"
                             aria-hidden
                         />
-                    </Link>
+                    </button>
 
                     <button
                         type="button"

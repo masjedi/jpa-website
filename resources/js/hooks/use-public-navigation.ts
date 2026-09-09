@@ -85,8 +85,6 @@ export function usePublicNavigation() {
 
         const helpLinks = helpLinkDefs.map((link) => {
             const keyByHref: Record<string, string> = {
-                '/#booking': 'nav.bookingProcess',
-                '/booking': 'nav.customTourRequest',
                 '/#faq': 'nav.travelInformation',
                 '/contact': 'nav.donation',
                 '/privacy': 'nav.privacyPolicy',

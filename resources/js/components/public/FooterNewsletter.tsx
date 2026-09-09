@@ -24,6 +24,8 @@ export function FooterNewsletter() {
 
         post('/newsletter/subscribe', {
             preserveScroll: true,
+            preserveState: true,
+            only: ['errors', 'flash'],
             onSuccess: () => {
                 setSubmitted(true);
                 setData('email', '');

@@ -29,15 +29,15 @@ const quickLinks = [
     {
         label: 'Inquiries',
         href: '/admin/inquiries',
-        description: 'Review booking requests and traveler messages.',
+        description: 'Review contact messages and tour inquiries.',
         icon: MessageSquareText,
-        badge: '3 new',
     },
 ] as const;
 
 export default function Dashboard() {
-    const { auth } = usePage().props;
+    const { auth, adminFeed } = usePage().props;
     const firstName = auth.user?.name.split(' ')[0] ?? 'Admin';
+    const unreadInquiries = adminFeed?.unreadMessages ?? 0;
 
     return (
         <>
@@ -52,6 +52,10 @@ export default function Dashboard() {
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     {quickLinks.map((item) => {
                         const Icon = item.icon;
+                        const badge =
+                            item.href === '/admin/inquiries' && unreadInquiries > 0
+                                ? `${unreadInquiries > 99 ? '99+' : unreadInquiries} new`
+                                : null;
 
                         return (
                             <Link
@@ -63,9 +67,9 @@ export default function Dashboard() {
                                     <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                                         <Icon className="size-4" aria-hidden />
                                     </span>
-                                    {item.badge ? (
+                                    {badge ? (
                                         <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold text-accent">
-                                            {item.badge}
+                                            {badge}
                                         </span>
                                     ) : null}
                                 </div>

@@ -18,15 +18,13 @@
                     </tr>
                     <tr>
                         <td style="padding:28px 32px;color:#1a2430;font-size:14px;line-height:1.65;">
-                            <p style="margin:0 0 16px;">A new custom tour request has been submitted and is waiting for review. This is not a confirmed reservation.</p>
-                            <p style="margin:0;"><strong>Traveler:</strong> {{ $confirmation->firstName }} {{ $confirmation->lastName }}</p>
+                            <p style="margin:0 0 16px;">A new custom tour request has been submitted and is waiting for review.</p>
+                            <p style="margin:0;"><strong>Traveler:</strong> {{ $confirmation->fullName }}</p>
                             <p style="margin:8px 0 0;"><strong>Email:</strong> {{ $confirmation->email }}</p>
-                            <p style="margin:8px 0 0;"><strong>Preferred date:</strong> {{ $confirmation->preferredDate ? \Illuminate\Support\Carbon::parse($confirmation->preferredDate)->format('j F Y') : 'To be decided' }}</p>
-                            <p style="margin:8px 0 0;"><strong>Duration:</strong> {{ $confirmation->durationDays }} days</p>
-                            <p style="margin:8px 0 0;"><strong>Travelers:</strong> {{ $confirmation->travelerCount }}</p>
+                            <p style="margin:8px 0 0;"><strong>Preferred date:</strong> {{ $confirmation->preferredDate ?: 'To be decided' }}</p>
+                            <p style="margin:8px 0 0;"><strong>Tour type:</strong> {{ ucfirst($confirmation->tourType) }}</p>
+                            <p style="margin:8px 0 0;"><strong>Tourists:</strong> {{ $confirmation->numberOfTourists }}</p>
                             <p style="margin:8px 0 0;"><strong>Destinations:</strong> {{ $confirmation->destinationsSummary }}</p>
-                            <p style="margin:8px 0 0;"><strong>Services:</strong> {{ $confirmation->servicesSummary }}</p>
-                            <p style="margin:20px 0 0;">Open the admin bookings list to review the full request. Passport, medical, and emergency details are not included in this email.</p>
                         </td>
                     </tr>
                 </table>

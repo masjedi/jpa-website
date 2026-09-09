@@ -177,9 +177,9 @@
     "bookNowDialog": {
         "title": "Réservez votre circuit",
         "description": "Cela envoie une demande. Cela ne réserve pas de place et ne confirme pas un voyage.",
-        "customTitle": "Forfait sur mesure",
+        "customTitle": "Circuit sur mesure",
         "customDescription": "Planifiez votre propre itinéraire en Afghanistan avec notre équipe.",
-        "fixedTitle": "Forfait fixe",
+        "fixedTitle": "Circuit saisonnier",
         "fixedDescription": "Choisissez un forfait prêt à demander."
     },
     "whatsapp": {

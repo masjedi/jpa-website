@@ -29,6 +29,8 @@ class StoreTourInquiryRequest extends FormRequest
             'nationality',
             'whatsappOrPhone',
             'notes',
+            'packagePrice',
+            'requestKind',
         ]);
 
         $this->nullifyEmptyStringInput([
@@ -37,6 +39,8 @@ class StoreTourInquiryRequest extends FormRequest
             'nationality',
             'whatsappOrPhone',
             'notes',
+            'packagePrice',
+            'requestKind',
         ]);
     }
 
@@ -48,6 +52,8 @@ class StoreTourInquiryRequest extends FormRequest
         return [
             ...$this->prohibitedMassAssignmentRules(),
             'tourTitle' => ['required', 'string', 'min:2', 'max:200'],
+            'packagePrice' => ['nullable', 'string', 'max:120'],
+            'requestKind' => ['nullable', 'string', Rule::in(['tour', 'seasonal_package'])],
             'preferredDate' => [
                 'nullable',
                 'string',

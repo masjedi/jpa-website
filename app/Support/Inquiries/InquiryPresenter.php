@@ -2,6 +2,7 @@
 
 namespace App\Support\Inquiries;
 
+use App\Enums\InquirySource;
 use App\Models\Inquiry;
 
 class InquiryPresenter
@@ -26,6 +27,10 @@ class InquiryPresenter
      */
     public static function adminPayload(Inquiry $inquiry): array
     {
+        $isSeasonalPackage = $inquiry->source instanceof InquirySource
+            ? $inquiry->source->isSeasonalPackage()
+            : $inquiry->request_kind === 'seasonal_package';
+
         return [
             'id' => $inquiry->id,
             'name' => (string) $inquiry->name,
@@ -33,6 +38,12 @@ class InquiryPresenter
             'tour' => (string) ($inquiry->subject ?: $inquiry->source->frontendLabel()),
             'status' => $inquiry->status->frontendLabel(),
             'source' => $inquiry->source->frontendLabel(),
+            'sourceValue' => $inquiry->source instanceof InquirySource
+                ? $inquiry->source->value
+                : (string) $inquiry->source,
+            'isSeasonalPackage' => $isSeasonalPackage,
+            'requestKind' => (string) ($inquiry->request_kind ?: ($isSeasonalPackage ? 'seasonal_package' : 'tour')),
+            'packagePrice' => (string) ($inquiry->package_price ?? ''),
             'received' => $inquiry->created_at?->diffForHumans() ?? '',
             'receivedAt' => $inquiry->created_at?->timezone(config('app.timezone'))->format('d M Y · H:i') ?? '',
             'message' => (string) ($inquiry->message ?? ''),

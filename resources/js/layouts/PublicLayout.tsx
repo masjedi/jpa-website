@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { Footer } from '@/components/public/Footer';
 import { ChatLauncher } from '@/components/public/ChatLauncher';
+import { CustomTourRequestHost } from '@/components/public/CustomTourRequestHost';
 import { Navbar } from '@/components/public/Navbar';
 import { WhatsAppFloat } from '@/components/public/WhatsAppFloat';
 import { useTranslations } from '@/hooks/use-translations';
@@ -41,6 +42,7 @@ export function PublicLayout({ children, transparentHeader = false }: PublicLayo
             <Footer />
             <ChatLauncher />
             <WhatsAppFloat />
+            <CustomTourRequestHost />
         </div>
     );
 }

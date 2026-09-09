@@ -64,7 +64,6 @@ XML;
             '/about',
             '/about/team',
             '/gallery',
-            '/booking',
             '/contact',
             '/privacy',
             '/terms',

@@ -36,8 +36,35 @@ const columns: DataTableColumn<InquiryRow>[] = [
         ),
     },
     { id: 'email', header: 'Email', accessor: (row) => row.email },
-    { id: 'tour', header: 'Subject', accessor: (row) => row.tour },
-    { id: 'source', header: 'Source', accessor: (row) => row.source },
+    {
+        id: 'tour',
+        header: 'Subject / Package',
+        accessor: (row) => row.tour,
+        render: (row) => (
+            <div>
+                <p className="font-medium text-foreground">{row.tour}</p>
+                {row.isSeasonalPackage && row.packagePrice ? (
+                    <p className="text-xs text-muted-foreground">Price: {row.packagePrice}</p>
+                ) : null}
+            </div>
+        ),
+    },
+    {
+        id: 'source',
+        header: 'Source',
+        accessor: (row) => row.source,
+        render: (row) => (
+            <span
+                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+                    row.isSeasonalPackage
+                        ? 'bg-secondary/10 text-secondary'
+                        : 'bg-surface-muted text-muted-foreground'
+                }`}
+            >
+                {row.isSeasonalPackage ? 'Seasonal package' : row.source}
+            </span>
+        ),
+    },
     {
         id: 'status',
         header: 'Status',
@@ -82,13 +109,13 @@ export default function Inquiries() {
                 <AdminSectionHeader
                     eyebrow="Public website"
                     title="Inquiries"
-                    description="Review traveler booking requests, contact messages, and follow-up status. Inquiries are requests only — not confirmed reservations."
+                    description="Contact messages and general tour inquiries. Custom tour and seasonal package booking requests appear under Tour bookings."
                     icon={MessageSquareText}
                 />
 
                 <PremiumDataTable
                     title="Recent inquiries"
-                    description="Messages from the contact form and tour inquiry requests, newest first."
+                    description="Contact form messages and tour inquiry submissions from the public site."
                     data={inquiries}
                     columns={columns}
                     rowKey={(row) => row.id}

@@ -177,10 +177,10 @@
     "bookNowDialog": {
         "title": "خپل سفر بک کړئ",
         "description": "دا یوه غوښتنه ده. څوکۍ نه ساتل کېږي او سفر نه تاییدېږي.",
-        "customTitle": "ځانګړې کڅوړه",
+        "customTitle": "ځانګړی سفر",
         "customDescription": "د افغانستان د خپل سفر پروګرام زموږ ټیم سره جوړ کړئ.",
-        "fixedTitle": "ثابته کڅوړه",
-        "fixedDescription": "د غوښتنې لپاره چمتو سفر کڅوړه وټاکئ."
+        "fixedTitle": "موسمي سفر",
+        "fixedDescription": "د غوښتنې لپاره چمتو موسمي سفر وټاکئ."
     },
     "whatsapp": {
         "chat": "په واتساپ کې خبرې اترې وکړئ: :number"

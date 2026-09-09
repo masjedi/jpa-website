@@ -8,7 +8,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Used when seeding the primary dashboard user. Override in .env for
-    | production deployments, or change the password later from Admin → Account.
+    | production deployments, or change email/password later from Admin → Account.
     |
     */
 

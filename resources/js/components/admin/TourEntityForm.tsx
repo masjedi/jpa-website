@@ -257,7 +257,7 @@ export function TourEntityForm({
                 <aside className="space-y-4 xl:sticky xl:top-0">
                     <ImageUploadField
                         id={imageFieldId}
-                        required
+                        required={mode === 'create'}
                         disabled={submitting}
                         previewUrl={imagePreview}
                         hint={mediaProfiles.tour_cover.hint}
@@ -458,9 +458,9 @@ export function TourEntityForm({
                                 {regionOptions.length === 0 ? (
                                     <option value="">Add regions in Filter & Placement</option>
                                 ) : null}
-                                {regionOptions.map((region) => (
-                                    <option key={region} value={region}>
-                                        {region}
+                                {regionOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
                                     </option>
                                 ))}
                             </select>
@@ -513,9 +513,9 @@ export function TourEntityForm({
                                                         Add travel styles in Filter & Placement
                                                     </option>
                                                 ) : null}
-                                                {travelStyleOptions.map((style) => (
-                                                    <option key={style} value={style}>
-                                                        {style}
+                                                {travelStyleOptions.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
                                                     </option>
                                                 ))}
                                             </select>
@@ -538,9 +538,9 @@ export function TourEntityForm({
                                                         Add difficulties in Filter & Placement
                                                     </option>
                                                 ) : null}
-                                                {difficultyOptions.map((difficulty) => (
-                                                    <option key={difficulty} value={difficulty}>
-                                                        {difficulty}
+                                                {difficultyOptions.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
                                                     </option>
                                                 ))}
                                             </select>

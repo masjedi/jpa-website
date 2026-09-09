@@ -1,360 +1,448 @@
 import { Link, router, useForm, usePage } from '@inertiajs/react';
-import { ClipboardList, Download, Printer, Trash2 } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { ArrowLeft, ClipboardList, Pencil, Printer, Trash2 } from 'lucide-react';
+import { useEffect, useState, type ReactNode } from 'react';
 
+import { AdminFormField } from '@/components/admin/AdminFormField';
+import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
-import { adminFieldClass } from '@/components/admin/adminForm';
+import { AdminSectionPanel } from '@/components/admin/AdminSectionPanel';
 import {
-    BOOKING_PRINT_STYLES,
-    BookingPrintDocument,
     startBookingPrint,
+    type AdminBookingDetail,
 } from '@/components/admin/BookingPrintDocument';
-import { FileUploadField, type SelectedUploadFile } from '@/components/admin/FileUploadField';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
-import { mediaProfiles } from '@/lib/mediaProfiles';
-import type { AdminBookingDetail } from '@/types/adminBooking';
-import type { SharedPageProps } from '@/types/inertia';
+import { cn } from '@/lib/utils';
 
-interface BookingDetailPageProps extends SharedPageProps {
+interface BookingDetailProps {
     booking: AdminBookingDetail;
-    attachmentUpload?: {
-        hint: string;
-        accept: string;
-        max_files: number;
-        max_upload_kilobytes: number;
-    };
 }
 
-function Row({ label, value }: { label: string; value?: string | number | boolean | null }) {
-    if (value === null || value === undefined || value === '' || value === false) {
-        return null;
+const statusStyles: Record<string, string> = {
+    Submitted: 'bg-accent/15 text-accent',
+    'Under Review': 'bg-secondary/10 text-secondary',
+    'Quotation Sent': 'bg-primary/10 text-primary',
+    'Customer Accepted': 'bg-secondary/10 text-secondary',
+    'Deposit Pending': 'bg-accent/15 text-accent',
+    Confirmed: 'bg-primary/10 text-primary',
+};
+
+const actionButtonClass =
+    'inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted';
+
+function shouldOpenEditor(): boolean {
+    if (typeof window === 'undefined') {
+        return false;
     }
 
-    const display = typeof value === 'boolean' ? 'Yes' : String(value);
+    return new URLSearchParams(window.location.search).get('edit') === '1';
+}
+
+export default function BookingDetail({ booking }: BookingDetailProps) {
+    const { flash } = usePage().props;
+    const [editing, setEditing] = useState(shouldOpenEditor);
+    const form = useForm({
+        full_name: booking.fullName ?? '',
+        email: booking.email ?? '',
+        phone: booking.phone ?? '',
+        passport_number: booking.passportNumber ?? '',
+        country: booking.country ?? '',
+        tour_type: booking.tourTypeValue || 'group',
+        number_of_tourists: String(booking.numberOfTourists ?? 1),
+        tourist_genders: Array.isArray(booking.touristGenders) ? booking.touristGenders : [],
+        guide_preference: booking.guidePreference || 'no_preference',
+        preferred_date: booking.preferredDateStart ?? '',
+        preferred_date_end: booking.preferredDateEnd ?? '',
+        alternative_date: booking.alternativeDate ?? '',
+        preferred_destinations: booking.preferredDestinations ?? '',
+        other_requests: booking.otherRequests ?? '',
+        status: booking.statusValue,
+    });
+
+    useEffect(() => {
+        if (!shouldOpenEditor()) {
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        url.searchParams.delete('edit');
+        window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    }, []);
+
+    const fieldError = (key: string): string | undefined => {
+        const value = form.errors[key];
+
+        return typeof value === 'string' ? value : undefined;
+    };
+
+    const toggleGender = (gender: string) => {
+        const current = form.data.tourist_genders;
+        form.setData(
+            'tourist_genders',
+            current.includes(gender)
+                ? current.filter((value) => value !== gender)
+                : [...current, gender],
+        );
+    };
 
     return (
-        <div className="grid gap-1 border-b border-border/70 py-3 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-4">
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                {label}
-            </dt>
-            <dd className="text-sm text-foreground">{display}</dd>
+        <div className="space-y-5">
+            {flash.success ? (
+                <div
+                    role="status"
+                    className="rounded-xl border border-secondary/20 bg-secondary/10 px-4 py-3 text-sm text-secondary"
+                >
+                    {flash.success}
+                </div>
+            ) : null}
+
+            <AdminSectionHeader
+                eyebrow={booking.isSeasonalPackage ? 'Seasonal package' : 'Custom tour'}
+                title={booking.reference}
+                description={
+                    booking.isSeasonalPackage
+                        ? `Seasonal package request${booking.packageTitle ? `: ${booking.packageTitle}` : ''}`
+                        : 'Custom tour request form submission'
+                }
+                icon={ClipboardList}
+                actions={
+                    <div className="flex flex-wrap gap-2">
+                        <Link href="/admin/bookings" className={actionButtonClass}>
+                            <ArrowLeft className="size-4" />
+                            Back
+                        </Link>
+                        <button type="button" onClick={() => startBookingPrint(booking)} className={actionButtonClass}>
+                            <Printer className="size-4" />
+                            Print
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setEditing((value) => !value)}
+                            className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+                        >
+                            <Pencil className="size-4" />
+                            {editing ? 'Cancel edit' : 'Edit'}
+                        </button>
+                    </div>
+                }
+            />
+
+            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 sm:px-5">
+                <span
+                    className={cn(
+                        'inline-flex rounded-full px-2.5 py-1 text-xs font-medium',
+                        statusStyles[booking.status] ?? 'bg-surface-muted text-muted-foreground',
+                    )}
+                >
+                    {booking.status}
+                </span>
+                <p className="text-sm text-muted-foreground">
+                    Submitted <span className="font-medium text-foreground">{booking.submitted}</span>
+                </p>
+                <div className="ms-auto flex flex-wrap gap-2">
+                    {booking.nextStatus ? (
+                        <button
+                            type="button"
+                            onClick={() =>
+                                router.patch(`/admin/bookings/${booking.id}/status`, {
+                                    status: booking.nextStatus,
+                                })
+                            }
+                            className="rounded-lg bg-secondary px-3 py-2 text-sm font-semibold text-secondary-foreground"
+                        >
+                            Move to {booking.nextStatusLabel}
+                        </button>
+                    ) : null}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (confirm('Delete this tour request?')) {
+                                router.delete(`/admin/bookings/${booking.id}`);
+                            }
+                        }}
+                        className="inline-flex items-center gap-2 rounded-lg border border-destructive/30 px-3 py-2 text-sm font-medium text-destructive"
+                    >
+                        <Trash2 className="size-4" />
+                        Delete
+                    </button>
+                </div>
+            </div>
+
+            {editing ? (
+                <AdminSectionPanel title="Edit tour request" description="Update the submitted Tour Request Form fields.">
+                    <form
+                        className="space-y-6"
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            form.transform((data) => ({
+                                ...data,
+                                number_of_tourists: Number(data.number_of_tourists),
+                            }));
+                            form.patch(`/admin/bookings/${booking.id}`, {
+                                preserveScroll: true,
+                                onSuccess: () => setEditing(false),
+                            });
+                        }}
+                    >
+                        <EditSection title="1. Personal Details">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                {(
+                                    [
+                                        ['full_name', 'Full Name', 20],
+                                        ['email', 'Email', 50],
+                                        ['phone', 'Phone', 20],
+                                        ['passport_number', 'Passport Number', 20],
+                                        ['country', 'Country', 15],
+                                    ] as const
+                                ).map(([key, label, max]) => (
+                                    <AdminFormField
+                                        key={key}
+                                        id={key}
+                                        label={label}
+                                        error={fieldError(key)}
+                                    >
+                                        <input
+                                            id={key}
+                                            value={form.data[key]}
+                                            maxLength={max}
+                                            onChange={(event) => form.setData(key, event.target.value)}
+                                            className={cn(adminFieldClass, fieldError(key) && adminFieldErrorClass)}
+                                        />
+                                    </AdminFormField>
+                                ))}
+                            </div>
+                        </EditSection>
+
+                        <EditSection title="2. Tour Details">
+                            <div className="space-y-4">
+                                <fieldset>
+                                    <legend className="mb-2 text-sm font-medium text-foreground">Tour Type</legend>
+                                    <div className="flex flex-wrap gap-4">
+                                        {(['group', 'individual'] as const).map((type) => (
+                                            <label key={type} className="inline-flex items-center gap-2 text-sm">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={form.data.tour_type === type}
+                                                    onChange={() => form.setData('tour_type', type)}
+                                                />
+                                                {type === 'group' ? 'Group' : 'Individual'}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </fieldset>
+                                <AdminFormField id="number_of_tourists" label="Number of tourists">
+                                    <input
+                                        id="number_of_tourists"
+                                        type="number"
+                                        min={1}
+                                        max={100}
+                                        value={form.data.number_of_tourists}
+                                        disabled={form.data.tour_type === 'individual'}
+                                        onChange={(event) => form.setData('number_of_tourists', event.target.value)}
+                                        className={cn(
+                                            adminFieldClass,
+                                            form.data.tour_type === 'individual' && 'opacity-60',
+                                        )}
+                                    />
+                                </AdminFormField>
+                                <fieldset>
+                                    <legend className="mb-2 text-sm font-medium text-foreground">Tourists</legend>
+                                    <div className="flex flex-wrap gap-4">
+                                        {(['male', 'female'] as const).map((gender) => (
+                                            <label key={gender} className="inline-flex items-center gap-2 text-sm">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={form.data.tourist_genders.includes(gender)}
+                                                    onChange={() => toggleGender(gender)}
+                                                />
+                                                {gender === 'male' ? 'Male' : 'Female'}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </EditSection>
+
+                        <EditSection title="3. Tour Guide">
+                            <fieldset>
+                                <legend className="mb-2 text-sm font-medium text-foreground">Guide Preference</legend>
+                                <div className="flex flex-wrap gap-4">
+                                    {(
+                                        [
+                                            ['male', 'Male'],
+                                            ['female', 'Female'],
+                                            ['no_preference', 'No Preference'],
+                                        ] as const
+                                    ).map(([value, label]) => (
+                                        <label key={value} className="inline-flex items-center gap-2 text-sm">
+                                            <input
+                                                type="checkbox"
+                                                checked={form.data.guide_preference === value}
+                                                onChange={() => form.setData('guide_preference', value)}
+                                            />
+                                            {label}
+                                        </label>
+                                    ))}
+                                </div>
+                            </fieldset>
+                        </EditSection>
+
+                        <EditSection title="4. Dates">
+                            <div className="grid gap-4 sm:grid-cols-3">
+                                <AdminFormField id="preferred_date" label="Preferred start">
+                                    <input
+                                        id="preferred_date"
+                                        type="date"
+                                        value={form.data.preferred_date}
+                                        onChange={(event) => form.setData('preferred_date', event.target.value)}
+                                        className={adminFieldClass}
+                                    />
+                                </AdminFormField>
+                                <AdminFormField id="preferred_date_end" label="Preferred end">
+                                    <input
+                                        id="preferred_date_end"
+                                        type="date"
+                                        value={form.data.preferred_date_end}
+                                        min={form.data.preferred_date || undefined}
+                                        onChange={(event) => form.setData('preferred_date_end', event.target.value)}
+                                        className={adminFieldClass}
+                                    />
+                                </AdminFormField>
+                                <AdminFormField id="alternative_date" label="Alternative date">
+                                    <input
+                                        id="alternative_date"
+                                        type="date"
+                                        value={form.data.alternative_date}
+                                        onChange={(event) => form.setData('alternative_date', event.target.value)}
+                                        className={adminFieldClass}
+                                    />
+                                </AdminFormField>
+                            </div>
+                        </EditSection>
+
+                        <EditSection title="5. Destinations">
+                            <AdminFormField
+                                id="preferred_destinations"
+                                label="Preferred destination(s)"
+                                error={fieldError('preferred_destinations')}
+                            >
+                                <input
+                                    id="preferred_destinations"
+                                    value={form.data.preferred_destinations}
+                                    maxLength={50}
+                                    onChange={(event) =>
+                                        form.setData('preferred_destinations', event.target.value)
+                                    }
+                                    className={cn(
+                                        adminFieldClass,
+                                        fieldError('preferred_destinations') && adminFieldErrorClass,
+                                    )}
+                                />
+                            </AdminFormField>
+                        </EditSection>
+
+                        <EditSection title="6. Other Requests">
+                            <AdminFormField
+                                id="other_requests"
+                                label="Special requirements"
+                                error={fieldError('other_requests')}
+                            >
+                                <textarea
+                                    id="other_requests"
+                                    rows={4}
+                                    maxLength={100}
+                                    value={form.data.other_requests}
+                                    onChange={(event) => form.setData('other_requests', event.target.value)}
+                                    className={cn(
+                                        adminFieldClass,
+                                        fieldError('other_requests') && adminFieldErrorClass,
+                                    )}
+                                />
+                            </AdminFormField>
+                        </EditSection>
+
+                        <button
+                            type="submit"
+                            disabled={form.processing}
+                            className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                        >
+                            {form.processing ? 'Saving…' : 'Save changes'}
+                        </button>
+                    </form>
+                </AdminSectionPanel>
+            ) : (
+                <div className="grid gap-4 lg:grid-cols-2">
+                    {booking.isSeasonalPackage ? (
+                        <DetailCard title="Seasonal Package">
+                            <DetailRow label="Request type" value="Seasonal package (not a custom tour)" />
+                            <DetailRow label="Package title" value={booking.packageTitle || '—'} />
+                            <DetailRow label="Package price" value={booking.packagePrice || 'Not listed'} />
+                        </DetailCard>
+                    ) : (
+                        <DetailCard title="Request type">
+                            <DetailRow label="Type" value="Custom tour request" />
+                        </DetailCard>
+                    )}
+
+                    <DetailCard title="1. Personal Details">
+                        <DetailRow label="Full Name" value={booking.fullName} />
+                        <DetailRow label="Email" value={booking.email} />
+                        <DetailRow label="Phone Number" value={booking.phone} />
+                        <DetailRow label="Passport Number" value={booking.passportNumber} />
+                        <DetailRow label="Country" value={booking.country} />
+                    </DetailCard>
+
+                    <DetailCard title="2. Tour Details">
+                        <DetailRow label="Tour Type" value={booking.tourType} />
+                        <DetailRow label="Number of Tourists" value={String(booking.numberOfTourists)} />
+                        <DetailRow label="Tourists" value={booking.touristGendersLabel || '—'} />
+                    </DetailCard>
+
+                    <DetailCard title="3. Tour Guide">
+                        <DetailRow label="Guide Preference" value={booking.guidePreferenceLabel} />
+                    </DetailCard>
+
+                    <DetailCard title="4. Dates">
+                        <DetailRow label="Preferred Date" value={booking.preferredDate || '—'} />
+                        <DetailRow label="Alternative/Available Date" value={booking.alternativeDate || '—'} />
+                    </DetailCard>
+
+                    <DetailCard title="5. Destinations">
+                        <DetailRow label="Preferred destination(s)" value={booking.preferredDestinations} />
+                    </DetailCard>
+
+                    <DetailCard title="6. Other Requests">
+                        <DetailRow label="Special requirements" value={booking.otherRequests || '—'} />
+                    </DetailCard>
+                </div>
+            )}
         </div>
     );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function DetailCard({ title, children }: { title: string; children: ReactNode }) {
     return (
-        <section className="rounded-xl border border-border bg-surface p-5">
-            <h3 className="font-heading text-base font-semibold text-foreground">{title}</h3>
-            <dl className="mt-3">{children}</dl>
+        <AdminSectionPanel title={title}>
+            <dl className="space-y-3">{children}</dl>
+        </AdminSectionPanel>
+    );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="grid gap-1 sm:grid-cols-[10rem_1fr] sm:gap-4">
+            <dt className="text-sm text-muted-foreground">{label}</dt>
+            <dd className="text-sm font-medium text-foreground break-words">{value}</dd>
+        </div>
+    );
+}
+
+function EditSection({ title, children }: { title: string; children: ReactNode }) {
+    return (
+        <section className="space-y-3 border-b border-border pb-5 last:border-b-0 last:pb-0">
+            <h4 className="font-heading text-sm font-semibold text-primary">{title}</h4>
+            {children}
         </section>
     );
 }
 
-export default function BookingDetail() {
-    const { booking, attachmentUpload, flash } = usePage<BookingDetailPageProps>().props;
-    const statusForm = useForm({ status: booking.nextStatus ?? '' });
-    const [pendingFiles, setPendingFiles] = useState<SelectedUploadFile[]>([]);
-    const [attaching, setAttaching] = useState(false);
-    const [uploadError, setUploadError] = useState<string | undefined>();
-    const attachments = booking.attachments ?? [];
-    const uploadSpec = attachmentUpload ?? {
-        hint: mediaProfiles.document_attachment.hint,
-        accept: mediaProfiles.document_attachment.accept,
-        max_files: mediaProfiles.document_attachment.maxFiles,
-        max_upload_kilobytes: mediaProfiles.document_attachment.maxUploadKilobytes,
-    };
-
-    const submitAttachments = () => {
-        if (pendingFiles.length === 0) {
-            return;
-        }
-
-        const formData = new FormData();
-
-        for (const item of pendingFiles) {
-            formData.append('attachments[]', item.file);
-        }
-
-        setAttaching(true);
-        setUploadError(undefined);
-
-        router.post(`/admin/bookings/${booking.id}/attachments`, formData, {
-            forceFormData: true,
-            preserveScroll: true,
-            onSuccess: () => setPendingFiles([]),
-            onError: (submitErrors) => {
-                const message =
-                    submitErrors.attachments ??
-                    Object.values(submitErrors).find((value) => Boolean(value));
-
-                setUploadError(message || 'Could not attach files. Check the file type and size.');
-            },
-            onFinish: () => setAttaching(false),
-        });
-    };
-
-    return (
-        <>
-            <style>{BOOKING_PRINT_STYLES}</style>
-            <div className="booking-print-root space-y-4">
-                <div className="booking-print-only">
-                    <BookingPrintDocument booking={booking} />
-                </div>
-                <div className="booking-no-print space-y-4">
-                {flash.success ? (
-                    <div
-                        role="status"
-                        className="rounded-xl border border-secondary/20 bg-secondary/10 px-4 py-3 text-sm text-secondary"
-                    >
-                        {flash.success}
-                    </div>
-                ) : null}
-
-                <AdminSectionHeader
-                    eyebrow="Custom bookings"
-                    title={booking.reference}
-                    description={`${booking.travelerName} · ${booking.status} · inquiry only, not a confirmed reservation.`}
-                    icon={ClipboardList}
-                    actions={
-                        <div className="flex flex-wrap items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={startBookingPrint}
-                                className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-muted"
-                            >
-                                <Printer className="size-4" aria-hidden />
-                                Print
-                            </button>
-                            <Link
-                                href="/admin/bookings"
-                                className="inline-flex rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-muted"
-                            >
-                                Back to list
-                            </Link>
-                        </div>
-                    }
-                />
-
-                {booking.nextStatus ? (
-                    <form
-                        className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 sm:flex-row sm:items-end"
-                        onSubmit={(event) => {
-                            event.preventDefault();
-                            statusForm.patch(`/admin/bookings/${booking.id}/status`);
-                        }}
-                    >
-                        <label className="min-w-0 flex-1 text-xs font-medium text-muted-foreground">
-                            Move to next status
-                            <select
-                                value={statusForm.data.status}
-                                onChange={(event) => statusForm.setData('status', event.target.value)}
-                                className={`${adminFieldClass} mt-1.5`}
-                            >
-                                <option value={booking.nextStatus}>{booking.nextStatusLabel}</option>
-                            </select>
-                        </label>
-                        <button
-                            type="submit"
-                            disabled={statusForm.processing || !statusForm.data.status}
-                            className="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground disabled:opacity-50"
-                        >
-                            {statusForm.processing ? 'Updating…' : 'Update status'}
-                        </button>
-                    </form>
-                ) : null}
-
-                <Section title="Trip preferences">
-                    <Row label="Preferred dates" value={booking.preferredDate} />
-                    <Row label="I am not sure yet" value={booking.flexibility} />
-                    <Row label="Season" value={booking.season} />
-                    <Row
-                        label="Duration"
-                        value={booking.durationDays > 0 ? `${booking.durationDays} days` : 'To be decided'}
-                    />
-                    <Row
-                        label="Destinations"
-                        value={
-                            booking.recommendDestinations
-                                ? booking.destinations.length > 0
-                                    ? `${booking.destinations.join(', ')} · Recommend destinations`
-                                    : 'Recommend destinations'
-                                : booking.destinations.join(', ')
-                        }
-                    />
-                    <Row label="Tour interests" value={booking.interests.join(', ')} />
-                    <Row label="Route" value={booking.routePreference} />
-                </Section>
-
-                <Section title="Tourists">
-                    <Row label="Group type" value={booking.groupType} />
-                    <Row label="Number of tourists" value={booking.travelerCount} />
-                    {booking.travelers.map((traveler, index) => (
-                        <div key={traveler.id} className="border-b border-border/70 py-3 last:border-b-0">
-                            <p className="text-sm font-medium text-foreground">
-                                {traveler.isPrimary ? 'Tourist 1' : `Tourist ${index + 1}`}: {traveler.name}
-                            </p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                                {[
-                                    traveler.email,
-                                    traveler.phone,
-                                    traveler.dateOfBirth,
-                                    traveler.nationality,
-                                    traveler.countryOfResidence,
-                                    traveler.isFirstVisit ? `First visit: ${traveler.isFirstVisit}` : '',
-                                ]
-                                    .filter(Boolean)
-                                    .join(' · ')}
-                            </p>
-                        </div>
-                    ))}
-                </Section>
-
-                <Section title="Services">
-                    <Row label="Number of guides" value={booking.guideCount} />
-                    <Row label="Languages" value={booking.guideLanguages} />
-                    <Row label="Male and female" value={booking.guideGender} />
-                    <Row label="Type of Vehicle" value={booking.vehicle} />
-                    <Row label="Transportation Coverage" value={booking.transportCoverage} />
-                    <Row label="Airport Pickup / drop-off" value={booking.airportPickup} />
-                    <Row label="Domestic Transportation" value={booking.domesticPreference} />
-                    <Row label="Accommodation Level" value={booking.accommodationLevel} />
-                    <Row label="Room type" value={booking.roomPreference} />
-                    <Row label="Number of rooms" value={booking.roomCount} />
-                </Section>
-
-                <Section title="Passport Information">
-                    {booking.documents.map((document, index) => (
-                        <Row
-                            key={`${document.issuingCountry}-${index}`}
-                            label={index === 0 ? 'Primary passport' : `Traveler ${index + 1} passport`}
-                            value={`${document.issuingCountry} · expiry ${document.expiryDate}`}
-                        />
-                    ))}
-                    <Row label="Visa status" value={booking.visaStatus} />
-                </Section>
-
-                <section className="rounded-xl border border-border bg-surface p-5">
-                    <h3 className="font-heading text-base font-semibold text-foreground">
-                        Customer files
-                    </h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Attach passports, itineraries, or other files for this request. Files stay in
-                        the dashboard and are not published on the website.
-                    </p>
-
-                    {attachments.length > 0 ? (
-                        <ul className="mt-4 divide-y divide-border rounded-lg border border-border">
-                            {attachments.map((attachment) => (
-                                <li
-                                    key={attachment.id}
-                                    className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center"
-                                >
-                                    <div className="min-w-0 flex-1">
-                                        <p className="truncate text-sm font-medium text-foreground">
-                                            {attachment.name}
-                                        </p>
-                                        <p className="text-[11px] text-muted-foreground">
-                                            {attachment.sizeLabel} · {attachment.uploadedBy} ·{' '}
-                                            {attachment.uploadedAt}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <a
-                                            href={attachment.downloadUrl}
-                                            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface-muted"
-                                        >
-                                            <Download className="size-3.5" aria-hidden />
-                                            Download
-                                        </a>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                router.delete(
-                                                    `/admin/bookings/${booking.id}/attachments/${attachment.id}`,
-                                                    { preserveScroll: true },
-                                                );
-                                            }}
-                                            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-surface-muted"
-                                        >
-                                            <Trash2 className="size-3.5" aria-hidden />
-                                            Remove
-                                        </button>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="mt-4 text-sm text-muted-foreground">
-                            No files attached yet.
-                        </p>
-                    )}
-
-                    <div className="mt-4 space-y-3">
-                        <FileUploadField
-                            id="booking-attachments"
-                            label="Attach files"
-                            files={pendingFiles}
-                            onChange={setPendingFiles}
-                            disabled={attaching}
-                            error={uploadError}
-                            hint={uploadSpec.hint}
-                            accept={uploadSpec.accept}
-                            maxFiles={uploadSpec.max_files}
-                        />
-                        <button
-                            type="button"
-                            disabled={attaching || pendingFiles.length === 0}
-                            onClick={submitAttachments}
-                            className="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground disabled:opacity-50"
-                        >
-                            {attaching ? 'Attaching…' : 'Save files to this request'}
-                        </button>
-                    </div>
-                </section>
-
-                <Section title="Emergency Contact">
-                    <Row
-                        label="Emergency contact"
-                        value={`${booking.emergencyName} (${booking.emergencyRelationship}) · ${booking.emergencyPhone}`}
-                    />
-                    <Row
-                        label="Dietary requirement"
-                        value={
-                            booking.dietaryDetails
-                                ? [booking.dietary, booking.dietaryDetails].filter(Boolean).join(' · ')
-                                : booking.dietary
-                        }
-                    />
-                    <Row
-                        label="Do you have any medical accessibility requirement?"
-                        value={booking.medical}
-                    />
-                    <Row label="Preferred contact method" value={booking.contactMethod} />
-                </Section>
-
-                <Section title="Workflow">
-                    {booking.history.map((item) => (
-                        <Row
-                            key={`${item.at}-${item.to}`}
-                            label={item.at}
-                            value={`${item.from ? `${item.from} → ` : ''}${item.to} · ${item.by}`}
-                        />
-                    ))}
-                    <div className="pt-4">
-                        <button
-                            type="button"
-                            onClick={() => router.delete(`/admin/bookings/${booking.id}`)}
-                            className="text-sm font-medium text-destructive hover:underline"
-                        >
-                            Delete this request
-                        </button>
-                    </div>
-                </Section>
-                </div>
-            </div>
-        </>
-    );
-}
-
-BookingDetail.layout = withAdminLayout('Custom booking');
+BookingDetail.layout = withAdminLayout('Tour bookings');

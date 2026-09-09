@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\CustomBookingRequestKind;
 use App\Enums\CustomBookingStatus;
 use App\Models\CustomBooking;
-use App\Models\CustomBookingTraveler;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -22,63 +22,23 @@ class CustomBookingFactory extends Factory
         return [
             'reference' => 'JTP-'.now()->year.'-'.str_pad((string) fake()->unique()->numberBetween(1, 99999), 5, '0', STR_PAD_LEFT),
             'status' => CustomBookingStatus::Submitted,
-            'adults' => 2,
-            'children' => 0,
-            'traveler_count' => 2,
-            'group_type' => 'group',
-            'start_date' => now()->addMonth()->toDateString(),
-            'end_date' => now()->addMonth()->addDays(9)->toDateString(),
-            'flexibility' => 'known',
-            'season' => 'Autumn',
-            'duration_days' => 10,
-            'other_destination' => null,
-            'recommend_destinations' => false,
-            'route_preference' => 'know',
-            'visa_status' => 'guidance',
-            'insurance_status' => 'will_arrange',
-            'emergency_name' => 'Alex Reed',
-            'emergency_relationship' => 'Spouse',
-            'emergency_phone' => '+49 177 0000000',
-            'dietary' => 'none',
-            'dietary_options' => ['none'],
-            'dietary_details' => null,
-            'medical' => 'no',
-            'medical_details' => null,
-            'contact_method' => 'email',
-            'special_requests' => null,
-            'accuracy' => true,
-            'terms' => true,
-            'privacy' => true,
-            'marketing' => false,
-            'wants_complete' => true,
-            'wants_guide' => false,
-            'wants_transportation' => false,
-            'wants_accommodation' => false,
-            'wants_airport' => false,
-            'wants_domestic' => false,
+            'request_kind' => CustomBookingRequestKind::CustomTour,
+            'package_title' => null,
+            'package_price' => null,
+            'full_name' => 'Sara Ahmad',
+            'email' => 'sara@example.com',
+            'phone' => '+49 177 668 7088',
+            'passport_number' => 'C01X2Y3Z4',
+            'country' => 'Germany',
+            'tour_type' => 'group',
+            'number_of_tourists' => 2,
+            'tourist_genders' => ['female'],
+            'guide_preference' => 'no_preference',
+            'preferred_date' => now()->addMonth()->toDateString(),
+            'preferred_date_end' => now()->addMonth()->addDays(4)->toDateString(),
+            'alternative_date' => now()->addMonths(2)->toDateString(),
+            'preferred_destinations' => 'Bamiyan, Band-e Amir',
+            'other_requests' => null,
         ];
-    }
-
-    public function configure(): static
-    {
-        return $this->afterCreating(function (CustomBooking $booking): void {
-            if ($booking->travelers()->exists()) {
-                return;
-            }
-
-            CustomBookingTraveler::query()->create([
-                'custom_booking_id' => $booking->id,
-                'sort_order' => 0,
-                'is_primary' => true,
-                'first_name' => 'Sara',
-                'last_name' => 'Ahmad',
-                'date_of_birth' => '1990-04-12',
-                'nationality' => 'German',
-                'email' => 'sara@example.com',
-                'phone' => '+49 177 668 7088',
-                'country_of_residence' => 'Germany',
-                'is_first_visit' => true,
-            ]);
-        });
     }
 }

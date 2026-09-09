@@ -31,5 +31,5 @@ Upload `dist/jpa-website-cpanel.zip`, point the domain document root to `public/
 ## Important production notes
 
 - Never deploy `public/hot` or your local `.env`
-- Booking emails need a queue worker cron, or set `QUEUE_CONNECTION=sync`
+- Booking emails need `QUEUE_CONNECTION=database` plus a every-minute `queue:work --stop-when-empty` cron (do not use `sync` on production)
 - Use PHP 8.3+ and MySQL on cPanel

@@ -9,6 +9,7 @@ use App\Http\Controllers\GalleryPageController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\InvoiceVerificationController;
+use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\ServiceController;
@@ -60,7 +61,9 @@ Route::get('/about/team', [TeamPageController::class, 'index'])->name('about.tea
 
 Route::get('/gallery', [GalleryPageController::class, 'index'])->name('gallery');
 
-Route::get('/booking', [BookingController::class, 'index'])->name('booking');
+Route::get('/booking', function () {
+    return redirect('/?custom_tour=1');
+})->name('booking');
 
 Route::post('/booking', [BookingController::class, 'store'])
     ->middleware('throttle:10,1')
@@ -72,17 +75,8 @@ Route::get('/contact', function () {
     ]);
 })->name('contact');
 
-Route::get('/privacy', function () {
-    return Inertia::render('public/Privacy', [
-        'seo' => SeoPresenter::page('privacy', '/privacy'),
-    ]);
-})->name('privacy');
-
-Route::get('/terms', function () {
-    return Inertia::render('public/Terms', [
-        'seo' => SeoPresenter::page('terms', '/terms'),
-    ]);
-})->name('terms');
+Route::get('/privacy', [LegalPageController::class, 'privacy'])->name('privacy');
+Route::get('/terms', [LegalPageController::class, 'terms'])->name('terms');
 
 Route::get('/invoices/verify/{token}', [InvoiceVerificationController::class, 'show'])
     ->name('invoices.verify');

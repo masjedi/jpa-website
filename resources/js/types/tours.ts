@@ -101,6 +101,8 @@ export interface PackageJourneyPhase {
 
 export interface InquiryFormData {
     tourTitle?: string;
+    packagePrice?: string;
+    requestKind?: 'tour' | 'seasonal_package';
     preferredDate?: string;
     travelerCount?: string;
     durationPreference?: string;

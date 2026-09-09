@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import { openSeasonalPackageRequest } from '@/components/public/CustomTourRequestHost';
 import { TourInquiryModal } from '@/components/sections/tours/TourInquiryModal';
 import { TourPackagesSection } from '@/components/sections/tours/TourPackagesSection';
 import { ToursGridSection } from '@/components/sections/tours/ToursGridSection';
@@ -29,12 +30,7 @@ export function ToursLanding({ tours, packages }: ToursLandingProps) {
     };
 
     const handleSelectPackage = (pkg: TourPackage) => {
-        setInquiryInitialData({
-            tourTitle: pkg.title,
-            preferredDate: '',
-            travelerCount: '2',
-        });
-        setInquiryModalOpen(true);
+        openSeasonalPackageRequest(pkg.title, pkg.priceEstimate);
     };
 
     useEffect(() => {
