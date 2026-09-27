@@ -69,24 +69,6 @@ class TourFilterOptionPresenter
 
     /**
      * @return array{
-     *     destinations: list<array{value: string, label: string}>,
-     *     travelStyles: list<array{value: string, label: string}>,
-     *     seasons: list<array{value: string, label: string}>,
-     *     groupTypes: list<array{value: string, label: string}>
-     * }
-     */
-    public static function forPublicHomeFinder(): array
-    {
-        return [
-            'destinations' => self::resolvedChoicesFor(TourFilterOptionType::Destination, true),
-            'travelStyles' => self::resolvedChoicesFor(TourFilterOptionType::TravelStyle, true),
-            'seasons' => self::resolvedChoicesFor(TourFilterOptionType::Season, true),
-            'groupTypes' => self::resolvedChoicesFor(TourFilterOptionType::GroupType, true),
-        ];
-    }
-
-    /**
-     * @return array{
      *     regions: list<array{value: string, label: string}>,
      *     travelStyles: list<array{value: string, label: string}>,
      *     difficulties: list<array{value: string, label: string}>

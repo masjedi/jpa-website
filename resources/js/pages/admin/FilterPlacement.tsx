@@ -33,7 +33,7 @@ export default function FilterPlacement({
                     type: 'travelStyle',
                     title: 'Travel styles',
                     items: travelStyles,
-                    description: 'Used on the tours form, public tours filters, and the homepage finder.',
+                    description: 'Used on the tours form and the public tours filters.',
                 },
                 {
                     type: 'difficulty',

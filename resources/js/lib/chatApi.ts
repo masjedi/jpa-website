@@ -24,24 +24,31 @@ function readXsrfToken(): string {
 }
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
-    if (!response.ok) {
-        let message = 'Request failed';
+    const contentType = response.headers.get('content-type') ?? '';
 
-        try {
-            const payload = (await response.json()) as { message?: string; errors?: Record<string, string[]> };
-            const firstError = payload.errors
-                ? Object.values(payload.errors).flat()[0]
-                : undefined;
-
-            message = firstError ?? payload.message ?? message;
-        } catch {
-            // Keep generic message when body is not JSON.
-        }
-
-        throw new Error(message);
+    if (!contentType.includes('application/json')) {
+        throw new Error('Request failed');
     }
 
-    return (await response.json()) as T;
+    const payload = (await response.json()) as T & {
+        message?: string;
+        errors?: Record<string, string[]>;
+        component?: string;
+    };
+
+    if (!response.ok) {
+        const firstError = payload.errors
+            ? Object.values(payload.errors).flat()[0]
+            : undefined;
+
+        throw new Error(firstError ?? payload.message ?? 'Request failed');
+    }
+
+    if (typeof payload.component === 'string') {
+        throw new Error('Could not load chats.');
+    }
+
+    return payload;
 }
 
 export async function fetchChatMessages(afterId?: number): Promise<ChatMessagesResponse> {
@@ -88,6 +95,123 @@ export async function signalVisitorTyping(): Promise<void> {
     if (!response.ok) {
         return;
     }
+}
+
+export interface AdminChatInboxPayload {
+    conversations: {
+        data: Array<{
+            id: number;
+            visitorLabel: string;
+            lastMessagePreview: string;
+            lastActivityAt: string;
+            unreadCount: number;
+            status: string;
+            statusValue: string;
+            assignedToName: string;
+        }>;
+    };
+}
+
+export interface AdminChatThreadPayload {
+    conversation: {
+        id: number;
+        visitorLabel: string;
+        status: string;
+        statusValue: string;
+        assignedToId: number | null;
+        assignedToName: string;
+        lastActivityAt: string;
+        unreadCount: number;
+        visitorTyping: boolean;
+        messages: Array<{
+            id: number;
+            body: string;
+            senderType: string;
+            senderLabel: string;
+            isRead: boolean;
+            createdAt: string;
+        }>;
+    };
+}
+
+export async function fetchAdminChatInbox(search = ''): Promise<AdminChatInboxPayload> {
+    const query = search.trim() !== '' ? `?search=${encodeURIComponent(search.trim())}` : '';
+    const response = await fetch(`/admin/chat${query}`, {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+    });
+
+    return parseJsonResponse<AdminChatInboxPayload>(response);
+}
+
+export async function fetchAdminChatThread(conversationId: number): Promise<AdminChatThreadPayload> {
+    const response = await fetch(`/admin/chat/${conversationId}`, {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+    });
+
+    return parseJsonResponse<AdminChatThreadPayload>(response);
+}
+
+export async function sendAdminChatReply(
+    conversationId: number,
+    message: string,
+): Promise<AdminChatThreadPayload> {
+    const response = await fetch(`/admin/chat/${conversationId}/messages`, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-XSRF-TOKEN': readXsrfToken(),
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ message }),
+    });
+
+    return parseJsonResponse<AdminChatThreadPayload>(response);
+}
+
+export async function markAdminChatRead(conversationId: number): Promise<AdminChatThreadPayload> {
+    const response = await fetch(`/admin/chat/${conversationId}/read`, {
+        method: 'PATCH',
+        headers: {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-XSRF-TOKEN': readXsrfToken(),
+        },
+        credentials: 'same-origin',
+    });
+
+    return parseJsonResponse<AdminChatThreadPayload>(response);
+}
+
+export async function updateAdminChatStatus(
+    conversationId: number,
+    status: string,
+    assignedTo = '',
+): Promise<AdminChatThreadPayload> {
+    const response = await fetch(`/admin/chat/${conversationId}`, {
+        method: 'PATCH',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-XSRF-TOKEN': readXsrfToken(),
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ status, assigned_to: assignedTo }),
+    });
+
+    return parseJsonResponse<AdminChatThreadPayload>(response);
 }
 
 export async function signalAdminTyping(conversationId: number): Promise<void> {

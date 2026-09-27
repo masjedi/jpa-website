@@ -4,7 +4,13 @@ import { ArrowRight, MapPin } from 'lucide-react';
 import { destinationShowHref } from '@/components/public/navigation';
 import { toursForDestinationHref } from '@/components/sections/tours/discovery/discoveryQuery';
 import { useTranslations } from '@/hooks/use-translations';
-import { cardSummaryClass, cardTitleClass } from '@/lib/cardText';
+import {
+    cardFooterActionsClass,
+    cardFooterClass,
+    cardFooterMetaClass,
+    cardSummaryClass,
+    cardTitleClass,
+} from '@/lib/cardText';
 import type { Destination } from '@/types/destinations';
 
 interface DestinationDiscoveryCardProps {
@@ -62,29 +68,29 @@ export function DestinationDiscoveryCard({
                     {destination.tagline || destination.description}
                 </p>
 
-                <div className="mt-auto flex items-center justify-between gap-3 border-t border-border/80 pt-4">
+                <div className={`${cardFooterClass} border-t border-border/80`}>
                     {relatedTourCount > 0 ? (
                         <Link
                             href={toursForDestinationHref(destination.slug)}
-                            className="min-w-0 truncate text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                            className={`${cardFooterMetaClass} font-medium transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus`}
                         >
                             {relatedLabel}
                         </Link>
                     ) : (
-                        <span className="min-w-0 truncate text-xs text-muted-foreground">
-                            {relatedLabel}
-                        </span>
+                        <span className={cardFooterMetaClass}>{relatedLabel}</span>
                     )}
-                    <Link
-                        href={destinationShowHref(destination.slug)}
-                        className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                    >
-                        {t('buttons.explore')}
-                        <ArrowRight
-                            className="size-3.5 transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
-                            aria-hidden
-                        />
-                    </Link>
+                    <div className={cardFooterActionsClass}>
+                        <Link
+                            href={destinationShowHref(destination.slug)}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                        >
+                            {t('buttons.explore')}
+                            <ArrowRight
+                                className="size-3.5 transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
+                                aria-hidden
+                            />
+                        </Link>
+                    </div>
                 </div>
             </div>
         </article>

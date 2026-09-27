@@ -16,6 +16,8 @@
 /dist
 /node_modules
 /public/build
+/public/build.zip
+/*.zip
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage

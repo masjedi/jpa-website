@@ -4,7 +4,14 @@ import { ArrowRight, MapPin } from 'lucide-react';
 import { tourShowHref } from '@/components/public/navigation';
 import { TourOfferBadges } from '@/components/sections/tours/TourOfferBadges';
 import { useTranslations } from '@/hooks/use-translations';
-import { cardLineClass, cardSummaryClass, cardTitleClass } from '@/lib/cardText';
+import {
+    cardFooterActionsClass,
+    cardFooterClass,
+    cardFooterPrimaryClass,
+    cardLineClass,
+    cardSummaryClass,
+    cardTitleClass,
+} from '@/lib/cardText';
 import type { Tour } from '@/types/tours';
 
 interface TourDiscoveryCardProps {
@@ -71,11 +78,9 @@ export function TourDiscoveryCard({ tour, onRequest, priority = false }: TourDis
                     {tour.description}
                 </p>
 
-                <div className="mt-auto flex items-center justify-between gap-3 border-t border-border/80 pt-4">
-                    <p className="min-w-0 truncate text-sm font-semibold text-foreground">
-                        {priceLabel}
-                    </p>
-                    <div className="flex shrink-0 items-center gap-3">
+                <div className={`${cardFooterClass} border-t border-border/80`}>
+                    <p className={cardFooterPrimaryClass}>{priceLabel}</p>
+                    <div className={cardFooterActionsClass}>
                         <Link
                             href={tourShowHref(tour.slug)}
                             className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"

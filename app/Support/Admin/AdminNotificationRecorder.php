@@ -53,7 +53,7 @@ class AdminNotificationRecorder
             'type' => AdminNotificationType::ChatConversation,
             'title' => 'New chat message',
             'description' => "{$label}: {$preview}",
-            'href' => '/admin/chat/'.$conversation->id,
+            'href' => '/admin/dashboard',
             'read_at' => null,
         ]);
     }

@@ -7,7 +7,12 @@ import { tourShowHref } from '@/components/public/navigation';
 import { FadeIn, RevealItem, RevealStagger } from '@/components/motion/FadeIn';
 import { TourOfferBadges } from '@/components/sections/tours/TourOfferBadges';
 import { useTranslations } from '@/hooks/use-translations';
-import { cardSummaryClass, cardTitleClass } from '@/lib/cardText';
+import {
+    cardFooterActionsClass,
+    cardFooterClass,
+    cardSummaryClass,
+    cardTitleClass,
+} from '@/lib/cardText';
 import type { Tour } from '@/types/tours';
 
 type TourSort = 'newest' | 'title' | 'duration-asc' | 'duration-desc';
@@ -150,21 +155,27 @@ export function ToursGridSection({ tours, onSelectTour }: ToursGridSectionProps)
                                                 {tour.description}
                                             </p>
 
-                                            <div className="mt-auto flex items-center justify-between gap-3 border-t border-border/80 pt-4">
-                                                <Link
-                                                    href={tourShowHref(tour.slug)}
-                                                    className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                                            <div
+                                                className={`${cardFooterClass} justify-between border-t border-border/80 sm:justify-end`}
+                                            >
+                                                <div
+                                                    className={`${cardFooterActionsClass} w-full justify-between sm:w-auto`}
                                                 >
-                                                    {t('buttons.view')}
-                                                </Link>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => onSelectTour(tour)}
-                                                    className="inline-flex items-center gap-1 text-xs font-semibold text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                                                >
-                                                    {t('buttons.request')}
-                                                    <ArrowRight className="size-3.5" aria-hidden />
-                                                </button>
+                                                    <Link
+                                                        href={tourShowHref(tour.slug)}
+                                                        className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                                                    >
+                                                        {t('buttons.view')}
+                                                    </Link>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => onSelectTour(tour)}
+                                                        className="inline-flex items-center gap-1 text-xs font-semibold text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                                                    >
+                                                        {t('buttons.request')}
+                                                        <ArrowRight className="size-3.5" aria-hidden />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </article>

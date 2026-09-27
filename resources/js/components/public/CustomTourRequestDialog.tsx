@@ -39,7 +39,6 @@ const emptyForm = {
     guide_preference: '' as GuidePreference,
     preferred_date: '',
     preferred_date_end: '',
-    alternative_date: '',
     preferred_destinations: '',
     other_requests: '',
 };
@@ -399,7 +398,7 @@ export function CustomTourRequestDialog({
                             <FieldRow
                                 id="preferred_date"
                                 label="Preferred Date"
-                                error={errors.preferred_date || errors.preferred_date_end || errors.alternative_date}
+                                error={errors.preferred_date || errors.preferred_date_end}
                             >
                                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
                                     <input
@@ -443,20 +442,6 @@ export function CustomTourRequestDialog({
                                         aria-label="Preferred end date"
                                     />
                                 </div>
-                            </FieldRow>
-                            <FieldRow
-                                id="alternative_date"
-                                label="Alternative/Available Date"
-                                error={errors.alternative_date}
-                            >
-                                <input
-                                    id="alternative_date"
-                                    type="date"
-                                    value={data.alternative_date}
-                                    onChange={(event) => setData('alternative_date', event.target.value)}
-                                    className={cn(fieldClass, errors.alternative_date && 'border-destructive')}
-                                    dir="ltr"
-                                />
                             </FieldRow>
                         </FormSection>
 

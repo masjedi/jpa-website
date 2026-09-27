@@ -44,7 +44,7 @@ class NewChatConversationForTeam extends Mailable implements ShouldQueue
     {
         $label = ChatConversationLabel::forConversation($this->conversation);
         $preview = trim((string) $this->message->message);
-        $adminUrl = url('/admin/chat/'.$this->conversation->id);
+        $adminUrl = url('/admin/dashboard');
 
         return new Content(
             text: 'emails.new-chat-conversation-team-text',

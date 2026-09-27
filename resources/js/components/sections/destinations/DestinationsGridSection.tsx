@@ -7,7 +7,13 @@ import { destinationShowHref } from '@/components/public/navigation';
 import { FadeIn } from '@/components/motion/FadeIn';
 import { SpotlightCard } from '@/components/react-bits/SpotlightCard/SpotlightCard';
 import { useTranslations } from '@/hooks/use-translations';
-import { cardSummaryClass, cardTitleClass } from '@/lib/cardText';
+import {
+    cardFooterActionsClass,
+    cardFooterClass,
+    cardFooterMetaClass,
+    cardSummaryClass,
+    cardTitleClass,
+} from '@/lib/cardText';
 import type { Destination } from '@/types/destinations';
 
 type DestinationSort = 'newest' | 'title';
@@ -58,20 +64,22 @@ function DestinationCard({
                         <p className={`mt-2 text-sm leading-relaxed text-muted-foreground ${cardSummaryClass}`}>
                             {destination.tagline}
                         </p>
-                        <div className="mt-auto flex items-center justify-between gap-3 pt-4">
-                            <span className="text-xs text-muted-foreground">
+                        <div className={cardFooterClass}>
+                            <span className={cardFooterMetaClass}>
                                 {relatedTourCount}{' '}
                                 {relatedTourCount === 1
                                     ? t('destinationsPage.grid.relatedTour')
                                     : t('destinationsPage.grid.relatedTours')}
                             </span>
-                            <Link
-                                href={destinationShowHref(destination.slug)}
-                                className="inline-flex items-center gap-1 text-sm font-semibold text-secondary transition-colors hover:text-foreground"
-                            >
-                                {t('buttons.explore')}
-                                <ArrowRight className="size-4" aria-hidden />
-                            </Link>
+                            <div className={cardFooterActionsClass}>
+                                <Link
+                                    href={destinationShowHref(destination.slug)}
+                                    className="inline-flex items-center gap-1 text-sm font-semibold text-secondary transition-colors hover:text-foreground"
+                                >
+                                    {t('buttons.explore')}
+                                    <ArrowRight className="size-4" aria-hidden />
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </SpotlightCard>

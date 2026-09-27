@@ -14,7 +14,6 @@ import {
     Map,
     MessageSquareQuote,
     MessageSquareText,
-    MessagesSquare,
     Phone,
     Search,
     Settings,
@@ -43,6 +42,7 @@ export type AdminNavEntry =
 
 export const adminNavEntries: AdminNavEntry[] = [
     { type: 'item', label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+    { type: 'item', label: 'Tour bookings', href: '/admin/bookings', icon: ClipboardList },
     {
         type: 'group',
         label: 'Public website',
@@ -65,8 +65,6 @@ export const adminNavEntries: AdminNavEntry[] = [
                 href: '/admin/inquiries',
                 icon: MessageSquareText,
             },
-            { label: 'Website chat', href: '/admin/chat', icon: MessagesSquare },
-            { label: 'Tour bookings', href: '/admin/bookings', icon: ClipboardList },
         ],
     },
     { type: 'item', label: 'Invoices', href: '/admin/invoices', icon: FileText },
@@ -98,16 +96,10 @@ export function isAdminNavGroupActive(currentPath: string, items: AdminNavItem[]
 
 export function adminNavBadgeForHref(
     href: string,
-    counts: { unreadMessages?: number; unreadChat?: number } = {},
+    counts: { unreadMessages?: number } = {},
 ): string | undefined {
     if (href === '/admin/inquiries') {
         const unread = counts.unreadMessages ?? 0;
-
-        return unread > 0 ? String(unread > 99 ? '99+' : unread) : undefined;
-    }
-
-    if (href === '/admin/chat') {
-        const unread = counts.unreadChat ?? 0;
 
         return unread > 0 ? String(unread > 99 ? '99+' : unread) : undefined;
     }

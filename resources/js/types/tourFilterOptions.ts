@@ -31,13 +31,6 @@ export interface TourFilterFieldOptions {
     difficulties: PublicFilterChoice[];
 }
 
-export interface HomeFinderOptions {
-    destinations: PublicFilterChoice[];
-    travelStyles: PublicFilterChoice[];
-    seasons: PublicFilterChoice[];
-    groupTypes: PublicFilterChoice[];
-}
-
 export const tourFilterOptionTypeLabels: Record<TourFilterOptionType, string> = {
     region: 'Region',
     travelStyle: 'Travel style',

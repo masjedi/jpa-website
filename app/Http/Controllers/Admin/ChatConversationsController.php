@@ -14,61 +14,50 @@ use App\Support\Chat\MarkChatConversationReadAction;
 use App\Support\Chat\SendAdminChatMessageAction;
 use App\Support\Chat\UpdateChatConversationStatusAction;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class ChatConversationsController extends Controller
 {
-    public function index(ChatConversationIndexRequest $request): Response
+    public function index(ChatConversationIndexRequest $request): JsonResponse
     {
-        return Inertia::render('admin/ChatConversations', ChatPresenter::forAdminIndex($request));
+        return response()->json(ChatPresenter::forAdminIndex($request));
     }
 
-    public function show(ChatConversation $chatConversation): Response
+    public function show(ChatConversation $chatConversation): JsonResponse
     {
-        return Inertia::render('admin/ChatConversationDetail', ChatPresenter::forAdminShow($chatConversation));
+        return response()->json(ChatPresenter::forAdminShow($chatConversation));
     }
 
     public function storeMessage(
         StoreAdminChatMessageRequest $request,
         ChatConversation $chatConversation,
         SendAdminChatMessageAction $action,
-    ): RedirectResponse {
+    ): JsonResponse {
         $action->handle($chatConversation, $request->user(), $request->messageText());
 
-        return redirect()
-            ->route('admin.chat.show', $chatConversation)
-            ->with('success', 'Reply sent.');
+        return response()->json(ChatPresenter::forAdminShow($chatConversation->fresh()));
     }
 
     public function markRead(
         ChatConversation $chatConversation,
         MarkChatConversationReadAction $action,
-    ): RedirectResponse {
+    ): JsonResponse {
         $action->handle($chatConversation);
 
-        return redirect()
-            ->route('admin.chat.show', $chatConversation)
-            ->with('success', 'Conversation marked as read.');
+        return response()->json(ChatPresenter::forAdminShow($chatConversation->fresh()));
     }
 
     public function update(
         UpdateChatConversationRequest $request,
         ChatConversation $chatConversation,
         UpdateChatConversationStatusAction $action,
-    ): RedirectResponse {
+    ): JsonResponse {
         $action->handle(
             $chatConversation,
             $request->status(),
             $request->assignedToId(),
         );
 
-        $label = $request->status()->frontendLabel();
-
-        return redirect()
-            ->route('admin.chat.show', $chatConversation)
-            ->with('success', "Conversation marked as {$label}.");
+        return response()->json(ChatPresenter::forAdminShow($chatConversation->fresh()));
     }
 
     public function typing(ChatConversation $chatConversation): JsonResponse

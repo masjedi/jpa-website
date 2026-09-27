@@ -29,7 +29,18 @@ class ChatConversationsTest extends TestCase
             ->assertRedirect(route('admin.login'));
     }
 
-    public function test_authenticated_admin_can_view_paginated_chat_index(): void
+    public function test_authenticated_admin_can_fetch_chat_index_as_json(): void
+    {
+        $user = User::factory()->create();
+        ChatConversation::factory()->create();
+
+        $this->actingAs($user)
+            ->getJson('/admin/chat')
+            ->assertOk()
+            ->assertJsonStructure(['conversations' => ['data']]);
+    }
+
+    public function test_authenticated_admin_can_fetch_paginated_chat_index_without_json_accept(): void
     {
         $user = User::factory()->create();
         ChatConversation::factory()->count(16)->create();
@@ -37,10 +48,8 @@ class ChatConversationsTest extends TestCase
         $this->actingAs($user)
             ->get('/admin/chat')
             ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->component('admin/ChatConversations')
-                ->has('conversations.data', 15)
-                ->missing('conversations.data.0.visitorToken'));
+            ->assertJsonCount(15, 'conversations.data')
+            ->assertJsonMissingPath('conversations.data.0.visitorToken');
     }
 
     public function test_admin_can_reply_to_open_conversation(): void
@@ -53,11 +62,11 @@ class ChatConversationsTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->post("/admin/chat/{$conversation->id}/messages", [
+            ->postJson("/admin/chat/{$conversation->id}/messages", [
                 'message' => 'Thanks for reaching out.',
             ])
-            ->assertRedirect(route('admin.chat.show', $conversation))
-            ->assertSessionHas('success');
+            ->assertOk()
+            ->assertJsonPath('conversation.id', $conversation->id);
 
         $this->assertDatabaseHas('chat_messages', [
             'conversation_id' => $conversation->id,
@@ -73,22 +82,24 @@ class ChatConversationsTest extends TestCase
         $conversation = ChatConversation::factory()->create();
 
         $this->actingAs($user)
-            ->patch("/admin/chat/{$conversation->id}", [
+            ->patchJson("/admin/chat/{$conversation->id}", [
                 'status' => ChatConversationStatus::Closed->value,
                 'assigned_to' => $user->id,
             ])
-            ->assertRedirect(route('admin.chat.show', $conversation));
+            ->assertOk()
+            ->assertJsonPath('conversation.statusValue', ChatConversationStatus::Closed->value);
 
         $conversation->refresh();
         $this->assertSame(ChatConversationStatus::Closed, $conversation->status);
         $this->assertSame($user->id, $conversation->assigned_to);
 
         $this->actingAs($user)
-            ->patch("/admin/chat/{$conversation->id}", [
+            ->patchJson("/admin/chat/{$conversation->id}", [
                 'status' => ChatConversationStatus::Open->value,
                 'assigned_to' => '',
             ])
-            ->assertRedirect(route('admin.chat.show', $conversation));
+            ->assertOk()
+            ->assertJsonPath('conversation.statusValue', ChatConversationStatus::Open->value);
 
         $conversation->refresh();
         $this->assertSame(ChatConversationStatus::Open, $conversation->status);
@@ -105,8 +116,8 @@ class ChatConversationsTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->patch("/admin/chat/{$conversation->id}/read")
-            ->assertRedirect(route('admin.chat.show', $conversation));
+            ->patchJson("/admin/chat/{$conversation->id}/read")
+            ->assertOk();
 
         $this->assertSame(0, ChatMessage::query()->whereNull('read_at')->count());
     }
@@ -122,29 +133,24 @@ class ChatConversationsTest extends TestCase
             ->assertJson(['ok' => true]);
 
         $this->actingAs($user)
-            ->get("/admin/chat/{$conversation->id}")
+            ->getJson("/admin/chat/{$conversation->id}")
             ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->component('admin/ChatConversationDetail')
-                ->where('conversation.visitorTyping', false));
+            ->assertJsonPath('conversation.visitorTyping', false);
 
         $this->actingAs($user)
             ->postJson("/admin/chat/{$conversation->id}/typing")
             ->assertOk();
 
         $this->actingAs($user)
-            ->get("/admin/chat/{$conversation->id}")
+            ->getJson("/admin/chat/{$conversation->id}")
             ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->where('conversation.visitorTyping', false));
+            ->assertJsonPath('conversation.visitorTyping', false);
 
-        // Staff typing should not appear as visitor typing.
         ChatTypingIndicator::record($conversation->id, ChatSenderType::Visitor);
 
         $this->actingAs($user)
-            ->get("/admin/chat/{$conversation->id}")
+            ->getJson("/admin/chat/{$conversation->id}")
             ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->where('conversation.visitorTyping', true));
+            ->assertJsonPath('conversation.visitorTyping', true);
     }
 }

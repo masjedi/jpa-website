@@ -5,7 +5,7 @@ import {
     createEmptyTranslatedString,
     normalizeTranslatedString,
 } from '@/lib/translations';
-import { buildTranslatableFieldMap, mapTranslatableServerErrors, validateEnglishRequired, type AdminJsonPayload } from '@/lib/translatableForm';
+import { buildTranslatableFieldMap, mapTranslatableServerErrors, validateEnglishRequired } from '@/lib/translatableForm';
 
 export interface TestimonialFormValues {
     name: TranslatedString;
@@ -107,15 +107,4 @@ export function buildTestimonialFormData(payload: TestimonialFormSubmitPayload):
     }
 
     return formData;
-}
-
-/** @deprecated Use buildTestimonialFormData for multipart uploads. */
-export function buildTestimonialPayload(values: TestimonialFormValues): AdminJsonPayload {
-    return {
-        name: values.name,
-        journey: values.journey,
-        text: values.text,
-        rating: values.rating,
-        status: values.status,
-    };
 }

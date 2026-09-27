@@ -10,7 +10,6 @@ import type { PublicHeroSection } from '@/types/heroSection';
 import type { PublicFaqItem } from '@/types/faq';
 import type { PublicTestimonial } from '@/types/testimonials';
 import type { SharedPageProps } from '@/types/inertia';
-import type { HomeFinderOptions } from '@/types/tourFilterOptions';
 import type { HomeServicePreview } from '@/types/services';
 import type { Tour } from '@/types/tours';
 
@@ -22,7 +21,6 @@ interface HomePageProps extends SharedPageProps {
     latestArticles?: ArticleListItem[];
     faqItems?: PublicFaqItem[];
     testimonials?: PublicTestimonial[];
-    finderOptions: HomeFinderOptions;
     homeServices: HomeServicePreview[];
     homeServicesImage: string;
 }
@@ -38,7 +36,6 @@ export default function Home() {
         latestArticles,
         faqItems,
         testimonials,
-        finderOptions,
         homeServices,
         homeServicesImage,
     } = usePage<HomePageProps>().props;
@@ -52,7 +49,6 @@ export default function Home() {
                     .map((slide) => slide.id)
                     .join('-')}`}
                 hero={hero}
-                finderOptions={finderOptions}
                 homeServices={homeServices}
                 homeServicesImage={homeServicesImage}
                 featuredTours={featuredTours}

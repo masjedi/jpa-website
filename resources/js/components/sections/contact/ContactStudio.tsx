@@ -32,27 +32,57 @@ type ContactFormData = {
     message: string;
 };
 
+const CONTACT_FIELD_LIMITS = {
+    name: 25,
+    email: 50,
+    subject: 50,
+    message: 200,
+} as const;
+
+type ContactValidationMessages = {
+    nameMin: string;
+    nameMax: string;
+    email: string;
+    emailMax: string;
+    subjectMin: string;
+    subjectMax: string;
+    messageMin: string;
+    messageMax: string;
+};
+
 function validateContactForm(
     data: ContactFormData,
-    messages: Record<ContactField, string>,
+    messages: ContactValidationMessages,
 ): Partial<Record<ContactField, string>> {
     const errors: Partial<Record<ContactField, string>> = {};
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const nameLength = data.name.trim().length;
+    const emailLength = data.email.trim().length;
+    const subjectLength = data.subject.trim().length;
+    const messageLength = data.message.trim().length;
 
-    if (data.name.trim().length < 2) {
-        errors.name = messages.name;
+    if (nameLength < 2) {
+        errors.name = messages.nameMin;
+    } else if (nameLength > CONTACT_FIELD_LIMITS.name) {
+        errors.name = messages.nameMax;
     }
 
     if (!emailPattern.test(data.email.trim())) {
         errors.email = messages.email;
+    } else if (emailLength > CONTACT_FIELD_LIMITS.email) {
+        errors.email = messages.emailMax;
     }
 
-    if (data.subject.trim().length < 3) {
-        errors.subject = messages.subject;
+    if (subjectLength < 3) {
+        errors.subject = messages.subjectMin;
+    } else if (subjectLength > CONTACT_FIELD_LIMITS.subject) {
+        errors.subject = messages.subjectMax;
     }
 
-    if (data.message.trim().length < 10) {
-        errors.message = messages.message;
+    if (messageLength < 10) {
+        errors.message = messages.messageMin;
+    } else if (messageLength > CONTACT_FIELD_LIMITS.message) {
+        errors.message = messages.messageMax;
     }
 
     return errors;
@@ -71,12 +101,19 @@ export function ContactStudio() {
         message: '',
     });
 
-    const validationMessages: Record<ContactField, string> = {
-        name: t('contact.errors.name'),
+    const validationMessages: ContactValidationMessages = {
+        nameMin: t('contact.errors.name'),
+        nameMax: t('contact.errors.nameMax'),
         email: t('contact.errors.email'),
-        subject: t('contact.errors.subject'),
-        message: t('contact.errors.message'),
+        emailMax: t('contact.errors.emailMax'),
+        subjectMin: t('contact.errors.subject'),
+        subjectMax: t('contact.errors.subjectMax'),
+        messageMin: t('contact.errors.message'),
+        messageMax: t('contact.errors.messageMax'),
     };
+
+    const messageLength = data.message.length;
+    const messageNearLimit = messageLength >= CONTACT_FIELD_LIMITS.message - 20;
 
     const channels = [
         {
@@ -176,7 +213,7 @@ export function ContactStudio() {
                                                     type="text"
                                                     required
                                                     minLength={2}
-                                                    maxLength={120}
+                                                    maxLength={CONTACT_FIELD_LIMITS.name}
                                                     value={data.name}
                                                     onChange={(event) => {
                                                         setData('name', event.target.value);
@@ -211,7 +248,7 @@ export function ContactStudio() {
                                                     type="email"
                                                     required
                                                     minLength={5}
-                                                    maxLength={255}
+                                                    maxLength={CONTACT_FIELD_LIMITS.email}
                                                     value={data.email}
                                                     onChange={(event) => {
                                                         setData('email', event.target.value);
@@ -248,7 +285,7 @@ export function ContactStudio() {
                                                 type="text"
                                                 required
                                                 minLength={3}
-                                                maxLength={200}
+                                                maxLength={CONTACT_FIELD_LIMITS.subject}
                                                 value={data.subject}
                                                 onChange={(event) => {
                                                     setData('subject', event.target.value);
@@ -282,7 +319,7 @@ export function ContactStudio() {
                                                 name="message"
                                                 required
                                                 minLength={10}
-                                                maxLength={5000}
+                                                maxLength={CONTACT_FIELD_LIMITS.message}
                                                 rows={4}
                                                 value={data.message}
                                                 onChange={(event) => {
@@ -304,11 +341,32 @@ export function ContactStudio() {
                                             >
                                                 {t('contact.howCanWeHelp')}
                                             </label>
-                                            {fieldError('message') ? (
-                                                <p className="mt-1 text-xs text-destructive" role="alert">
-                                                    {fieldError('message')}
+                                            <div className="mt-1 flex items-start justify-between gap-3">
+                                                <div className="min-w-0 flex-1">
+                                                    {fieldError('message') ? (
+                                                        <p
+                                                            className="text-xs text-destructive"
+                                                            role="alert"
+                                                        >
+                                                            {fieldError('message')}
+                                                        </p>
+                                                    ) : null}
+                                                </div>
+                                                <p
+                                                    className={cn(
+                                                        'shrink-0 text-xs tabular-nums',
+                                                        messageNearLimit
+                                                            ? 'text-destructive'
+                                                            : 'text-muted-foreground',
+                                                    )}
+                                                    aria-live="polite"
+                                                >
+                                                    {t('contact.messageCounter', {
+                                                        count: messageLength,
+                                                        max: CONTACT_FIELD_LIMITS.message,
+                                                    })}
                                                 </p>
-                                            ) : null}
+                                            </div>
                                         </div>
 
                                         <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">

@@ -1,6 +1,7 @@
 import { usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
+import { AdminChatWidget } from '@/components/admin/AdminChatWidget';
 import { AdminNavbar } from '@/components/admin/AdminNavbar';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { SecureHead } from '@/components/admin/SecureHead';
@@ -37,6 +38,7 @@ export function AdminLayout({ children, title = 'Dashboard' }: AdminLayoutProps)
                 >
                     {children}
                 </main>
+                <AdminChatWidget />
             </div>
         </div>
     );

@@ -110,21 +110,6 @@ export const tourListingTypeOptions: readonly { value: TourListingType; label: s
     { value: 'package', label: 'Travel package' },
 ] as const;
 
-export function slugifyTourTitle(value: string): string {
-    return value
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-}
-
-export function splitMultilineText(value: string): string[] {
-    return value
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean);
-}
-
 export function tourOfferToFormValues(offer: AdminTourOffer): TourFormValues {
     const base: TourFormValues = {
         listingType: offer.listingType,
@@ -233,6 +218,34 @@ export function isTourContentEmpty(value: TranslatedString): boolean {
     return stripHtml(value.en).length === 0;
 }
 
+export function applyPackageFormDefaults(values: TourFormValues): TourFormValues {
+    if (values.listingType !== 'package') {
+        return values;
+    }
+
+    const summaryLead = values.summary.en.trim().split(/\n+/)[0] ?? '';
+    const highlights = values.highlightsText.en.trim();
+    const destination = values.destination.en.trim();
+
+    const withDefault = (
+        field: TranslatedString,
+        fallback: string,
+    ): TranslatedString => ({
+        ...field,
+        en: field.en.trim() || fallback,
+    });
+
+    return {
+        ...values,
+        tagline: withDefault(values.tagline, summaryLead || values.title.en.trim()),
+        keyDestinationsText: withDefault(
+            values.keyDestinationsText,
+            highlights || destination || values.title.en.trim(),
+        ),
+        idealFor: withDefault(values.idealFor, 'Couples, families, and small groups'),
+    };
+}
+
 export function validateTourFormValues(
     values: TourFormValues,
     hasImage: boolean,
@@ -242,13 +255,6 @@ export function validateTourFormValues(
     const titleError = validateEnglishRequired(values.title, 'Title');
     if (titleError) {
         errors.title = titleError;
-    }
-
-    if (values.listingType === 'package') {
-        const taglineError = validateEnglishRequired(values.tagline, 'Tagline');
-        if (taglineError) {
-            errors.tagline = taglineError;
-        }
     }
 
     const summaryError = validateEnglishRequired(values.summary, 'Summary');
@@ -266,11 +272,6 @@ export function validateTourFormValues(
     }
 
     if (values.listingType === 'package') {
-        const idealForError = validateEnglishRequired(values.idealFor, 'Ideal for');
-        if (idealForError) {
-            errors.idealFor = idealForError;
-        }
-
         const priceError = validateEnglishRequired(values.priceEstimate, 'Price estimate');
         if (priceError) {
             errors.priceEstimate = priceError;
@@ -289,25 +290,11 @@ export function validateTourFormValues(
         errors.highlightsText = 'English highlights are required';
     }
 
-    if (values.listingType === 'package' && !values.keyDestinationsText.en.trim()) {
-        errors.keyDestinationsText = 'English key destinations are required';
-    }
-
     if (values.listingType === 'package' && !values.includedServicesText.en.trim()) {
         errors.includedServicesText = 'English included services are required';
     }
 
     return errors;
-}
-
-export function formatTourDuration(durationDays: number): string {
-    if (durationDays < 1) {
-        return 'Custom duration';
-    }
-
-    const nights = Math.max(durationDays - 1, 0);
-
-    return `${durationDays} Day${durationDays === 1 ? '' : 's'} / ${nights} Night${nights === 1 ? '' : 's'}`;
 }
 
 export function listingTypeLabel(listingType: TourListingType): string {

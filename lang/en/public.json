@@ -222,10 +222,15 @@
         "howCanWeHelp": "How can we help?",
         "errors": {
             "name": "Please enter your name (at least 2 characters).",
+            "nameMax": "Name must not exceed 25 characters.",
             "email": "Please enter a valid email address.",
+            "emailMax": "Email must not exceed 50 characters.",
             "subject": "Please enter a subject (at least 3 characters).",
-            "message": "Please write at least 10 characters in your message."
+            "subjectMax": "Subject must not exceed 50 characters.",
+            "message": "Please write at least 10 characters in your message.",
+            "messageMax": "Message must not exceed 200 characters."
         },
+        "messageCounter": ":count / :max",
         "submitDisclaimer": "Submitting this message does not reserve a seat or confirm a trip.",
         "messageSent": "Message sent",
         "findUs": "Find us",
@@ -427,16 +432,6 @@
             "carouselLabel": "Featured travel messages",
             "chooseMessage": "Choose a message",
             "showMessage": "Show message :current of :total"
-        },
-        "finder": {
-            "destination": "Destination",
-            "travelStyle": "Travel style",
-            "preferredSeason": "Preferred season",
-            "groupType": "Group type",
-            "allDestinations": "All destinations",
-            "anyTravelStyle": "Any travel style",
-            "anySeason": "Any season",
-            "anyGroupType": "Any group type"
         },
         "trust": {
             "localExpertise": {

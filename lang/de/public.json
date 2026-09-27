@@ -222,10 +222,15 @@
         "howCanWeHelp": "Wie können wir helfen?",
         "errors": {
             "name": "Bitte geben Sie Ihren Namen ein (mindestens 2 Zeichen).",
+            "nameMax": "Der Name darf höchstens 25 Zeichen haben.",
             "email": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+            "emailMax": "Die E-Mail darf höchstens 50 Zeichen haben.",
             "subject": "Bitte geben Sie einen Betreff ein (mindestens 3 Zeichen).",
-            "message": "Bitte schreiben Sie mindestens 10 Zeichen in Ihre Nachricht."
+            "subjectMax": "Der Betreff darf höchstens 50 Zeichen haben.",
+            "message": "Bitte schreiben Sie mindestens 10 Zeichen in Ihre Nachricht.",
+            "messageMax": "Die Nachricht darf höchstens 200 Zeichen haben."
         },
+        "messageCounter": ":count / :max",
         "submitDisclaimer": "Das Absenden dieser Nachricht reserviert keinen Platz und bestätigt keine Reise.",
         "messageSent": "Nachricht gesendet",
         "findUs": "Finden Sie uns",
@@ -427,16 +432,6 @@
             "carouselLabel": "Hervorgehobene Reisemitteilungen",
             "chooseMessage": "Eine Mitteilung wählen",
             "showMessage": "Mitteilung :current von :total anzeigen"
-        },
-        "finder": {
-            "destination": "Reiseziel",
-            "travelStyle": "Reisestil",
-            "preferredSeason": "Bevorzugte Saison",
-            "groupType": "Gruppenart",
-            "allDestinations": "Alle Reiseziele",
-            "anyTravelStyle": "Beliebiger Reisestil",
-            "anySeason": "Beliebige Saison",
-            "anyGroupType": "Beliebige Gruppenart"
         },
         "trust": {
             "localExpertise": {

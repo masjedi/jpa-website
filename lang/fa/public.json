@@ -222,10 +222,15 @@
         "howCanWeHelp": "چگونه می‌توانیم کمک کنیم؟",
         "errors": {
             "name": "لطفاً نام خود را وارد کنید (حداقل ۲ حرف).",
+            "nameMax": "نام نباید بیش از ۲۵ حرف باشد.",
             "email": "لطفاً یک آدرس ایمیل معتبر وارد کنید.",
+            "emailMax": "ایمیل نباید بیش از ۵۰ حرف باشد.",
             "subject": "لطفاً موضوع را وارد کنید (حداقل ۳ حرف).",
-            "message": "لطفاً حداقل ۱۰ حرف در پیام خود بنویسید."
+            "subjectMax": "موضوع نباید بیش از ۵۰ حرف باشد.",
+            "message": "لطفاً حداقل ۱۰ حرف در پیام خود بنویسید.",
+            "messageMax": "پیام نباید بیش از ۲۰۰ حرف باشد."
         },
+        "messageCounter": ":count / :max",
         "submitDisclaimer": "ارسال این پیام به معنای رزرو صندلی یا تأیید سفر نیست.",
         "messageSent": "پیام ارسال شد",
         "findUs": "ما را پیدا کنید",
@@ -427,16 +432,6 @@
             "carouselLabel": "پیام‌های برجسته سفر",
             "chooseMessage": "انتخاب پیام",
             "showMessage": "نمایش پیام :current از :total"
-        },
-        "finder": {
-            "destination": "مقصد",
-            "travelStyle": "سبک سفر",
-            "preferredSeason": "فصل ترجیحی",
-            "groupType": "نوع گروه",
-            "allDestinations": "همه مقاصد",
-            "anyTravelStyle": "هر سبک سفر",
-            "anySeason": "هر فصل",
-            "anyGroupType": "هر نوع گروه"
         },
         "trust": {
             "localExpertise": {

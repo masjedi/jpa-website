@@ -32,12 +32,12 @@ class StoreContactInquiryRequest extends FormRequest
                 'required',
                 'string',
                 'min:2',
-                'max:120',
+                'max:25',
                 'regex:/^[\p{L}\p{M}][\p{L}\p{M}\s.\'-]*$/u',
             ],
-            'email' => ['required', 'string', 'email:filter', 'min:5', 'max:255'],
-            'subject' => ['required', 'string', 'min:3', 'max:200'],
-            'message' => ['required', 'string', 'min:10', 'max:5000'],
+            'email' => ['required', 'string', 'email:filter', 'min:5', 'max:50'],
+            'subject' => ['required', 'string', 'min:3', 'max:50'],
+            'message' => ['required', 'string', 'min:10', 'max:200'],
         ];
     }
 
@@ -48,8 +48,12 @@ class StoreContactInquiryRequest extends FormRequest
     {
         return [
             'name.regex' => 'Please enter a valid name using letters only.',
+            'name.max' => 'Name must not exceed :max characters.',
+            'email.max' => 'Email must not exceed :max characters.',
             'subject.min' => 'Please enter at least :min characters for the subject.',
+            'subject.max' => 'Subject must not exceed :max characters.',
             'message.min' => 'Please write at least :min characters in your message.',
+            'message.max' => 'Message must not exceed :max characters.',
         ];
     }
 }

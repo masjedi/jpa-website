@@ -222,10 +222,15 @@
         "howCanWeHelp": "موږ څنګه مرسته کولی شو؟",
         "errors": {
             "name": "مهرباني وکړئ خپل نوم ولیکئ (لږ تر لږه ۲ توري).",
+            "nameMax": "نوم باید له ۲۵ تورو زیات نه وي.",
             "email": "مهرباني وکړئ باوري برېښنالیک پته ولیکئ.",
+            "emailMax": "برېښنالیک باید له ۵۰ تورو زیات نه وي.",
             "subject": "مهرباني وکړئ موضوع ولیکئ (لږ تر لږه ۳ توري).",
-            "message": "مهرباني وکړئ لږ تر لږه ۱۰ توري په پیغام کې ولیکئ."
+            "subjectMax": "موضوع باید له ۵۰ تورو زیات نه وي.",
+            "message": "مهرباني وکړئ لږ تر لږه ۱۰ توري په پیغام کې ولیکئ.",
+            "messageMax": "پیغام باید له ۲۰۰ تورو زیات نه وي."
         },
+        "messageCounter": ":count / :max",
         "submitDisclaimer": "د دې پیغام لیږل څوکۍ نه ساتي او سفر نه تاییدوي.",
         "messageSent": "پیغام واستول شو",
         "findUs": "موږ ومومئ",
@@ -427,16 +432,6 @@
             "carouselLabel": "د سفر برجسته پیغامونه",
             "chooseMessage": "پیغام وټاکئ",
             "showMessage": "پیغام :current له :total ښکاره کړئ"
-        },
-        "finder": {
-            "destination": "موخه",
-            "travelStyle": "د سفر بڼه",
-            "preferredSeason": "غوره موسم",
-            "groupType": "د ګروپ ډول",
-            "allDestinations": "ټولې موخې",
-            "anyTravelStyle": "هره د سفر بڼه",
-            "anySeason": "هر موسم",
-            "anyGroupType": "هر ډول ګروپ"
         },
         "trust": {
             "localExpertise": {

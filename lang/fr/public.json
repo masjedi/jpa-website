@@ -222,10 +222,15 @@
         "howCanWeHelp": "Comment pouvons-nous vous aider ?",
         "errors": {
             "name": "Veuillez saisir votre nom (au moins 2 caractères).",
+            "nameMax": "Le nom ne doit pas dépasser 25 caractères.",
             "email": "Veuillez saisir une adresse e-mail valide.",
+            "emailMax": "L'e-mail ne doit pas dépasser 50 caractères.",
             "subject": "Veuillez saisir un objet (au moins 3 caractères).",
-            "message": "Veuillez écrire au moins 10 caractères dans votre message."
+            "subjectMax": "L'objet ne doit pas dépasser 50 caractères.",
+            "message": "Veuillez écrire au moins 10 caractères dans votre message.",
+            "messageMax": "Le message ne doit pas dépasser 200 caractères."
         },
+        "messageCounter": ":count / :max",
         "submitDisclaimer": "L’envoi de ce message ne réserve pas de place et ne confirme pas un voyage.",
         "messageSent": "Message envoyé",
         "findUs": "Nous trouver",
@@ -427,16 +432,6 @@
             "carouselLabel": "Messages de voyage mis en avant",
             "chooseMessage": "Choisir un message",
             "showMessage": "Afficher le message :current sur :total"
-        },
-        "finder": {
-            "destination": "Destination",
-            "travelStyle": "Style de voyage",
-            "preferredSeason": "Saison préférée",
-            "groupType": "Type de groupe",
-            "allDestinations": "Toutes les destinations",
-            "anyTravelStyle": "Tout style de voyage",
-            "anySeason": "Toute saison",
-            "anyGroupType": "Tout type de groupe"
         },
         "trust": {
             "localExpertise": {

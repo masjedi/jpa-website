@@ -14,7 +14,15 @@ import type { PublicTestimonial } from '@/types/testimonials';
 import type { HomeServicePreview } from '@/types/services';
 import { SpotlightCard } from "@/components/react-bits/SpotlightCard/SpotlightCard";
 import { FadeIn, RevealItem, RevealStagger } from "@/components/motion/FadeIn";
-import { cardSummaryClass, cardSubtitleClass, cardTitleClass } from "@/lib/cardText";
+import {
+    cardFooterActionsClass,
+    cardFooterClass,
+    cardFooterMetaClass,
+    cardFooterPrimaryClass,
+    cardSummaryClass,
+    cardSubtitleClass,
+    cardTitleClass,
+} from "@/lib/cardText";
 import { destinationShowHref, articleShowHref } from "@/components/public/navigation";
 import { DonateButton } from "@/components/public/DonateButton";
 import { HomeDeferredSection } from '@/components/loading/HomeDeferredSection';
@@ -26,37 +34,16 @@ import type { ArticleListItem } from '@/types/articles';
 import type { Destination } from '@/types/destinations';
 import type { GalleryPhoto } from '@/types/gallery';
 import type { PublicHeroSection } from '@/types/heroSection';
-import type { HomeFinderOptions } from '@/types/tourFilterOptions';
 import type { Tour } from '@/types/tours';
 
 /* -------------------------------------------------------------------------- */
 /*  Static home content (non-backend sections)                                 */
 /* -------------------------------------------------------------------------- */
 
-interface FinderOption {
-    value: string;
-    label: string;
-}
-
 interface TrustIndicator {
     icon: LucideIcon;
     title: string;
     description: string;
-}
-
-/* Finder helpers ----------------------------------------------------------- */
-
-function withAnyOption(
-    values: readonly string[] | readonly { value: string; label: string }[],
-    anyValue: string,
-    anyLabel: string,
-): FinderOption[] {
-    return [
-        { value: anyValue, label: anyLabel },
-        ...values.map((value) =>
-            typeof value === 'string' ? { value, label: value } : value,
-        ),
-    ];
 }
 
 /* Trust indicators --------------------------------------------------------- */
@@ -190,7 +177,6 @@ function Badge({
 
 export function HomeLanding({
     hero,
-    finderOptions,
     homeServices = [],
     homeServicesImage,
     featuredTours,
@@ -201,7 +187,6 @@ export function HomeLanding({
     testimonials,
 }: {
     hero: PublicHeroSection;
-    finderOptions: HomeFinderOptions;
     homeServices?: readonly HomeServicePreview[];
     homeServicesImage?: string;
     featuredTours?: readonly Tour[];
@@ -213,23 +198,6 @@ export function HomeLanding({
 }) {
     const { t } = useTranslations();
     const trustIndicators = useTrustIndicators();
-
-    const destinationOptions = withAnyOption(
-        finderOptions.destinations,
-        'all',
-        t('home.finder.allDestinations'),
-    );
-    const travelStyleOptions = withAnyOption(
-        finderOptions.travelStyles,
-        'any',
-        t('home.finder.anyTravelStyle'),
-    );
-    const seasonOptions = withAnyOption(finderOptions.seasons, 'any', t('home.finder.anySeason'));
-    const groupTypeOptions = withAnyOption(
-        finderOptions.groupTypes,
-        'any',
-        t('home.finder.anyGroupType'),
-    );
 
     return (
         <>
@@ -246,101 +214,6 @@ export function HomeLanding({
                 sendInquiryLabel={t('buttons.sendInquiry')}
                 donateButton={<DonateButton variant="hero" />}
             />
-
-            {/* Quick Tour Finder --------------------------------------------- */}
-            <section
-                id="booking"
-                className="border-b border-border bg-background py-12 sm:py-16"
-            >
-                <FadeIn>
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm sm:p-6">
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                            <label className="block">
-                                <span className="mb-1.5 block text-sm font-medium text-foreground">
-                                    {t('home.finder.destination')}
-                                </span>
-                                <select
-                                    className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
-                                    aria-label={t('home.finder.destination')}
-                                >
-                                    {destinationOptions.map((option) => (
-                                        <option
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-                            <label className="block">
-                                <span className="mb-1.5 block text-sm font-medium text-foreground">
-                                    {t('home.finder.travelStyle')}
-                                </span>
-                                <select
-                                    className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
-                                    aria-label={t('home.finder.travelStyle')}
-                                >
-                                    {travelStyleOptions.map((option) => (
-                                        <option
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-                            <label className="block">
-                                <span className="mb-1.5 block text-sm font-medium text-foreground">
-                                    {t('home.finder.preferredSeason')}
-                                </span>
-                                <select
-                                    className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
-                                    aria-label={t('home.finder.preferredSeason')}
-                                >
-                                    {seasonOptions.map((option) => (
-                                        <option
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-                            <label className="block">
-                                <span className="mb-1.5 block text-sm font-medium text-foreground">
-                                    {t('home.finder.groupType')}
-                                </span>
-                                <select
-                                    className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:border-focus focus:outline-2 focus:outline-offset-0 focus:outline-focus"
-                                    aria-label={t('home.finder.groupType')}
-                                >
-                                    {groupTypeOptions.map((option) => (
-                                        <option
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-                            <div className="flex items-end">
-                                <Link
-                                    href="/tours"
-                                    className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                                >
-                                    {t('buttons.findTours')}
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                </FadeIn>
-            </section>
 
             {/* Trust Indicators ------------------------------------------------ */}
             <section id="trust" className="bg-background py-16 sm:py-20">
@@ -415,20 +288,22 @@ export function HomeLanding({
                                         <p className={`mt-3 text-sm leading-relaxed text-muted-foreground ${cardSummaryClass}`}>
                                             {tour.description}
                                         </p>
-                                        <div className="mt-auto flex items-center justify-between pt-5">
-                                            <p className="text-sm font-semibold text-foreground">
+                                        <div className={cardFooterClass}>
+                                            <p className={cardFooterPrimaryClass}>
                                                 {t('buttons.priceOnRequest')}
                                             </p>
-                                            <a
-                                                href="#contact"
-                                                className="inline-flex items-center gap-1 text-sm font-medium text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                                            >
-                                                {t('buttons.requestThisTour')}
-                                                <ArrowRight
-                                                    className="size-4"
-                                                    aria-hidden
-                                                />
-                                            </a>
+                                            <div className={cardFooterActionsClass}>
+                                                <a
+                                                    href="#contact"
+                                                    className="inline-flex items-center gap-1 text-sm font-medium text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                                                >
+                                                    {t('buttons.requestThisTour')}
+                                                    <ArrowRight
+                                                        className="size-4"
+                                                        aria-hidden
+                                                    />
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </Card>
@@ -476,19 +351,21 @@ export function HomeLanding({
                                         <p className={`mt-2 text-sm leading-relaxed text-muted-foreground ${cardSummaryClass}`}>
                                             {destination.tagline}
                                         </p>
-                                        <div className="mt-auto flex items-center justify-between pt-4">
-                                            <p className="text-xs text-muted-foreground">
+                                        <div className={cardFooterClass}>
+                                            <p className={cardFooterMetaClass}>
                                                 {destination.linkedToursCount ?? 0}{" "}
                                                 {(destination.linkedToursCount ?? 0) === 1
                                                     ? t('home.destinations.relatedTour')
                                                     : t('home.destinations.relatedTours')}
                                             </p>
-                                            <Link
-                                                href={destinationShowHref(destination.slug)}
-                                                className="text-sm font-medium text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                                            >
-                                                {t('buttons.explore')}
-                                            </Link>
+                                            <div className={cardFooterActionsClass}>
+                                                <Link
+                                                    href={destinationShowHref(destination.slug)}
+                                                    className="text-sm font-medium text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                                                >
+                                                    {t('buttons.explore')}
+                                                </Link>
+                                            </div>
                                         </div>
                                     </div>
                                 </Card>

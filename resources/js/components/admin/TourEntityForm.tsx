@@ -5,6 +5,7 @@ import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
+    applyPackageFormDefaults,
     createEmptyTourFormValues,
     emptyTourFilterOptions,
     tourListingTypeOptions,
@@ -122,7 +123,6 @@ export function TourEntityForm({
     const statusFieldId = useId();
     const regionFieldId = useId();
     const titleFieldId = useId();
-    const taglineFieldId = useId();
     const summaryFieldId = useId();
     const destinationFieldId = useId();
     const durationFieldId = useId();
@@ -130,10 +130,8 @@ export function TourEntityForm({
     const difficultyFieldId = useId();
     const badgeFieldId = useId();
     const packagePriceFieldId = useId();
-    const idealForFieldId = useId();
     const popularFieldId = useId();
     const highlightsFieldId = useId();
-    const destinationsFieldId = useId();
     const includedFieldId = useId();
     const imageFieldId = useId();
     const contentFieldId = useId();
@@ -206,19 +204,20 @@ export function TourEntityForm({
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const nextErrors = validateTourFormValues(
-            localeMapToTourTranslatableValues(commitAllLocales(), {
-                listingType,
-                region,
-                durationDays,
-                travelStyle,
-                difficulty,
-                image: existingImage,
-                isPopular,
-                status,
-            }),
-            hasImage,
+        const shared = {
+            listingType,
+            region,
+            durationDays,
+            travelStyle,
+            difficulty,
+            image: existingImage,
+            isPopular,
+            status,
+        };
+        const values = applyPackageFormDefaults(
+            localeMapToTourTranslatableValues(commitAllLocales(), shared),
         );
+        const nextErrors = validateTourFormValues(values, hasImage);
         setErrors(nextErrors);
 
         if (Object.keys(nextErrors).length > 0) {
@@ -229,16 +228,7 @@ export function TourEntityForm({
 
         try {
             await onSubmit({
-                values: localeMapToTourTranslatableValues(commitAllLocales(), {
-                    listingType,
-                    region,
-                    durationDays,
-                    travelStyle,
-                    difficulty,
-                    image: existingImage,
-                    isPopular,
-                    status,
-                }),
+                values,
                 coverImage: imageFile,
             });
         } finally {
@@ -357,39 +347,9 @@ export function TourEntityForm({
                             />
                         </AdminFormField>
 
-                        {isPackage ? (
-                            <AdminFormField
-                                id={taglineFieldId}
-                                label="Tagline"
-                                required
-                                error={errors.tagline}
-                                className={spanThree}
-                            >
-                                <input
-                                    id={taglineFieldId}
-                                    value={draft.tagline}
-                                    dir={direction}
-                                    disabled={submitting}
-                                    onChange={(event) => {
-                                        setField('tagline', event.target.value);
-                                        setErrors((current) => ({ ...current, tagline: undefined }));
-                                    }}
-                                    aria-invalid={Boolean(errors.tagline)}
-                                    aria-describedby={adminFieldDescribedBy(
-                                        taglineFieldId,
-                                        errors.tagline,
-                                    )}
-                                    className={cn(
-                                        adminFieldClass,
-                                        errors.tagline && adminFieldErrorClass,
-                                    )}
-                                />
-                            </AdminFormField>
-                        ) : null}
-
                         <AdminFormField
                             id={summaryFieldId}
-                            label={isPackage ? 'Description' : 'Summary'}
+                            label="Summary"
                             required
                             error={errors.summary}
                             className={spanThree}
@@ -494,138 +454,91 @@ export function TourEntityForm({
                             />
                         </AdminFormField>
 
-                        {!isPackage ? (
-                            <>
-                                <AdminFormField id={travelStyleFieldId} label="Travel style" required>
-                                    <select
-                                        id={travelStyleFieldId}
-                                        value={travelStyle}
-                                        disabled={submitting}
-                                        onChange={(event) =>
-                                            setTravelStyle(
-                                                event.target.value as TourFormValues['travelStyle'],
-                                            )
-                                        }
-                                        className={adminFieldClass}
-                                            >
-                                                {travelStyleOptions.length === 0 ? (
-                                                    <option value="">
-                                                        Add travel styles in Filter & Placement
-                                                    </option>
-                                                ) : null}
-                                                {travelStyleOptions.map((option) => (
-                                                    <option key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                </AdminFormField>
-
-                                <AdminFormField id={difficultyFieldId} label="Difficulty" required>
-                                    <select
-                                        id={difficultyFieldId}
-                                        value={difficulty}
-                                        disabled={submitting}
-                                        onChange={(event) =>
-                                            setDifficulty(
-                                                event.target.value as TourFormValues['difficulty'],
-                                            )
-                                        }
-                                        className={adminFieldClass}
-                                            >
-                                                {difficultyOptions.length === 0 ? (
-                                                    <option value="">
-                                                        Add difficulties in Filter & Placement
-                                                    </option>
-                                                ) : null}
-                                                {difficultyOptions.map((option) => (
-                                                    <option key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                </AdminFormField>
-                            </>
-                        ) : null}
-                    </FormGroup>
-
-                    {isPackage ? (
-                        <>
-                            <FormDivider />
-
-                            <FormGroup title="Pricing & audience" columns={2}>
-                                <AdminFormField
+                        {isPackage ? (
+                            <AdminFormField
+                                id={packagePriceFieldId}
+                                label="Price estimate"
+                                required
+                                error={errors.priceEstimate}
+                            >
+                                <input
                                     id={packagePriceFieldId}
-                                    label="Price estimate"
-                                    required
-                                    error={errors.priceEstimate}
-                                >
-                                    <input
-                                        id={packagePriceFieldId}
-                                        value={draft.priceEstimate}
-                                        dir={direction}
-                                        disabled={submitting}
-                                        onChange={(event) => {
-                                            setField('priceEstimate', event.target.value);
-                                            setErrors((current) => ({
-                                                ...current,
-                                                priceEstimate: undefined,
-                                            }));
-                                        }}
-                                        aria-invalid={Boolean(errors.priceEstimate)}
-                                        aria-describedby={adminFieldDescribedBy(
-                                            packagePriceFieldId,
-                                            errors.priceEstimate,
-                                        )}
-                                        className={cn(
-                                            adminFieldClass,
-                                            errors.priceEstimate && adminFieldErrorClass,
-                                        )}
-                                    />
-                                </AdminFormField>
+                                    value={draft.priceEstimate}
+                                    dir={direction}
+                                    disabled={submitting}
+                                    onChange={(event) => {
+                                        setField('priceEstimate', event.target.value);
+                                        setErrors((current) => ({
+                                            ...current,
+                                            priceEstimate: undefined,
+                                        }));
+                                    }}
+                                    aria-invalid={Boolean(errors.priceEstimate)}
+                                    aria-describedby={adminFieldDescribedBy(
+                                        packagePriceFieldId,
+                                        errors.priceEstimate,
+                                    )}
+                                    className={cn(
+                                        adminFieldClass,
+                                        errors.priceEstimate && adminFieldErrorClass,
+                                    )}
+                                />
+                            </AdminFormField>
+                        ) : null}
 
-                                <AdminFormField
-                                    id={idealForFieldId}
-                                    label="Ideal for"
-                                    required
-                                    error={errors.idealFor}
-                                >
-                                    <input
-                                        id={idealForFieldId}
-                                        value={draft.idealFor}
-                                        dir={direction}
-                                        disabled={submitting}
-                                        onChange={(event) => {
-                                            setField('idealFor', event.target.value);
-                                            setErrors((current) => ({
-                                                ...current,
-                                                idealFor: undefined,
-                                            }));
-                                        }}
-                                        aria-invalid={Boolean(errors.idealFor)}
-                                        aria-describedby={adminFieldDescribedBy(
-                                            idealForFieldId,
-                                            errors.idealFor,
-                                        )}
-                                        className={cn(
-                                            adminFieldClass,
-                                            errors.idealFor && adminFieldErrorClass,
-                                        )}
-                                    />
-                                </AdminFormField>
-                            </FormGroup>
-                        </>
-                    ) : null}
+                        <AdminFormField id={travelStyleFieldId} label="Travel style" required>
+                            <select
+                                id={travelStyleFieldId}
+                                value={travelStyle}
+                                disabled={submitting}
+                                onChange={(event) =>
+                                    setTravelStyle(
+                                        event.target.value as TourFormValues['travelStyle'],
+                                    )
+                                }
+                                className={adminFieldClass}
+                            >
+                                {travelStyleOptions.length === 0 ? (
+                                    <option value="">Add travel styles in Filter & Placement</option>
+                                ) : null}
+                                {travelStyleOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </AdminFormField>
+
+                        <AdminFormField id={difficultyFieldId} label="Difficulty" required>
+                            <select
+                                id={difficultyFieldId}
+                                value={difficulty}
+                                disabled={submitting}
+                                onChange={(event) =>
+                                    setDifficulty(
+                                        event.target.value as TourFormValues['difficulty'],
+                                    )
+                                }
+                                className={adminFieldClass}
+                            >
+                                {difficultyOptions.length === 0 ? (
+                                    <option value="">Add difficulties in Filter & Placement</option>
+                                ) : null}
+                                {difficultyOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </AdminFormField>
+                    </FormGroup>
 
                     <FormDivider />
 
-                    <FormGroup
-                        title="Highlights & inclusions"
-                        columns={isPackage ? 3 : 2}
-                    >
+                    <FormGroup title="Highlights & inclusions" columns={2}>
                         <AdminFormField
                             id={highlightsFieldId}
-                            label={isPackage ? 'Featured perks' : 'Route highlights'}
+                            label="Route highlights"
                             required
                             error={errors.highlightsText}
                         >
@@ -651,40 +564,6 @@ export function TourEntityForm({
                                 )}
                             />
                         </AdminFormField>
-
-                        {isPackage ? (
-                            <AdminFormField
-                                id={destinationsFieldId}
-                                label="Key destinations"
-                                required
-                                error={errors.keyDestinationsText}
-                            >
-                                <textarea
-                                    id={destinationsFieldId}
-                                    value={draft.keyDestinationsText}
-                                    dir={direction}
-                                    disabled={submitting}
-                                    rows={3}
-                                    onChange={(event) => {
-                                        setField('keyDestinationsText', event.target.value);
-                                        setErrors((current) => ({
-                                            ...current,
-                                            keyDestinationsText: undefined,
-                                        }));
-                                    }}
-                                    aria-invalid={Boolean(errors.keyDestinationsText)}
-                                    aria-describedby={adminFieldDescribedBy(
-                                        destinationsFieldId,
-                                        errors.keyDestinationsText,
-                                    )}
-                                    className={cn(
-                                        adminFieldClass,
-                                        'resize-y',
-                                        errors.keyDestinationsText && adminFieldErrorClass,
-                                    )}
-                                />
-                            </AdminFormField>
-                        ) : null}
 
                         <AdminFormField
                             id={includedFieldId}

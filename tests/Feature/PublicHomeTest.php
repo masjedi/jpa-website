@@ -4,14 +4,11 @@ namespace Tests\Feature;
 
 use App\Enums\ArticleStatus;
 use App\Enums\DestinationStatus;
-use App\Enums\TourFilterOptionStatus;
-use App\Enums\TourFilterOptionType;
 use App\Enums\TourListingStatus;
 use App\Enums\TourListingType;
 use App\Models\Article;
 use App\Models\Destination;
 use App\Models\Tour;
-use App\Models\TourFilterOption;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,10 +41,6 @@ class PublicHomeTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('public/Home')
                 ->has('hero')
-                ->has('finderOptions.destinations')
-                ->has('finderOptions.travelStyles')
-                ->has('finderOptions.seasons')
-                ->has('finderOptions.groupTypes')
                 ->has('homeServices')
                 ->missing('featuredTours')
                 ->missing('featuredDestinations')
@@ -154,61 +147,6 @@ class PublicHomeTest extends TestCase
                     ->where('featuredDestinations.0.slug', 'destination-6')
                     ->has('latestArticles', 3)
                     ->where('latestArticles.0.slug', 'article-5')));
-    }
-
-    public function test_home_page_finder_receives_only_published_options(): void
-    {
-        TourFilterOption::query()->create([
-            'type' => TourFilterOptionType::Destination,
-            'name' => 'Bamiyan Valley',
-            'status' => TourFilterOptionStatus::Published,
-            'sort_order' => 1,
-        ]);
-
-        TourFilterOption::query()->create([
-            'type' => TourFilterOptionType::Destination,
-            'name' => 'Hidden Draft',
-            'status' => TourFilterOptionStatus::Draft,
-            'sort_order' => 2,
-        ]);
-
-        TourFilterOption::query()->create([
-            'type' => TourFilterOptionType::TravelStyle,
-            'name' => 'Cultural & Heritage',
-            'status' => TourFilterOptionStatus::Published,
-            'sort_order' => 1,
-        ]);
-
-        TourFilterOption::query()->create([
-            'type' => TourFilterOptionType::Season,
-            'name' => 'Spring',
-            'status' => TourFilterOptionStatus::Published,
-            'sort_order' => 1,
-        ]);
-
-        TourFilterOption::query()->create([
-            'type' => TourFilterOptionType::GroupType,
-            'name' => 'Private tour',
-            'status' => TourFilterOptionStatus::Published,
-            'sort_order' => 1,
-        ]);
-
-        $this->get('/')
-            ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->component('public/Home')
-                ->has('finderOptions.destinations', 1)
-                ->where('finderOptions.destinations.0.value', 'Bamiyan Valley')
-                ->where('finderOptions.destinations.0.label', 'Bamiyan Valley')
-                ->has('finderOptions.travelStyles', 1)
-                ->where('finderOptions.travelStyles.0.value', 'Cultural & Heritage')
-                ->where('finderOptions.travelStyles.0.label', 'Cultural & Heritage')
-                ->has('finderOptions.seasons', 1)
-                ->where('finderOptions.seasons.0.value', 'Spring')
-                ->where('finderOptions.seasons.0.label', 'Spring')
-                ->has('finderOptions.groupTypes', 1)
-                ->where('finderOptions.groupTypes.0.value', 'Private tour')
-                ->where('finderOptions.groupTypes.0.label', 'Private tour'));
     }
 
     /**

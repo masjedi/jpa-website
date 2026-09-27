@@ -21,7 +21,7 @@ export default function HomeFinder({
         <FilterOptionCatalogPage
             pageId="home-finder"
             title="Home finder"
-            description="These lists drive Destination, Travel style, Preferred season, and Group type on the homepage."
+            description="Manage destination, travel style, season, and group type option lists."
             icon={Search}
             defaultType="destination"
             catalogs={[
@@ -29,7 +29,7 @@ export default function HomeFinder({
                     type: 'destination',
                     title: 'Destinations',
                     items: destinations,
-                    description: 'Used by the homepage finder Destination field.',
+                    description: 'Destination options available for catalog and filters.',
                 },
                 {
                     type: 'travelStyle',
@@ -41,13 +41,13 @@ export default function HomeFinder({
                     type: 'season',
                     title: 'Seasons',
                     items: seasons,
-                    description: 'Used by the homepage finder Preferred season field.',
+                    description: 'Season options available for catalog and filters.',
                 },
                 {
                     type: 'groupType',
                     title: 'Group types',
                     items: groupTypes,
-                    description: 'Used by the homepage finder Group type field.',
+                    description: 'Group type options available for catalog and filters.',
                 },
             ]}
         />

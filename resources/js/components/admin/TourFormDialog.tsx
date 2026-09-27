@@ -38,7 +38,7 @@ export function TourFormDialog({
     const dialogDescription =
         mode === 'edit'
             ? 'Update the listing details shown on the public tours and packages pages.'
-            : 'Add a tour itinerary or travel package with the fields used by the public filters and cards.';
+            : 'Add a tour itinerary or travel package with the same fields used on the public site.';
 
     const handleSubmit = (payload: TourFormSubmitPayload) => onSubmit(payload);
 
