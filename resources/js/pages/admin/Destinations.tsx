@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Compass, Plus } from 'lucide-react';
 import { Suspense, lazy, useState } from 'react';
 
@@ -16,6 +16,8 @@ import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
+import { TranslationLocaleBadges } from '@/components/admin/TranslationLocaleBadges';
+import { primaryTranslation } from '@/lib/translations';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 
 const DestinationFormDialog = lazy(() =>
@@ -32,30 +34,8 @@ const ContentRecordViewDialog = lazy(() =>
 
 type DestinationStatus = 'Published' | 'Draft';
 
-interface DestinationRow {
-    id: number;
-    name: string;
-    slug: string;
-    region: string;
-    tagline: string;
-    tours: number;
-    status: DestinationStatus;
-}
-
 interface DestinationsPageProps {
     destinations: ManagedDestination[];
-}
-
-function buildDestinationRow(destination: ManagedDestination): DestinationRow {
-    return {
-        id: destination.id,
-        name: destination.name,
-        slug: destination.slug,
-        region: destination.region,
-        tagline: destination.tagline,
-        tours: destination.linkedToursCount ?? destination.linkedTours?.length ?? 0,
-        status: destination.status,
-    };
 }
 
 const statusStyles: Record<DestinationStatus, string> = {
@@ -63,23 +43,28 @@ const statusStyles: Record<DestinationStatus, string> = {
     Draft: 'bg-accent/15 text-accent',
 };
 
-const columns: DataTableColumn<DestinationRow>[] = [
+const columns: DataTableColumn<ManagedDestination>[] = [
     {
         id: 'destination',
         header: 'Destination',
-        accessor: (row) => row.name,
+        accessor: (row) => primaryTranslation(row.name),
         render: (row) => (
             <div className="max-w-sm">
-                <p className="font-medium text-foreground">{row.name}</p>
+                <p className="font-medium text-foreground">{primaryTranslation(row.name)}</p>
                 <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                    {row.tagline}
+                    {primaryTranslation(row.tagline)}
                 </p>
+                <TranslationLocaleBadges value={row.name} />
             </div>
         ),
     },
     { id: 'region', header: 'Region', accessor: (row) => row.region },
     { id: 'slug', header: 'Slug', accessor: (row) => row.slug },
-    { id: 'tours', header: 'Linked tours', accessor: (row) => row.tours },
+    {
+        id: 'tours',
+        header: 'Linked tours',
+        accessor: (row) => row.linkedToursCount ?? row.linkedTours?.length ?? 0,
+    },
     {
         id: 'status',
         header: 'Status',
@@ -129,7 +114,6 @@ export default function Destinations({ destinations }: DestinationsPageProps) {
     const [editingDestinationId, setEditingDestinationId] = useState<number | null>(null);
     const [viewingDestinationId, setViewingDestinationId] = useState<number | null>(null);
 
-    const rows = destinations.map(buildDestinationRow);
     const publishedCount = destinations.filter(
         (destination) => destination.status === 'Published',
     ).length;
@@ -145,12 +129,12 @@ export default function Destinations({ destinations }: DestinationsPageProps) {
         setFormOpen(true);
     };
 
-    const openEditForm = (row: DestinationRow) => {
+    const openEditForm = (row: ManagedDestination) => {
         setEditingDestinationId(row.id);
         setFormOpen(true);
     };
 
-    const openViewDialog = (row: DestinationRow) => {
+    const openViewDialog = (row: ManagedDestination) => {
         setViewingDestinationId(row.id);
         setViewOpen(true);
     };
@@ -180,7 +164,7 @@ export default function Destinations({ destinations }: DestinationsPageProps) {
         closeForm();
     };
 
-    const handleDeleteDestination = (row: DestinationRow) => {
+    const handleDeleteDestination = (row: ManagedDestination) => {
         router.delete(`/admin/destinations/${row.id}`, {
             preserveScroll: true,
             onSuccess: () => router.flush('/destinations'),
@@ -189,8 +173,6 @@ export default function Destinations({ destinations }: DestinationsPageProps) {
 
     return (
         <>
-            <Head title="Destinations" />
-
             <div className="space-y-4">
                 {flash.success ? (
                     <div
@@ -221,10 +203,10 @@ export default function Destinations({ destinations }: DestinationsPageProps) {
                 <PremiumDataTable
                     title="Destination catalog"
                     description={`${publishedCount} published destination${publishedCount === 1 ? '' : 's'} are currently visible on the public site.`}
-                    data={rows}
+                    data={destinations}
                     columns={columns}
                     rowKey={(row) => row.id}
-                    selectionLabel={(row) => row.name}
+                    selectionLabel={(row) => primaryTranslation(row.name)}
                     initialPageSize={8}
                     onView={openViewDialog}
                     onEdit={openEditForm}
@@ -237,7 +219,11 @@ export default function Destinations({ destinations }: DestinationsPageProps) {
                     <ContentRecordViewDialog
                         open={viewOpen}
                         title="View destination"
-                        description={viewingDestination?.name}
+                        description={
+                            viewingDestination
+                                ? primaryTranslation(viewingDestination.name)
+                                : undefined
+                        }
                         model={
                             viewingDestination
                                 ? buildDestinationViewModel({

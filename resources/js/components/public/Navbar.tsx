@@ -1,11 +1,15 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ChevronDown, Menu, X } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
-import { planTripHref, primaryLinks, isNavDropdown, type PrimaryNavItem, type PublicNavLink } from '@/components/public/navigation';
+import { BookNowChoiceDialog } from '@/components/public/BookNowChoiceDialog';
+import { LanguageSwitcher } from '@/components/public/LanguageSwitcher';
+import { isNavDropdown, type PrimaryNavItem, type PublicNavLink } from '@/components/public/navigation';
 import { BrandLogo, brandLogoVariantForTheme } from '@/components/public/BrandLogo';
 import { ThemeToggle } from '@/components/public/ThemeToggle';
 import { useAppearance } from '@/hooks/use-appearance';
+import { usePublicNavigation } from '@/hooks/use-public-navigation';
+import { useTranslations } from '@/hooks/use-translations';
 import { cn } from '@/lib/utils';
 
 interface NavbarProps {
@@ -86,6 +90,38 @@ function NavDropdown({
 }) {
     const [open, setOpen] = useState(false);
     const dropdownId = useId();
+    const rootRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!open || mobile) {
+            return;
+        }
+
+        const handlePointerDown = (event: MouseEvent | PointerEvent) => {
+            if (!rootRef.current?.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        };
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener('pointerdown', handlePointerDown);
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('pointerdown', handlePointerDown);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [open, mobile]);
+
+    const closeAndNavigate = () => {
+        setOpen(false);
+        onNavigate?.();
+    };
 
     const triggerClassName = cn(
         'inline-flex items-center gap-1 rounded-full px-3.5 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus lg:px-4',
@@ -135,7 +171,7 @@ function NavDropdown({
                                 overlayHeader={overlayHeader}
                                 block
                                 nested
-                                onNavigate={onNavigate}
+                                onNavigate={closeAndNavigate}
                             />
                         ))}
                     </div>
@@ -145,11 +181,7 @@ function NavDropdown({
     }
 
     return (
-        <div
-            className="group relative"
-            onMouseEnter={() => setOpen(true)}
-            onMouseLeave={() => setOpen(false)}
-        >
+        <div ref={rootRef} className="relative">
             <button
                 type="button"
                 className={triggerClassName}
@@ -160,11 +192,7 @@ function NavDropdown({
             >
                 <span>{item.label}</span>
                 <ChevronDown
-                    className={cn(
-                        'size-3.5 transition-transform',
-                        open && 'rotate-180',
-                        'group-hover:rotate-180',
-                    )}
+                    className={cn('size-3.5 transition-transform', open && 'rotate-180')}
                     aria-hidden
                 />
             </button>
@@ -174,9 +202,7 @@ function NavDropdown({
                 className={cn(
                     panelClassName,
                     'pointer-events-none invisible opacity-0 transition-[opacity,visibility] duration-150',
-                    open
-                        ? 'pointer-events-auto visible opacity-100'
-                        : 'group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100',
+                    open && 'pointer-events-auto visible opacity-100',
                 )}
             >
                 {item.children.map((child) => (
@@ -186,7 +212,7 @@ function NavDropdown({
                         active={isActive(child.href)}
                         overlayHeader={overlayHeader}
                         nested
-                        onNavigate={onNavigate}
+                        onNavigate={closeAndNavigate}
                     />
                 ))}
             </div>
@@ -237,7 +263,10 @@ export function Navbar({ transparent = false }: NavbarProps) {
     const menuId = useId();
     const { url } = usePage();
     const { resolved } = useAppearance();
+    const { t } = useTranslations();
+    const { primaryLinks } = usePublicNavigation();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [bookNowOpen, setBookNowOpen] = useState(false);
     const [currentHash, setCurrentHash] = useState(() =>
         typeof window === 'undefined' ? '' : window.location.hash,
     );
@@ -285,16 +314,36 @@ export function Navbar({ transparent = false }: NavbarProps) {
         }
 
         if (href === '/tours') {
+            const [pathOnly = '', query = ''] = url.split('?');
+            const params = new URLSearchParams(query);
+            const discoveryView = params.get('view');
+
+            if (pathOnly.startsWith('/tours/')) {
+                return true;
+            }
+
+            return pathOnly === '/tours' && discoveryView !== 'packages' && discoveryView !== 'destinations';
+        }
+
+        if (href === '/tours?view=packages') {
+            const [pathOnly = ''] = url.split('?');
+
             return (
-                url === '/tours' ||
-                url.startsWith('/tours?') ||
-                url.startsWith('/tours/') ||
-                url.startsWith('/packages/')
+                pathOnly.startsWith('/packages/') ||
+                url === '/tours?view=packages' ||
+                url.startsWith('/tours?view=packages&')
             );
         }
 
-        if (href === '/destinations') {
-            return url === '/destinations' || url.startsWith('/destinations/');
+        if (href === '/tours?view=destinations') {
+            const [pathOnly = ''] = url.split('?');
+
+            return (
+                pathOnly === '/destinations' ||
+                pathOnly.startsWith('/destinations/') ||
+                url === '/tours?view=destinations' ||
+                url.startsWith('/tours?view=destinations&')
+            );
         }
 
         if (href === '/services') {
@@ -339,6 +388,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
           : 'border-border/70 bg-surface/95 text-foreground shadow-[0_12px_40px_rgba(22,59,92,0.08)]';
 
     return (
+        <>
         <header className="pointer-events-none fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-6 lg:px-8">
             <div className="pointer-events-auto mx-auto max-w-7xl">
                 <div
@@ -353,7 +403,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
                         imageClassName="max-w-[10.5rem] sm:max-w-[12.5rem] lg:max-w-[14rem]"
                     />
 
-                    <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 xl:flex" aria-label="Primary">
+                    <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 xl:flex" aria-label={t('nav.primary')}>
                         {primaryLinks.map((item) => (
                             <PrimaryNavItem
                                 key={isNavDropdown(item) ? item.label : item.href}
@@ -365,19 +415,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
                     </nav>
 
                     <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-                        {/* Language selector hidden until multilingual navigation is ready.
-                        <span
-                            className={cn(
-                                'hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium lg:inline-flex',
-                                overlayHeader
-                                    ? 'text-brand-on-surface/90'
-                                    : 'text-foreground/90',
-                            )}
-                            aria-label="Language: English. Additional languages coming soon."
-                        >
-                            <Globe className="size-4" aria-hidden />
-                            <span>English</span>
-                        </span>
+                        <LanguageSwitcher glass={overlayHeader} />
 
                         <div
                             className={cn(
@@ -386,16 +424,16 @@ export function Navbar({ transparent = false }: NavbarProps) {
                             )}
                             aria-hidden
                         />
-                        */}
 
                         <ThemeToggle glass={overlayHeader} />
 
-                        <Link
-                            href={planTripHref}
+                        <button
+                            type="button"
+                            onClick={() => setBookNowOpen(true)}
                             className="hidden rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:inline-flex"
                         >
-                            Book Now
-                        </Link>
+                            {t('buttons.bookNow')}
+                        </button>
 
                         <button
                             type="button"
@@ -405,7 +443,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
                                     ? 'text-brand-on-surface hover:bg-white/10'
                                     : 'text-foreground hover:bg-foreground/5',
                             )}
-                            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                            aria-label={mobileOpen ? t('common.closeMenu') : t('common.openMenu')}
                             aria-expanded={mobileOpen}
                             aria-controls={menuId}
                             onClick={() => setMobileOpen((open) => !open)}
@@ -428,7 +466,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
                                   ? 'border-white/10 bg-surface/95'
                                   : 'border-border/70 bg-surface/95',
                         )}
-                        aria-label="Mobile primary"
+                        aria-label={t('nav.mobilePrimary')}
                     >
                         <div className="mb-3 flex justify-center border-b border-border/60 pb-4 dark:border-white/10">
                             <BrandLogo
@@ -456,22 +494,36 @@ export function Navbar({ transparent = false }: NavbarProps) {
                                     overlayHeader ? 'text-brand-on-surface' : 'text-foreground',
                                 )}
                             >
-                                <span className="text-sm font-medium">Theme</span>
+                                <span className="text-sm font-medium">{t('common.theme')}</span>
                                 <ThemeToggle glass={overlayHeader} />
                             </li>
+                            <li
+                                className={cn(
+                                    'flex items-center justify-between rounded-full px-3.5 py-2',
+                                    overlayHeader ? 'text-brand-on-surface' : 'text-foreground',
+                                )}
+                            >
+                                <span className="text-sm font-medium">{t('language.label')}</span>
+                                <LanguageSwitcher glass={overlayHeader} />
+                            </li>
                             <li className="pt-1">
-                                <Link
-                                    href={planTripHref}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setMobileOpen(false);
+                                        setBookNowOpen(true);
+                                    }}
                                     className="inline-flex w-full justify-center rounded-full bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                                    onClick={() => setMobileOpen(false)}
                                 >
-                                    Book Now
-                                </Link>
+                                    {t('buttons.bookNow')}
+                                </button>
                             </li>
                         </ul>
                     </nav>
                 ) : null}
             </div>
         </header>
+            <BookNowChoiceDialog isOpen={bookNowOpen} onClose={() => setBookNowOpen(false)} />
+        </>
     );
 }

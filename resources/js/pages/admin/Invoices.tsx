@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { FileText, Plus } from 'lucide-react';
 import { Suspense, lazy, useState } from 'react';
 
@@ -86,7 +86,10 @@ function submitInvoiceForm(
     return new Promise((resolve, reject) => {
         const options = {
             preserveScroll: true,
-            onSuccess: () => resolve(),
+            onSuccess: () => {
+                setFormOpen(false);
+                resolve();
+            },
             onError: () => reject(),
         };
 
@@ -130,8 +133,6 @@ export default function Invoices() {
 
     return (
         <>
-            <Head title="Invoices" />
-
             <div className="space-y-4">
                 {flash.success ? (
                     <div

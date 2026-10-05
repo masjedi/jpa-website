@@ -7,21 +7,13 @@ import type { SocialLink } from '@/components/public/brand';
 import { socialIconComponents } from '@/components/public/SocialIcons';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useSiteSettings } from '@/hooks/use-site-settings';
+import { usePublicNavigation } from '@/hooks/use-public-navigation';
+import { useTranslations } from '@/hooks/use-translations';
 import {
-    companyLinks,
-    exploreLinks,
-    helpLinks,
     isInertiaPageLink,
     type PublicNavLink,
 } from '@/components/public/navigation';
 import { cn } from '@/lib/utils';
-
-const footerTagline =
-    'Guided journeys through Afghanistan with local expertise, cultural respect and carefully planned discovery.';
-
-const travelHelpLinks = helpLinks.filter(
-    (link) => link.href !== '/privacy' && link.href !== '/terms',
-);
 
 const linkClassName =
     'text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus';
@@ -54,7 +46,7 @@ function FooterLinkGroup({
             <h2 className="text-sm font-semibold text-foreground">{title}</h2>
             <ul className="mt-4 space-y-3">
                 {links.map((link) => (
-                    <li key={link.label}>
+                    <li key={link.href}>
                         <FooterLink link={link} />
                     </li>
                 ))}
@@ -64,6 +56,7 @@ function FooterLinkGroup({
 }
 
 function SocialIconLink({ link }: { link: SocialLink }) {
+    const { t } = useTranslations();
     const Icon =
         socialIconComponents[link.label as keyof typeof socialIconComponents] ??
         socialIconComponents.Instagram;
@@ -73,7 +66,7 @@ function SocialIconLink({ link }: { link: SocialLink }) {
             href={link.href}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Follow us on ${link.label}`}
+            aria-label={t('footer.followOn', { label: link.label })}
             title={link.label}
             className="text-foreground/70 transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
@@ -87,9 +80,15 @@ export function Footer() {
     const { resolved } = useAppearance();
     const logoVariant = brandLogoVariantForTheme(resolved === 'dark');
     const { brandName, socialLinks } = useSiteSettings();
+    const { t } = useTranslations();
+    const { exploreLinks, companyLinks, helpLinks } = usePublicNavigation();
+
+    const travelHelpLinks = helpLinks.filter(
+        (link) => link.href !== '/privacy' && link.href !== '/terms',
+    );
 
     return (
-        <footer className="bg-background px-4 py-10 text-start sm:px-6 lg:px-8 lg:py-12">
+        <footer className="bg-background px-4 pb-24 pt-10 text-start sm:px-6 sm:pb-28 lg:px-8 lg:py-12 lg:pb-28">
             <div className="mx-auto max-w-7xl">
                 <div className="rounded-[2rem] border border-border bg-surface px-6 py-6 shadow-sm sm:px-10 sm:py-8 lg:px-12">
                     <div id="contact">
@@ -103,10 +102,10 @@ export function Footer() {
                             <BrandLogo
                                 variant={logoVariant}
                                 className="inline-flex items-start leading-none"
-                                imageClassName="h-9 w-auto max-w-full object-contain object-left sm:h-10"
+                                imageClassName="h-9 w-auto max-w-full object-contain object-start sm:h-10"
                             />
                             <p className="mt-6 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                                {footerTagline}
+                                {t('footer.tagline')}
                             </p>
                             <div className="mt-6 flex items-center gap-5">
                                 {socialLinks.map((link) => (
@@ -115,15 +114,15 @@ export function Footer() {
                             </div>
                         </div>
 
-                        <FooterLinkGroup title="Explore" links={exploreLinks} />
-                        <FooterLinkGroup title="Company" links={companyLinks} />
-                        <FooterLinkGroup title="Travel help" links={travelHelpLinks} />
+                        <FooterLinkGroup title={t('footer.explore')} links={exploreLinks} />
+                        <FooterLinkGroup title={t('footer.company')} links={companyLinks} />
+                        <FooterLinkGroup title={t('footer.travelHelp')} links={travelHelpLinks} />
                     </div>
 
                     <div className="mt-8 border-t border-border pt-5 sm:mt-10">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <p className="text-sm text-muted-foreground">
-                                © {year} {brandName}. All rights reserved.
+                                © {year} {brandName}. {t('footer.allRightsReserved')}
                             </p>
                             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                                 <Link
@@ -133,7 +132,7 @@ export function Footer() {
                                         'underline decoration-border underline-offset-4',
                                     )}
                                 >
-                                    Privacy Policy
+                                    {t('nav.privacyPolicy')}
                                 </Link>
                                 <Link
                                     href="/terms"
@@ -142,7 +141,7 @@ export function Footer() {
                                         'underline decoration-border underline-offset-4',
                                     )}
                                 >
-                                    Terms & Conditions
+                                    {t('nav.termsConditions')}
                                 </Link>
                             </div>
                         </div>

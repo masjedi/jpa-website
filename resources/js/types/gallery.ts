@@ -1,3 +1,5 @@
+import type { TranslatedString } from '@/types/locale';
+
 export interface GalleryPhoto {
     id: string;
     src: string;
@@ -10,7 +12,7 @@ export interface ManagedGalleryPhoto {
     status: 'Published' | 'Draft';
     src: string;
     thumbSrc: string;
-    alt: string;
-    caption: string;
+    alt: TranslatedString;
+    caption: TranslatedString;
     sortOrder: number;
 }

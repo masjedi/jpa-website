@@ -1,15 +1,16 @@
 import type { LucideIcon } from 'lucide-react';
 
 import { FadeIn } from '@/components/motion/FadeIn';
-import { aboutJourneySteps } from '@/data/aboutData';
-import type { AboutJourneyStep } from '@/types/about';
+import { resolveAboutIcon } from '@/lib/aboutIcons';
+import { useTranslations } from '@/hooks/use-translations';
+import type { PublicAboutJourneyStep } from '@/types/aboutPage';
 import { cn } from '@/lib/utils';
 
 function JourneyImage({
     step,
     curve,
 }: {
-    step: AboutJourneyStep;
+    step: PublicAboutJourneyStep;
     curve: 'left' | 'right';
 }) {
     return (
@@ -21,12 +22,20 @@ function JourneyImage({
                     : 'rounded-e-[999px] rounded-s-[2rem]',
             )}
         >
-            <img
-                src={step.image}
-                alt={step.imageAlt}
-                className="aspect-[4/3] w-full object-cover"
-                loading="lazy"
-            />
+            {step.image ? (
+                <img
+                    src={step.image}
+                    alt={step.imageAlt}
+                    className="aspect-[4/3] w-full object-cover"
+                    loading="lazy"
+                />
+            ) : (
+                <div
+                    className="aspect-[4/3] w-full bg-surface-muted"
+                    role="img"
+                    aria-label={step.imageAlt}
+                />
+            )}
         </div>
     );
 }
@@ -35,7 +44,7 @@ function JourneyContent({
     step,
     icon: Icon,
 }: {
-    step: AboutJourneyStep;
+    step: PublicAboutJourneyStep;
     icon: LucideIcon;
 }) {
     return (
@@ -53,7 +62,17 @@ function JourneyContent({
     );
 }
 
-export function AboutJourneyPath() {
+interface AboutJourneyPathProps {
+    steps: readonly PublicAboutJourneyStep[];
+}
+
+export function AboutJourneyPath({ steps }: AboutJourneyPathProps) {
+    const { t } = useTranslations();
+
+    if (steps.length === 0) {
+        return null;
+    }
+
     return (
         <section
             id="journey"
@@ -61,7 +80,7 @@ export function AboutJourneyPath() {
             className="overflow-hidden bg-background pb-16 pt-4 sm:pb-20 sm:pt-8 lg:pb-24"
         >
             <h2 id="journey-path-heading" className="sr-only">
-                How our guiding work has grown
+                {t('aboutPage.journeyPathHeading')}
             </h2>
 
             <div className="relative isolate mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -86,22 +105,19 @@ export function AboutJourneyPath() {
                 </svg>
 
                 <div className="relative z-10 space-y-16 sm:space-y-20 lg:space-y-24">
-                    {aboutJourneySteps.map((step, index) => {
+                    {steps.map((step, index) => {
                         const reversed = index % 2 === 1;
-                        const Icon = step.icon;
+                        const Icon = resolveAboutIcon(step.iconKey);
 
                         return (
-                            <FadeIn key={step.title} delay={index * 0.04}>
+                            <FadeIn key={step.id} delay={index * 0.04}>
                                 <div
                                     className={cn(
                                         'relative z-10 grid items-center gap-8 lg:grid-cols-2 lg:gap-14 xl:gap-20',
                                         reversed && 'lg:[&>*:first-child]:order-2',
                                     )}
                                 >
-                                    <JourneyImage
-                                        step={step}
-                                        curve={reversed ? 'right' : 'left'}
-                                    />
+                                    <JourneyImage step={step} curve={reversed ? 'right' : 'left'} />
                                     <JourneyContent step={step} icon={Icon} />
                                 </div>
                             </FadeIn>

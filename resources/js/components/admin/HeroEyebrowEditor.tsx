@@ -1,5 +1,6 @@
 import { type FormEvent, useId, useState } from 'react';
 
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
@@ -8,18 +9,28 @@ import {
     type HeroEyebrowFormValues,
     validateHeroEyebrowFormValues,
 } from '@/components/admin/heroEyebrowForm';
+import { useLocaleFormField } from '@/hooks/use-locale-form-fields';
+import { normalizeTranslatedString } from '@/lib/translations';
 import { cn } from '@/lib/utils';
+import type { TranslatedString } from '@/types/locale';
 
 interface HeroEyebrowEditorProps {
-    eyebrow: string;
+    eyebrow: TranslatedString;
     onSave: (values: HeroEyebrowFormValues) => void;
 }
 
 export function HeroEyebrowEditor({ eyebrow, onSave }: HeroEyebrowEditorProps) {
     const fieldId = useId();
-    const [values, setValues] = useState<HeroEyebrowFormValues>(() =>
-        createHeroEyebrowFormValues(eyebrow),
-    );
+    const normalizedEyebrow = normalizeTranslatedString(eyebrow);
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setDraft,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormField(normalizedEyebrow);
     const [errors, setErrors] = useState<HeroEyebrowFormErrors>({});
     const [submitting, setSubmitting] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -27,7 +38,9 @@ export function HeroEyebrowEditor({ eyebrow, onSave }: HeroEyebrowEditorProps) {
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const nextErrors = validateHeroEyebrowFormValues(values);
+        const eyebrowValues = commitAllLocales();
+        const nextValues = createHeroEyebrowFormValues(eyebrowValues);
+        const nextErrors = validateHeroEyebrowFormValues(nextValues);
         setErrors(nextErrors);
 
         if (Object.keys(nextErrors).length > 0) {
@@ -37,9 +50,7 @@ export function HeroEyebrowEditor({ eyebrow, onSave }: HeroEyebrowEditorProps) {
         setSubmitting(true);
 
         try {
-            onSave({
-                eyebrow: values.eyebrow.trim(),
-            });
+            onSave(nextValues);
             setSaved(true);
             window.setTimeout(() => setSaved(false), 2000);
         } finally {
@@ -49,6 +60,13 @@ export function HeroEyebrowEditor({ eyebrow, onSave }: HeroEyebrowEditorProps) {
 
     return (
         <form onSubmit={handleSubmit} aria-busy={submitting} className="space-y-3">
+            <AdminLocaleSelector
+                activeLocale={activeLocale}
+                completion={completion}
+                onChange={switchLocale}
+                disabled={submitting}
+            />
+
             <AdminFormField
                 id={fieldId}
                 label="Eyebrow label"
@@ -57,10 +75,11 @@ export function HeroEyebrowEditor({ eyebrow, onSave }: HeroEyebrowEditorProps) {
             >
                 <input
                     id={fieldId}
-                    value={values.eyebrow}
+                    value={draft}
+                    dir={direction}
                     disabled={submitting}
                     onChange={(event) => {
-                        setValues({ eyebrow: event.target.value });
+                        setDraft(event.target.value);
                         setErrors({});
                         setSaved(false);
                     }}

@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Image, Plus } from 'lucide-react';
 import { useState } from 'react';
 
@@ -8,41 +8,102 @@ import { ContentRecordViewDialog } from '@/components/admin/ContentRecordViewDia
 import { HeroEyebrowEditor } from '@/components/admin/HeroEyebrowEditor';
 import type { HeroEyebrowFormValues } from '@/components/admin/heroEyebrowForm';
 import { HeroSlideFormDialog } from '@/components/admin/HeroSlideFormDialog';
-import { heroSlideToFormValues, type HeroSlideFormValues } from '@/components/admin/heroSlideForm';
+import {
+    buildHeroSlideFormData,
+    heroSlideToFormValues,
+    type HeroSlideSubmitPayload,
+} from '@/components/admin/heroSlideForm';
 import { buildHeroSlideViewModel } from '@/components/admin/heroSlideView';
 import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
-import type { HeroSlide } from '@/types/heroSection';
+import { primaryTranslation, translationCompletion } from '@/lib/translations';
+import type { AdminHeroSection, HeroSlide } from '@/types/heroSection';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 
-interface HeroSectionPageProps {
-    eyebrow: string;
-    slides: HeroSlide[];
-}
+interface HeroSectionPageProps extends AdminHeroSection {}
 
 const statusStyles: Record<HeroSlide['status'], string> = {
     Published: 'bg-secondary/10 text-secondary',
     Draft: 'bg-accent/15 text-accent',
 };
 
+function submitHeroSlideForm(
+    payload: HeroSlideSubmitPayload,
+    editingSlideId: number | null,
+): Promise<void> {
+    const formData = buildHeroSlideFormData(payload);
+
+    return new Promise((resolve, reject) => {
+        const options = {
+            forceFormData: true,
+            preserveScroll: true,
+            preserveState: true,
+            only: ['slides', 'flash', 'errors'],
+            onSuccess: () => {
+                router.flush('/');
+                resolve();
+            },
+            onError: () => reject(),
+        };
+
+        if (editingSlideId !== null) {
+            formData.append('_method', 'patch');
+            router.post(`/admin/hero-section/slides/${editingSlideId}`, formData, options);
+
+            return;
+        }
+
+        router.post('/admin/hero-section/slides', formData, options);
+    });
+}
+
 const columns: DataTableColumn<HeroSlide>[] = [
+    {
+        id: 'preview',
+        header: 'Image',
+        accessor: (row) => row.imageThumbUrl ?? '',
+        render: (row) =>
+            row.imageThumbUrl ? (
+                <img
+                    src={row.imageThumbUrl}
+                    alt=""
+                    className="size-14 rounded-lg object-cover"
+                />
+            ) : (
+                <span className="text-xs text-muted-foreground">No image</span>
+            ),
+    },
     {
         id: 'slide',
         header: 'Slide',
-        accessor: (row) => row.title,
+        accessor: (row) => primaryTranslation(row.title),
         render: (row) => (
             <div className="max-w-md">
-                <p className="font-medium text-foreground">{row.title}</p>
+                <p className="font-medium text-foreground">{primaryTranslation(row.title)}</p>
                 <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                    {row.subtitle}
+                    {primaryTranslation(row.subtitle)}
                 </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                    {Object.entries(translationCompletion(row.title)).map(([locale, complete]) => (
+                        <span
+                            key={locale}
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                                complete
+                                    ? 'bg-secondary/10 text-secondary'
+                                    : 'bg-surface-muted text-muted-foreground'
+                            }`}
+                        >
+                            {locale}
+                        </span>
+                    ))}
+                </div>
             </div>
         ),
     },
-    { id: 'title', header: 'Title', accessor: (row) => row.title },
-    { id: 'subtitle', header: 'Subtitle', accessor: (row) => row.subtitle },
+    { id: 'title', header: 'Title (EN)', accessor: (row) => row.title.en },
+    { id: 'subtitle', header: 'Subtitle (EN)', accessor: (row) => row.subtitle.en },
     {
         id: 'status',
         header: 'Status',
@@ -60,6 +121,7 @@ const columns: DataTableColumn<HeroSlide>[] = [
 ];
 
 export default function HeroSection({ eyebrow, slides }: HeroSectionPageProps) {
+    const { flash } = usePage().props;
     const [formOpen, setFormOpen] = useState(false);
     const [viewOpen, setViewOpen] = useState(false);
     const [editingSlideId, setEditingSlideId] = useState<number | null>(null);
@@ -110,55 +172,45 @@ export default function HeroSection({ eyebrow, slides }: HeroSectionPageProps) {
         setFormOpen(true);
     };
 
-    const invalidatePublicHome = () => {
-        router.flush('/');
+    const handleSubmitSlide = async (payload: HeroSlideSubmitPayload) => {
+        try {
+            await submitHeroSlideForm(payload, editingSlideId);
+            closeForm();
+        } catch {
+            // Keep the dialog open; server validation errors sync from page props.
+        }
     };
 
     const handleSaveEyebrow = (values: HeroEyebrowFormValues) => {
         router.patch('/admin/hero-section', values, {
             preserveScroll: true,
-            onSuccess: invalidatePublicHome,
-        });
-    };
-
-    const handleSubmitSlide = (values: HeroSlideFormValues) => {
-        if (editingSlideId !== null) {
-            router.patch(`/admin/hero-section/slides/${editingSlideId}`, values, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    invalidatePublicHome();
-                    closeForm();
-                },
-            });
-
-            return;
-        }
-
-        router.post('/admin/hero-section/slides', values, {
-            preserveScroll: true,
-            onSuccess: () => {
-                invalidatePublicHome();
-                closeForm();
-            },
+            onSuccess: () => router.flush('/'),
         });
     };
 
     const handleDeleteSlide = (row: HeroSlide) => {
         router.delete(`/admin/hero-section/slides/${row.id}`, {
             preserveScroll: true,
-            onSuccess: invalidatePublicHome,
+            onSuccess: () => router.flush('/'),
         });
     };
 
     return (
         <>
-            <Head title="Hero section" />
-
             <div className="space-y-4">
+                {flash.success ? (
+                    <div
+                        role="status"
+                        className="rounded-xl border border-secondary/20 bg-secondary/10 px-4 py-3 text-sm text-secondary"
+                    >
+                        {flash.success}
+                    </div>
+                ) : null}
+
                 <AdminSectionHeader
                     eyebrow="Public website"
                     title="Hero section"
-                    description="Manage the homepage hero carousel — eyebrow label, headline, and supporting subtitle shown to visitors."
+                    description="Manage the homepage hero carousel — eyebrow label, full-screen background images, headlines, and subtitles."
                     icon={Image}
                     actions={
                         <button
@@ -176,16 +228,20 @@ export default function HeroSection({ eyebrow, slides }: HeroSectionPageProps) {
                     title="Eyebrow label"
                     description="Short label shown above the rotating hero headline on the homepage."
                 >
-                    <HeroEyebrowEditor key={eyebrow} eyebrow={eyebrow} onSave={handleSaveEyebrow} />
+                    <HeroEyebrowEditor
+                        key={JSON.stringify(eyebrow)}
+                        eyebrow={eyebrow}
+                        onSave={handleSaveEyebrow}
+                    />
                 </AdminSectionPanel>
 
                 <PremiumDataTable
                     title="Hero slides"
-                    description={`${publishedCount} published slide${publishedCount === 1 ? '' : 's'} in total. The homepage carousel always shows the latest 3 published slides.`}
+                    description={`${publishedCount} published slide${publishedCount === 1 ? '' : 's'} in total. The homepage carousel always shows the latest 5 published slides that include a hero image.`}
                     data={slides}
                     columns={columns}
                     rowKey={(row) => row.id}
-                    selectionLabel={(row) => row.title}
+                    selectionLabel={(row) => primaryTranslation(row.title)}
                     initialPageSize={5}
                     onView={openViewDialog}
                     onEdit={openEditForm}
@@ -196,7 +252,7 @@ export default function HeroSection({ eyebrow, slides }: HeroSectionPageProps) {
             <ContentRecordViewDialog
                 open={viewOpen}
                 title="View hero slide"
-                description={viewingSlide?.title}
+                description={viewingSlide ? primaryTranslation(viewingSlide.title) : undefined}
                 model={
                     viewingSlide
                         ? buildHeroSlideViewModel({

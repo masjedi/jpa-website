@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Images, Plus } from 'lucide-react';
 import { Suspense, lazy, useState } from 'react';
 
@@ -17,6 +17,8 @@ import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
+import { TranslationLocaleBadges } from '@/components/admin/TranslationLocaleBadges';
+import { primaryTranslation } from '@/lib/translations';
 import type { ManagedGalleryPhoto } from '@/types/gallery';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
 
@@ -34,28 +36,8 @@ const ContentRecordViewDialog = lazy(() =>
 
 type GalleryStatus = 'Published' | 'Draft';
 
-interface GalleryRow {
-    id: number;
-    caption: string;
-    alt: string;
-    sortOrder: number;
-    status: GalleryStatus;
-    thumbSrc: string;
-}
-
 interface GalleryPageProps {
     photos: ManagedGalleryPhoto[];
-}
-
-function buildGalleryRow(photo: ManagedGalleryPhoto): GalleryRow {
-    return {
-        id: photo.id,
-        caption: photo.caption,
-        alt: photo.alt,
-        sortOrder: photo.sortOrder,
-        status: photo.status,
-        thumbSrc: photo.thumbSrc,
-    };
 }
 
 const statusStyles: Record<GalleryStatus, string> = {
@@ -63,11 +45,11 @@ const statusStyles: Record<GalleryStatus, string> = {
     Draft: 'bg-accent/15 text-accent',
 };
 
-const columns: DataTableColumn<GalleryRow>[] = [
+const columns: DataTableColumn<ManagedGalleryPhoto>[] = [
     {
         id: 'preview',
         header: 'Preview',
-        accessor: (row) => row.caption,
+        accessor: (row) => primaryTranslation(row.caption),
         sortable: false,
         searchable: false,
         render: (row) => (
@@ -81,13 +63,14 @@ const columns: DataTableColumn<GalleryRow>[] = [
     {
         id: 'photo',
         header: 'Photo',
-        accessor: (row) => row.caption,
+        accessor: (row) => primaryTranslation(row.caption),
         render: (row) => (
             <div className="max-w-sm">
-                <p className="font-medium text-foreground">{row.caption}</p>
+                <p className="font-medium text-foreground">{primaryTranslation(row.caption)}</p>
                 <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                    {row.alt}
+                    {primaryTranslation(row.alt)}
                 </p>
+                <TranslationLocaleBadges value={row.caption} />
             </div>
         ),
     },
@@ -152,7 +135,6 @@ export default function Gallery({ photos }: GalleryPageProps) {
     const [editingPhotoId, setEditingPhotoId] = useState<number | null>(null);
     const [viewingPhotoId, setViewingPhotoId] = useState<number | null>(null);
 
-    const rows = photos.map(buildGalleryRow);
     const publishedCount = photos.filter((photo) => photo.status === 'Published').length;
     const editingPhoto = editingPhotoId
         ? photos.find((photo) => photo.id === editingPhotoId) ?? null
@@ -167,13 +149,13 @@ export default function Gallery({ photos }: GalleryPageProps) {
         setFormOpen(true);
     };
 
-    const openEditForm = (row: GalleryRow) => {
+    const openEditForm = (row: ManagedGalleryPhoto) => {
         setFormMode('edit');
         setEditingPhotoId(row.id);
         setFormOpen(true);
     };
 
-    const openViewDialog = (row: GalleryRow) => {
+    const openViewDialog = (row: ManagedGalleryPhoto) => {
         setViewingPhotoId(row.id);
         setViewOpen(true);
     };
@@ -213,7 +195,7 @@ export default function Gallery({ photos }: GalleryPageProps) {
         closeForm();
     };
 
-    const handleDeletePhoto = (row: GalleryRow) => {
+    const handleDeletePhoto = (row: ManagedGalleryPhoto) => {
         router.delete(`/admin/gallery/${row.id}`, {
             preserveScroll: true,
             onSuccess: () => {
@@ -225,8 +207,6 @@ export default function Gallery({ photos }: GalleryPageProps) {
 
     return (
         <>
-            <Head title="Gallery" />
-
             <div className="space-y-4">
                 {flash.success ? (
                     <div
@@ -257,10 +237,10 @@ export default function Gallery({ photos }: GalleryPageProps) {
                 <PremiumDataTable
                     title="Photo library"
                     description={`${publishedCount} published photo${publishedCount === 1 ? '' : 's'} are currently visible on the public site.`}
-                    data={rows}
+                    data={photos}
                     columns={columns}
                     rowKey={(row) => row.id}
-                    selectionLabel={(row) => row.caption}
+                    selectionLabel={(row) => primaryTranslation(row.caption)}
                     initialPageSize={8}
                     onView={openViewDialog}
                     onEdit={openEditForm}
@@ -273,7 +253,9 @@ export default function Gallery({ photos }: GalleryPageProps) {
                     <ContentRecordViewDialog
                         open={viewOpen}
                         title="View gallery photo"
-                        description={viewingPhoto?.caption}
+                        description={
+                            viewingPhoto ? primaryTranslation(viewingPhoto.caption) : undefined
+                        }
                         model={
                             viewingPhoto
                                 ? buildGalleryViewModel({

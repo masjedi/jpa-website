@@ -2,6 +2,4 @@
 
 namespace App\Http\Requests\Admin;
 
-class StoreFaqItemRequest extends FaqListingRequest
-{
-}
+class StoreFaqItemRequest extends FaqListingRequest {}

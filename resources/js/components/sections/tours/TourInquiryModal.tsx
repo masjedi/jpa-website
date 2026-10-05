@@ -3,6 +3,7 @@ import { CheckCircle2, Send, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 
 import type { InquiryFormData } from '@/types/tours';
+import { useTranslations } from '@/hooks/use-translations';
 
 const labelClass = 'block text-sm font-medium text-foreground';
 const fieldClass =
@@ -32,6 +33,7 @@ export function TourInquiryModal({
     const [submitted, setSubmitted] = useState(false);
     const [submittedName, setSubmittedName] = useState('');
     const [submittedTour, setSubmittedTour] = useState('');
+    const { t } = useTranslations();
 
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         tourTitle: '',
@@ -101,6 +103,8 @@ export function TourInquiryModal({
 
         post('/inquiries/tour', {
             preserveScroll: true,
+            preserveState: true,
+            only: ['errors', 'flash'],
             onSuccess: () => {
                 setSubmittedName(data.fullName);
                 setSubmittedTour(data.tourTitle);
@@ -127,13 +131,13 @@ export function TourInquiryModal({
                         id={titleId}
                         className="font-heading text-xl font-semibold text-foreground sm:text-2xl"
                     >
-                        {submitted ? 'Inquiry received' : 'Request this tour'}
+                        {submitted ? t('tours.inquiryReceived') : t('tours.requestThisTour')}
                     </h2>
                     <button
                         type="button"
                         onClick={onClose}
                         className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                        aria-label="Close dialog"
+                        aria-label={t('buttons.close')}
                     >
                         <X className="size-5" />
                     </button>
@@ -187,6 +191,8 @@ export function TourInquiryModal({
                                     value={data.tourTitle}
                                     onChange={(e) => setData('tourTitle', e.target.value)}
                                     required
+                                    minLength={2}
+                                    maxLength={200}
                                     className={fieldClass}
                                 />
                                 {errors.tourTitle ? (
@@ -206,6 +212,7 @@ export function TourInquiryModal({
                                         type="text"
                                         value={data.preferredDate}
                                         onChange={(e) => setData('preferredDate', e.target.value)}
+                                        maxLength={120}
                                         className={fieldClass}
                                     />
                                 </div>
@@ -240,6 +247,8 @@ export function TourInquiryModal({
                                         value={data.fullName}
                                         onChange={(e) => setData('fullName', e.target.value)}
                                         required
+                                        minLength={2}
+                                        maxLength={120}
                                         className={fieldClass}
                                     />
                                     {errors.fullName ? (
@@ -259,6 +268,8 @@ export function TourInquiryModal({
                                         value={data.email}
                                         onChange={(e) => setData('email', e.target.value)}
                                         required
+                                        minLength={5}
+                                        maxLength={255}
                                         className={fieldClass}
                                     />
                                     {errors.email ? (
@@ -280,6 +291,7 @@ export function TourInquiryModal({
                                         autoComplete="country-name"
                                         value={data.nationality}
                                         onChange={(e) => setData('nationality', e.target.value)}
+                                        maxLength={120}
                                         className={fieldClass}
                                     />
                                 </div>
@@ -293,6 +305,8 @@ export function TourInquiryModal({
                                         autoComplete="tel"
                                         value={data.whatsappOrPhone}
                                         onChange={(e) => setData('whatsappOrPhone', e.target.value)}
+                                        minLength={7}
+                                        maxLength={60}
                                         className={fieldClass}
                                     />
                                 </div>
@@ -307,6 +321,7 @@ export function TourInquiryModal({
                                     rows={3}
                                     value={data.notes}
                                     onChange={(e) => setData('notes', e.target.value)}
+                                    maxLength={5000}
                                     className={`${fieldClass} resize-y`}
                                 />
                             </div>
@@ -329,7 +344,7 @@ export function TourInquiryModal({
                                     className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
                                 >
                                     <Send className="size-4" aria-hidden />
-                                    {processing ? 'Sending…' : 'Send inquiry'}
+                                    {processing ? t('buttons.sending') : t('buttons.sendInquiryShort')}
                                 </button>
                             </div>
                         </form>

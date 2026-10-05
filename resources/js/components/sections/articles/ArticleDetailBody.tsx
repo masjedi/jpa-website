@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { FadeIn } from '@/components/motion/FadeIn';
 import { articleShowHref } from '@/components/public/navigation';
+import { cardSummaryClass, cardTitleClass } from '@/lib/cardText';
 import { isRichTextHtml } from '@/lib/richText';
 import type { ArticleDetail, ArticleListItem, ArticleRelatedTour } from '@/types/articles';
 
@@ -153,7 +154,7 @@ export function ArticleDetailBody({
 
                         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                             {relatedArticles.map((related, index) => (
-                                <FadeIn key={related.id} delay={index * 0.05}>
+                                <FadeIn key={related.id} delay={index * 0.05} className="h-full">
                                     <Link
                                         href={articleShowHref(related.slug)}
                                         className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface text-start shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
@@ -165,7 +166,7 @@ export function ArticleDetailBody({
                                                 className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                                                 loading="lazy"
                                             />
-                                            <span className="absolute left-3 top-3 rounded-md bg-black/50 px-2 py-0.5 text-[11px] font-medium text-white">
+                                            <span className="absolute start-3 top-3 rounded-md bg-black/50 px-2 py-0.5 text-[11px] font-medium text-white">
                                                 {related.category}
                                             </span>
                                         </div>
@@ -176,13 +177,13 @@ export function ArticleDetailBody({
                                             >
                                                 {related.date}
                                             </time>
-                                            <h3 className="font-heading mt-2 text-base font-semibold text-foreground">
+                                            <h3 className={`font-heading mt-2 text-base font-semibold text-foreground ${cardTitleClass}`}>
                                                 {related.title}
                                             </h3>
-                                            <p className="mt-2 flex-1 text-sm text-muted-foreground line-clamp-2">
+                                            <p className={`mt-2 text-sm text-muted-foreground ${cardSummaryClass}`}>
                                                 {related.summary}
                                             </p>
-                                            <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-secondary">
+                                            <span className="mt-auto inline-flex items-center gap-1 pt-4 text-xs font-semibold text-secondary">
                                                 Read article
                                                 <ArrowRight className="size-3.5" aria-hidden />
                                             </span>

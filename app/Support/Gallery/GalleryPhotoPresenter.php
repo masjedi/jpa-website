@@ -3,6 +3,7 @@
 namespace App\Support\Gallery;
 
 use App\Models\GalleryPhoto;
+use App\Support\Translatable;
 
 class GalleryPhotoPresenter
 {
@@ -47,7 +48,7 @@ class GalleryPhotoPresenter
             ->ordered()
             ->limit($limit)
             ->get()
-            ->map(fn (GalleryPhoto $photo): array => self::publicPayload($photo))
+            ->map(fn (GalleryPhoto $photo): array => self::publicPayload($photo, useThumb: true))
             ->values()
             ->all();
     }
@@ -60,8 +61,8 @@ class GalleryPhotoPresenter
         return [
             'id' => $photo->id,
             'status' => $photo->status->frontendLabel(),
-            'alt' => (string) $photo->alt,
-            'caption' => (string) $photo->caption,
+            'alt' => Translatable::normalize($photo->alt),
+            'caption' => Translatable::normalize($photo->caption),
             'src' => self::displayUrl($photo),
             'thumbSrc' => self::thumbUrl($photo),
             'sortOrder' => (int) $photo->sort_order,
@@ -71,13 +72,13 @@ class GalleryPhotoPresenter
     /**
      * @return array<string, mixed>
      */
-    public static function publicPayload(GalleryPhoto $photo): array
+    public static function publicPayload(GalleryPhoto $photo, bool $useThumb = false): array
     {
         return [
             'id' => (string) $photo->id,
-            'src' => self::displayUrl($photo),
-            'alt' => (string) $photo->alt,
-            'caption' => (string) $photo->caption,
+            'src' => $useThumb ? self::thumbUrl($photo) : self::displayUrl($photo),
+            'alt' => Translatable::resolve($photo->alt),
+            'caption' => Translatable::resolve($photo->caption),
         ];
     }
 

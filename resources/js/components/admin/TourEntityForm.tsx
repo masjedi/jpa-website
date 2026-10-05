@@ -1,30 +1,36 @@
 import { usePage } from '@inertiajs/react';
-import { type FormEvent, type ReactNode, useEffect, useId, useState } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useId, useMemo, useState } from 'react';
 
+import { AdminLocaleSelector } from '@/components/admin/AdminLocaleSelector';
 import { AdminFormField, adminFieldDescribedBy } from '@/components/admin/AdminFormField';
 import { adminFieldClass, adminFieldErrorClass } from '@/components/admin/adminForm';
 import {
+    applyPackageFormDefaults,
     createEmptyTourFormValues,
-    departureStatusOptions,
-    tourDifficultyOptions,
+    emptyTourFilterOptions,
     tourListingTypeOptions,
-    tourRegionOptions,
-    tourTravelStyleOptions,
     mapServerTourFormErrors,
+    localeMapToTourTranslatableValues,
+    tourFormValuesToLocaleMap,
+    tourTranslatableEmptyFields,
     type TourFormErrors,
     type TourFormSubmitPayload,
     type TourFormValues,
     validateTourFormValues,
+    withCurrentTourFilterOption,
 } from '@/components/admin/tourForm';
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { mediaProfiles } from '@/lib/mediaProfiles';
 import { LazyRichTextEditor } from '@/components/admin/LazyRichTextEditor';
+import { useLocaleFormFields } from '@/hooks/use-locale-form-fields';
 import { cn } from '@/lib/utils';
+import type { TourFilterFieldOptions } from '@/types/tourFilterOptions';
 
 interface TourEntityFormProps {
     formId: string;
     mode: 'create' | 'edit';
     initialValues?: TourFormValues;
+    filterOptions?: TourFilterFieldOptions;
     onCancel: () => void;
     onSubmit: (payload: TourFormSubmitPayload) => void | Promise<void>;
 }
@@ -110,34 +116,53 @@ export function TourEntityForm({
     formId,
     mode,
     initialValues,
+    filterOptions = emptyTourFilterOptions,
     onCancel,
     onSubmit,
 }: TourEntityFormProps) {
     const statusFieldId = useId();
     const regionFieldId = useId();
     const titleFieldId = useId();
-    const taglineFieldId = useId();
     const summaryFieldId = useId();
     const destinationFieldId = useId();
     const durationFieldId = useId();
     const travelStyleFieldId = useId();
     const difficultyFieldId = useId();
     const badgeFieldId = useId();
-    const departureDateFieldId = useId();
-    const departureStatusFieldId = useId();
-    const priceFieldId = useId();
     const packagePriceFieldId = useId();
-    const idealForFieldId = useId();
     const popularFieldId = useId();
     const highlightsFieldId = useId();
-    const destinationsFieldId = useId();
     const includedFieldId = useId();
     const imageFieldId = useId();
     const contentFieldId = useId();
 
-    const [values, setValues] = useState<TourFormValues>(
-        () => initialValues ?? createEmptyTourFormValues(),
+    const startingValues = initialValues ?? createEmptyTourFormValues(filterOptions);
+    const initialByLocale = useMemo(
+        () => tourFormValuesToLocaleMap(startingValues),
+        [startingValues],
     );
+
+    const {
+        activeLocale,
+        switchLocale,
+        draft,
+        setField,
+        commitAllLocales,
+        completion,
+        direction,
+    } = useLocaleFormFields({
+        initialByLocale,
+        emptyFields: tourTranslatableEmptyFields(),
+    });
+
+    const [listingType, setListingType] = useState(startingValues.listingType);
+    const [region, setRegion] = useState(startingValues.region);
+    const [durationDays, setDurationDays] = useState(startingValues.durationDays);
+    const [travelStyle, setTravelStyle] = useState(startingValues.travelStyle);
+    const [difficulty, setDifficulty] = useState(startingValues.difficulty);
+    const [isPopular, setIsPopular] = useState(startingValues.isPopular);
+    const [status, setStatus] = useState(startingValues.status);
+    const [existingImage, setExistingImage] = useState(startingValues.image);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(
         () => initialValues?.image || null,
@@ -154,8 +179,17 @@ export function TourEntityForm({
         }
     }, [serverErrors]);
 
-    const isPackage = values.listingType === 'package';
-    const hasImage = Boolean(imageFile) || Boolean((values.image ?? '').trim());
+    const isPackage = listingType === 'package';
+    const hasImage = Boolean(imageFile) || Boolean((existingImage ?? '').trim());
+    const regionOptions = withCurrentTourFilterOption(filterOptions.regions, region);
+    const travelStyleOptions = withCurrentTourFilterOption(
+        filterOptions.travelStyles,
+        travelStyle,
+    );
+    const difficultyOptions = withCurrentTourFilterOption(
+        filterOptions.difficulties,
+        difficulty,
+    );
     const submitLabel =
         mode === 'edit'
             ? submitting
@@ -170,6 +204,19 @@ export function TourEntityForm({
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
+        const shared = {
+            listingType,
+            region,
+            durationDays,
+            travelStyle,
+            difficulty,
+            image: existingImage,
+            isPopular,
+            status,
+        };
+        const values = applyPackageFormDefaults(
+            localeMapToTourTranslatableValues(commitAllLocales(), shared),
+        );
         const nextErrors = validateTourFormValues(values, hasImage);
         setErrors(nextErrors);
 
@@ -180,26 +227,8 @@ export function TourEntityForm({
         setSubmitting(true);
 
         try {
-            const text = (value: string | null | undefined): string => (value ?? '').trim();
-
             await onSubmit({
-                values: {
-                    ...values,
-                    title: text(values.title),
-                    tagline: text(values.tagline),
-                    summary: text(values.summary),
-                    destination: text(values.destination),
-                    badge: text(values.badge),
-                    highlightsText: text(values.highlightsText),
-                    keyDestinationsText: text(values.keyDestinationsText),
-                    includedServicesText: text(values.includedServicesText),
-                    nextDepartureDate: text(values.nextDepartureDate),
-                    estimatedStartingPrice: text(values.estimatedStartingPrice),
-                    priceEstimate: text(values.priceEstimate),
-                    idealFor: text(values.idealFor),
-                    content: text(values.content),
-                    image: text(values.image),
-                },
+                values,
                 coverImage: imageFile,
             });
         } finally {
@@ -218,17 +247,14 @@ export function TourEntityForm({
                 <aside className="space-y-4 xl:sticky xl:top-0">
                     <ImageUploadField
                         id={imageFieldId}
-                        required
+                        required={mode === 'create'}
                         disabled={submitting}
                         previewUrl={imagePreview}
                         hint={mediaProfiles.tour_cover.hint}
                         onChange={(file, preview) => {
                             setImageFile(file);
                             setImagePreview(preview);
-                            setValues((current) => ({
-                                ...current,
-                                image: preview ? current.image : '',
-                            }));
+                            setExistingImage(preview ? existingImage : '');
                             setErrors((current) => ({ ...current, image: undefined }));
                         }}
                         error={errors.image}
@@ -240,24 +266,19 @@ export function TourEntityForm({
                                 Listing
                             </p>
                             <ListingTypeToggle
-                                value={values.listingType}
+                                value={listingType}
                                 disabled={submitting || mode === 'edit'}
-                                onChange={(listingType) =>
-                                    setValues((current) => ({ ...current, listingType }))
-                                }
+                                onChange={setListingType}
                             />
                         </div>
 
                         <AdminFormField id={statusFieldId} label="Publish status" required>
                             <select
                                 id={statusFieldId}
-                                value={values.status}
+                                value={status}
                                 disabled={submitting}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        status: event.target.value as TourFormValues['status'],
-                                    }))
+                                    setStatus(event.target.value as TourFormValues['status'])
                                 }
                                 className={adminFieldClass}
                             >
@@ -269,11 +290,12 @@ export function TourEntityForm({
                         <AdminFormField id={badgeFieldId} label="Badge">
                             <input
                                 id={badgeFieldId}
-                                value={values.badge}
+                                value={draft.badge}
+                                dir={direction}
                                 disabled={submitting}
-                                onChange={(event) =>
-                                    setValues((current) => ({ ...current, badge: event.target.value }))
-                                }
+                                onChange={(event) => {
+                                    setField('badge', event.target.value);
+                                }}
                                 className={adminFieldClass}
                             />
                         </AdminFormField>
@@ -283,14 +305,9 @@ export function TourEntityForm({
                                 <input
                                     id={popularFieldId}
                                     type="checkbox"
-                                    checked={values.isPopular}
+                                    checked={isPopular}
                                     disabled={submitting}
-                                    onChange={(event) =>
-                                        setValues((current) => ({
-                                            ...current,
-                                            isPopular: event.target.checked,
-                                        }))
-                                    }
+                                    onChange={(event) => setIsPopular(event.target.checked)}
                                     className="size-4 rounded border-border text-secondary focus:ring-focus"
                                 />
                                 Featured package
@@ -300,6 +317,13 @@ export function TourEntityForm({
                 </aside>
 
                 <div className="min-w-0 space-y-5">
+                    <AdminLocaleSelector
+                        activeLocale={activeLocale}
+                        completion={completion}
+                        onChange={switchLocale}
+                        disabled={submitting}
+                    />
+
                     <FormGroup title="Identity">
                         <AdminFormField
                             id={titleFieldId}
@@ -310,10 +334,11 @@ export function TourEntityForm({
                         >
                             <input
                                 id={titleFieldId}
-                                value={values.title}
+                                value={draft.title}
+                                dir={direction}
                                 disabled={submitting}
                                 onChange={(event) => {
-                                    setValues((current) => ({ ...current, title: event.target.value }));
+                                    setField('title', event.target.value);
                                     setErrors((current) => ({ ...current, title: undefined }));
                                 }}
                                 aria-invalid={Boolean(errors.title)}
@@ -322,55 +347,21 @@ export function TourEntityForm({
                             />
                         </AdminFormField>
 
-                        {isPackage ? (
-                            <AdminFormField
-                                id={taglineFieldId}
-                                label="Tagline"
-                                required
-                                error={errors.tagline}
-                                className={spanThree}
-                            >
-                                <input
-                                    id={taglineFieldId}
-                                    value={values.tagline}
-                                    disabled={submitting}
-                                    onChange={(event) => {
-                                        setValues((current) => ({
-                                            ...current,
-                                            tagline: event.target.value,
-                                        }));
-                                        setErrors((current) => ({ ...current, tagline: undefined }));
-                                    }}
-                                    aria-invalid={Boolean(errors.tagline)}
-                                    aria-describedby={adminFieldDescribedBy(
-                                        taglineFieldId,
-                                        errors.tagline,
-                                    )}
-                                    className={cn(
-                                        adminFieldClass,
-                                        errors.tagline && adminFieldErrorClass,
-                                    )}
-                                />
-                            </AdminFormField>
-                        ) : null}
-
                         <AdminFormField
                             id={summaryFieldId}
-                            label={isPackage ? 'Description' : 'Summary'}
+                            label="Summary"
                             required
                             error={errors.summary}
                             className={spanThree}
                         >
                             <textarea
                                 id={summaryFieldId}
-                                value={values.summary}
+                                value={draft.summary}
+                                dir={direction}
                                 disabled={submitting}
                                 rows={2}
                                 onChange={(event) => {
-                                    setValues((current) => ({
-                                        ...current,
-                                        summary: event.target.value,
-                                    }));
+                                    setField('summary', event.target.value);
                                     setErrors((current) => ({ ...current, summary: undefined }));
                                 }}
                                 aria-invalid={Boolean(errors.summary)}
@@ -395,13 +386,11 @@ export function TourEntityForm({
                         >
                             <input
                                 id={destinationFieldId}
-                                value={values.destination}
+                                value={draft.destination}
+                                dir={direction}
                                 disabled={submitting}
                                 onChange={(event) => {
-                                    setValues((current) => ({
-                                        ...current,
-                                        destination: event.target.value,
-                                    }));
+                                    setField('destination', event.target.value);
                                     setErrors((current) => ({ ...current, destination: undefined }));
                                 }}
                                 aria-invalid={Boolean(errors.destination)}
@@ -419,19 +408,19 @@ export function TourEntityForm({
                         <AdminFormField id={regionFieldId} label="Region" required>
                             <select
                                 id={regionFieldId}
-                                value={values.region}
+                                value={region}
                                 disabled={submitting}
                                 onChange={(event) =>
-                                    setValues((current) => ({
-                                        ...current,
-                                        region: event.target.value as TourFormValues['region'],
-                                    }))
+                                    setRegion(event.target.value as TourFormValues['region'])
                                 }
                                 className={adminFieldClass}
                             >
-                                {tourRegionOptions.map((region) => (
-                                    <option key={region} value={region}>
-                                        {region}
+                                {regionOptions.length === 0 ? (
+                                    <option value="">Add regions in Filter & Placement</option>
+                                ) : null}
+                                {regionOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
                                     </option>
                                 ))}
                             </select>
@@ -447,13 +436,10 @@ export function TourEntityForm({
                                 id={durationFieldId}
                                 type="number"
                                 min={isPackage ? 0 : 1}
-                                value={values.durationDays}
+                                value={durationDays}
                                 disabled={submitting}
                                 onChange={(event) => {
-                                    setValues((current) => ({
-                                        ...current,
-                                        durationDays: Number(event.target.value) || 0,
-                                    }));
+                                    setDurationDays(Number(event.target.value) || 0);
                                     setErrors((current) => ({ ...current, durationDays: undefined }));
                                 }}
                                 aria-invalid={Boolean(errors.durationDays)}
@@ -468,206 +454,102 @@ export function TourEntityForm({
                             />
                         </AdminFormField>
 
-                        {!isPackage ? (
-                            <>
-                                <AdminFormField id={travelStyleFieldId} label="Travel style" required>
-                                    <select
-                                        id={travelStyleFieldId}
-                                        value={values.travelStyle}
-                                        disabled={submitting}
-                                        onChange={(event) =>
-                                            setValues((current) => ({
-                                                ...current,
-                                                travelStyle: event.target
-                                                    .value as TourFormValues['travelStyle'],
-                                            }))
-                                        }
-                                        className={adminFieldClass}
-                                    >
-                                        {tourTravelStyleOptions.map((style) => (
-                                            <option key={style} value={style}>
-                                                {style}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </AdminFormField>
-
-                                <AdminFormField id={difficultyFieldId} label="Difficulty" required>
-                                    <select
-                                        id={difficultyFieldId}
-                                        value={values.difficulty}
-                                        disabled={submitting}
-                                        onChange={(event) =>
-                                            setValues((current) => ({
-                                                ...current,
-                                                difficulty: event.target
-                                                    .value as TourFormValues['difficulty'],
-                                            }))
-                                        }
-                                        className={adminFieldClass}
-                                    >
-                                        {tourDifficultyOptions.map((difficulty) => (
-                                            <option key={difficulty} value={difficulty}>
-                                                {difficulty}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </AdminFormField>
-                            </>
-                        ) : null}
-                    </FormGroup>
-
-                    <FormDivider />
-
-                    <FormGroup
-                        title={isPackage ? 'Pricing & audience' : 'Departure & pricing'}
-                        columns={isPackage ? 2 : 3}
-                    >
                         {isPackage ? (
-                            <>
-                                <AdminFormField
+                            <AdminFormField
+                                id={packagePriceFieldId}
+                                label="Price estimate"
+                                required
+                                error={errors.priceEstimate}
+                            >
+                                <input
                                     id={packagePriceFieldId}
-                                    label="Price estimate"
-                                    required
-                                    error={errors.priceEstimate}
-                                >
-                                    <input
-                                        id={packagePriceFieldId}
-                                        value={values.priceEstimate}
-                                        disabled={submitting}
-                                        onChange={(event) => {
-                                            setValues((current) => ({
-                                                ...current,
-                                                priceEstimate: event.target.value,
-                                            }));
-                                            setErrors((current) => ({
-                                                ...current,
-                                                priceEstimate: undefined,
-                                            }));
-                                        }}
-                                        aria-invalid={Boolean(errors.priceEstimate)}
-                                        aria-describedby={adminFieldDescribedBy(
-                                            packagePriceFieldId,
-                                            errors.priceEstimate,
-                                        )}
-                                        className={cn(
-                                            adminFieldClass,
-                                            errors.priceEstimate && adminFieldErrorClass,
-                                        )}
-                                    />
-                                </AdminFormField>
+                                    value={draft.priceEstimate}
+                                    dir={direction}
+                                    disabled={submitting}
+                                    onChange={(event) => {
+                                        setField('priceEstimate', event.target.value);
+                                        setErrors((current) => ({
+                                            ...current,
+                                            priceEstimate: undefined,
+                                        }));
+                                    }}
+                                    aria-invalid={Boolean(errors.priceEstimate)}
+                                    aria-describedby={adminFieldDescribedBy(
+                                        packagePriceFieldId,
+                                        errors.priceEstimate,
+                                    )}
+                                    className={cn(
+                                        adminFieldClass,
+                                        errors.priceEstimate && adminFieldErrorClass,
+                                    )}
+                                />
+                            </AdminFormField>
+                        ) : null}
 
-                                <AdminFormField
-                                    id={idealForFieldId}
-                                    label="Ideal for"
-                                    required
-                                    error={errors.idealFor}
-                                >
-                                    <input
-                                        id={idealForFieldId}
-                                        value={values.idealFor}
-                                        disabled={submitting}
-                                        onChange={(event) => {
-                                            setValues((current) => ({
-                                                ...current,
-                                                idealFor: event.target.value,
-                                            }));
-                                            setErrors((current) => ({
-                                                ...current,
-                                                idealFor: undefined,
-                                            }));
-                                        }}
-                                        aria-invalid={Boolean(errors.idealFor)}
-                                        aria-describedby={adminFieldDescribedBy(
-                                            idealForFieldId,
-                                            errors.idealFor,
-                                        )}
-                                        className={cn(
-                                            adminFieldClass,
-                                            errors.idealFor && adminFieldErrorClass,
-                                        )}
-                                    />
-                                </AdminFormField>
-                            </>
-                        ) : (
-                            <>
-                                <AdminFormField id={departureDateFieldId} label="Next departure">
-                                    <input
-                                        id={departureDateFieldId}
-                                        value={values.nextDepartureDate}
-                                        disabled={submitting}
-                                        onChange={(event) =>
-                                            setValues((current) => ({
-                                                ...current,
-                                                nextDepartureDate: event.target.value,
-                                            }))
-                                        }
-                                        className={adminFieldClass}
-                                    />
-                                </AdminFormField>
+                        <AdminFormField id={travelStyleFieldId} label="Travel style" required>
+                            <select
+                                id={travelStyleFieldId}
+                                value={travelStyle}
+                                disabled={submitting}
+                                onChange={(event) =>
+                                    setTravelStyle(
+                                        event.target.value as TourFormValues['travelStyle'],
+                                    )
+                                }
+                                className={adminFieldClass}
+                            >
+                                {travelStyleOptions.length === 0 ? (
+                                    <option value="">Add travel styles in Filter & Placement</option>
+                                ) : null}
+                                {travelStyleOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </AdminFormField>
 
-                                <AdminFormField id={departureStatusFieldId} label="Departure status">
-                                    <select
-                                        id={departureStatusFieldId}
-                                        value={values.nextDepartureStatus}
-                                        disabled={submitting}
-                                        onChange={(event) =>
-                                            setValues((current) => ({
-                                                ...current,
-                                                nextDepartureStatus: event.target
-                                                    .value as TourFormValues['nextDepartureStatus'],
-                                            }))
-                                        }
-                                        className={adminFieldClass}
-                                    >
-                                        {departureStatusOptions.map((status) => (
-                                            <option key={status} value={status}>
-                                                {status}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </AdminFormField>
-
-                                <AdminFormField id={priceFieldId} label="Starting price">
-                                    <input
-                                        id={priceFieldId}
-                                        value={values.estimatedStartingPrice}
-                                        disabled={submitting}
-                                        onChange={(event) =>
-                                            setValues((current) => ({
-                                                ...current,
-                                                estimatedStartingPrice: event.target.value,
-                                            }))
-                                        }
-                                        className={adminFieldClass}
-                                    />
-                                </AdminFormField>
-                            </>
-                        )}
+                        <AdminFormField id={difficultyFieldId} label="Difficulty" required>
+                            <select
+                                id={difficultyFieldId}
+                                value={difficulty}
+                                disabled={submitting}
+                                onChange={(event) =>
+                                    setDifficulty(
+                                        event.target.value as TourFormValues['difficulty'],
+                                    )
+                                }
+                                className={adminFieldClass}
+                            >
+                                {difficultyOptions.length === 0 ? (
+                                    <option value="">Add difficulties in Filter & Placement</option>
+                                ) : null}
+                                {difficultyOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </AdminFormField>
                     </FormGroup>
 
                     <FormDivider />
 
-                    <FormGroup
-                        title="Highlights & inclusions"
-                        columns={isPackage ? 3 : 2}
-                    >
+                    <FormGroup title="Highlights & inclusions" columns={2}>
                         <AdminFormField
                             id={highlightsFieldId}
-                            label={isPackage ? 'Featured perks' : 'Route highlights'}
+                            label="Route highlights"
                             required
                             error={errors.highlightsText}
                         >
                             <textarea
                                 id={highlightsFieldId}
-                                value={values.highlightsText}
+                                value={draft.highlightsText}
+                                dir={direction}
                                 disabled={submitting}
                                 rows={3}
                                 onChange={(event) => {
-                                    setValues((current) => ({
-                                        ...current,
-                                        highlightsText: event.target.value,
-                                    }));
+                                    setField('highlightsText', event.target.value);
                                     setErrors((current) => ({ ...current, highlightsText: undefined }));
                                 }}
                                 aria-invalid={Boolean(errors.highlightsText)}
@@ -683,42 +565,6 @@ export function TourEntityForm({
                             />
                         </AdminFormField>
 
-                        {isPackage ? (
-                            <AdminFormField
-                                id={destinationsFieldId}
-                                label="Key destinations"
-                                required
-                                error={errors.keyDestinationsText}
-                            >
-                                <textarea
-                                    id={destinationsFieldId}
-                                    value={values.keyDestinationsText}
-                                    disabled={submitting}
-                                    rows={3}
-                                    onChange={(event) => {
-                                        setValues((current) => ({
-                                            ...current,
-                                            keyDestinationsText: event.target.value,
-                                        }));
-                                        setErrors((current) => ({
-                                            ...current,
-                                            keyDestinationsText: undefined,
-                                        }));
-                                    }}
-                                    aria-invalid={Boolean(errors.keyDestinationsText)}
-                                    aria-describedby={adminFieldDescribedBy(
-                                        destinationsFieldId,
-                                        errors.keyDestinationsText,
-                                    )}
-                                    className={cn(
-                                        adminFieldClass,
-                                        'resize-y',
-                                        errors.keyDestinationsText && adminFieldErrorClass,
-                                    )}
-                                />
-                            </AdminFormField>
-                        ) : null}
-
                         <AdminFormField
                             id={includedFieldId}
                             label="Included services"
@@ -727,14 +573,12 @@ export function TourEntityForm({
                         >
                             <textarea
                                 id={includedFieldId}
-                                value={values.includedServicesText}
+                                value={draft.includedServicesText}
+                                dir={direction}
                                 disabled={submitting}
                                 rows={3}
                                 onChange={(event) => {
-                                    setValues((current) => ({
-                                        ...current,
-                                        includedServicesText: event.target.value,
-                                    }));
+                                    setField('includedServicesText', event.target.value);
                                     setErrors((current) => ({
                                         ...current,
                                         includedServicesText: undefined,
@@ -762,14 +606,15 @@ export function TourEntityForm({
                                     Detail page
                                 </h3>
                                 <LazyRichTextEditor
-                                    key={`${contentFieldId}-${initialValues?.content?.length ?? 0}`}
+                                    key={activeLocale}
                                     id={contentFieldId}
                                     label="Content"
                                     required
                                     disabled={submitting}
-                                    value={values.content}
+                                    value={draft.content}
+                                    dir={direction}
                                     onChange={(content) => {
-                                        setValues((current) => ({ ...current, content }));
+                                        setField('content', content);
                                         setErrors((current) => ({ ...current, content: undefined }));
                                     }}
                                     placeholder=""

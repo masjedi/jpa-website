@@ -14,10 +14,7 @@ export default function Articles({ articles = [] }: ArticlesPageProps) {
 
     return (
         <>
-            <PageMeta
-                title="Articles"
-                description="Travel notes, cultural guides and practical advice for visiting Afghanistan — from the Journey to Peace team."
-            />
+            <PageMeta />
             <ArticlesLanding articles={articles} />
         </>
     );

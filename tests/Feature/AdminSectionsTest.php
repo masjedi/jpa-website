@@ -21,11 +21,15 @@ class AdminSectionsTest extends TestCase
             'hero-section' => ['/admin/hero-section', 'admin/HeroSection'],
             'tours' => ['/admin/tours', 'admin/Tours'],
             'destinations' => ['/admin/destinations', 'admin/Destinations'],
+            'services' => ['/admin/services', 'admin/Services'],
             'articles' => ['/admin/articles', 'admin/Articles'],
             'gallery' => ['/admin/gallery', 'admin/Gallery'],
             'faq' => ['/admin/faq', 'admin/Faq'],
+            'teams' => ['/admin/teams', 'admin/Teams'],
             'subscriptions' => ['/admin/subscriptions', 'admin/Subscriptions'],
             'inquiries' => ['/admin/inquiries', 'admin/Inquiries'],
+            'bookings' => ['/admin/bookings', 'admin/Bookings'],
+            'emergency-contacts' => ['/admin/emergency-contacts', 'admin/EmergencyContacts'],
             'invoices' => ['/admin/invoices', 'admin/Invoices'],
             'settings' => ['/admin/settings', 'admin/Settings'],
         ];
@@ -43,7 +47,7 @@ class AdminSectionsTest extends TestCase
     }
 
     #[DataProvider('adminSectionProvider')]
-    public function test_guest_cannot_access_sections(string $path): void
+    public function test_guest_cannot_access_sections(string $path, string $component): void
     {
         $this->get($path)->assertRedirect(route('admin.login'));
     }

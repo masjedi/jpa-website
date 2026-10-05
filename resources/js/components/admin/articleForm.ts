@@ -1,14 +1,24 @@
 import { stripHtml } from '@/lib/richText';
-import type { ArticleCategory, ArticleDetail, ArticleSection } from '@/types/articles';
+import {
+    appendTranslatedStringToFormData,
+    createEmptyTranslatedString,
+    normalizeTranslatedString,
+} from '@/lib/translations';
+import { buildTranslatableFieldMap, mapTranslatableServerErrors, validateEnglishRequired } from '@/lib/translatableForm';
+import type { AdminArticleListItem, ArticleCategory, ArticleSection } from '@/types/articles';
+import type { TranslatedString } from '@/types/locale';
 
 export type ArticleFormStatus = 'Published' | 'Draft';
 
 export interface ArticleFormValues {
-    title: string;
-    summary: string;
+    title: TranslatedString;
+    summary: TranslatedString;
     category: ArticleCategory;
     image: string;
-    content: string;
+    content: TranslatedString;
+    teamMemberId: number | '';
+    authorName: string;
+    authorRole: string;
     isFeatured: boolean;
     status: ArticleFormStatus;
 }
@@ -22,22 +32,30 @@ export const articleCategoryOptions: readonly ArticleCategory[] = [
     'Photography',
 ] as const;
 
-export const defaultArticleAuthor = {
-    name: 'Sara Ahmad',
-    role: 'Lead travel editor',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
-} as const;
+export function createEmptyArticleFormValues(
+    teamMembers: readonly ArticleTeamMemberOption[] = [],
+    defaultAuthorName = '',
+): ArticleFormValues {
+    const firstMember = teamMembers[0];
 
-export function createEmptyArticleFormValues(): ArticleFormValues {
     return {
-        title: '',
-        summary: '',
+        title: createEmptyTranslatedString(),
+        summary: createEmptyTranslatedString(),
         category: 'Travel tips',
         image: '',
-        content: '',
+        content: createEmptyTranslatedString(),
+        teamMemberId: firstMember?.id ?? '',
+        authorName: firstMember?.name ?? defaultAuthorName,
+        authorRole: firstMember?.role ?? '',
         isFeatured: false,
         status: 'Draft',
     };
+}
+
+export interface ArticleTeamMemberOption {
+    id: number;
+    name: string;
+    role: string;
 }
 
 export function slugifyArticleTitle(value: string): string {
@@ -69,12 +87,14 @@ export function sectionsToHtml(sections: readonly ArticleSection[]): string {
         .join('');
 }
 
-export function resolveArticleContent(article: ArticleDetail): string {
-    if (article.content?.trim()) {
-        return article.content;
+export function resolveArticleContent(article: { content?: TranslatedString | string; sections?: readonly ArticleSection[] }): string {
+    const content = normalizeTranslatedString(article.content as TranslatedString | string | undefined);
+
+    if (content.en.trim()) {
+        return content.en;
     }
 
-    if (article.sections.length > 0) {
+    if (article.sections && article.sections.length > 0) {
         return sectionsToHtml(article.sections);
     }
 
@@ -82,15 +102,18 @@ export function resolveArticleContent(article: ArticleDetail): string {
 }
 
 export function articleToFormValues(
-    article: ArticleDetail & { isFeatured?: boolean },
-    status: ArticleFormStatus,
+    article: AdminArticleListItem,
+    status: ArticleFormStatus = article.status,
 ): ArticleFormValues {
     return {
-        title: article.title,
-        summary: article.summary,
+        title: normalizeTranslatedString(article.title),
+        summary: normalizeTranslatedString(article.summary),
         category: article.category,
         image: article.image,
-        content: resolveArticleContent(article),
+        content: normalizeTranslatedString(article.content),
+        teamMemberId: article.teamMemberId ?? '',
+        authorName: article.author.name,
+        authorRole: article.author.role,
         isFeatured: article.isFeatured ?? false,
         status,
     };
@@ -110,7 +133,14 @@ export function formatArticleDate(date: Date = new Date()): string {
     });
 }
 
-export type ArticleFormField = 'title' | 'summary' | 'image' | 'content';
+export type ArticleFormField =
+    | 'title'
+    | 'summary'
+    | 'image'
+    | 'content'
+    | 'teamMemberId'
+    | 'authorName'
+    | 'authorRole';
 
 export type ArticleFormErrors = Partial<Record<ArticleFormField, string>>;
 
@@ -119,29 +149,18 @@ export interface ArticleFormSubmitPayload {
     coverImage: File | null;
 }
 
-const serverFieldMap: Record<string, ArticleFormField> = {
-    title: 'title',
-    summary: 'summary',
+const serverFieldMap = {
+    ...buildTranslatableFieldMap('', ['title', 'summary', 'content']),
     cover_image: 'image',
-    content: 'content',
+    team_member_id: 'teamMemberId',
+    author_name: 'authorName',
+    author_role: 'authorRole',
 };
 
 export function mapServerArticleFormErrors(
     errors: Record<string, string | string[] | undefined>,
 ): ArticleFormErrors {
-    const mapped: ArticleFormErrors = {};
-
-    for (const [key, message] of Object.entries(errors)) {
-        const field = serverFieldMap[key];
-
-        if (!field || message === undefined) {
-            continue;
-        }
-
-        mapped[field] = Array.isArray(message) ? message[0] : message;
-    }
-
-    return mapped;
+    return mapTranslatableServerErrors(errors, serverFieldMap);
 }
 
 export function buildArticleFormData({
@@ -150,10 +169,13 @@ export function buildArticleFormData({
 }: ArticleFormSubmitPayload): FormData {
     const formData = new FormData();
 
-    formData.append('title', values.title);
-    formData.append('summary', values.summary);
+    appendTranslatedStringToFormData(formData, 'title', values.title);
+    appendTranslatedStringToFormData(formData, 'summary', values.summary);
+    appendTranslatedStringToFormData(formData, 'content', values.content);
     formData.append('category', values.category);
-    formData.append('content', values.content);
+    formData.append('team_member_id', values.teamMemberId === '' ? '' : String(values.teamMemberId));
+    formData.append('author_name', values.authorName.trim());
+    formData.append('author_role', values.authorRole.trim());
     formData.append('is_featured', values.isFeatured ? '1' : '0');
     formData.append('status', values.status);
 
@@ -174,20 +196,26 @@ export function validateArticleFormValues(
 ): ArticleFormErrors {
     const errors: ArticleFormErrors = {};
 
-    if (!values.title.trim()) {
-        errors.title = 'Required';
+    const titleError = validateEnglishRequired(values.title, 'Title');
+    if (titleError) {
+        errors.title = titleError;
     }
 
-    if (!values.summary.trim()) {
-        errors.summary = 'Required';
+    const summaryError = validateEnglishRequired(values.summary, 'Summary');
+    if (summaryError) {
+        errors.summary = summaryError;
     }
 
     if (!hasImage) {
         errors.image = 'Required';
     }
 
-    if (isArticleContentEmpty(values.content)) {
-        errors.content = 'Required';
+    if (isArticleContentEmpty(values.content.en)) {
+        errors.content = 'English content is required';
+    }
+
+    if (values.authorName.trim().length < 2) {
+        errors.authorName = 'Enter the author name';
     }
 
     return errors;

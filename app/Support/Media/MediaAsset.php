@@ -51,6 +51,22 @@ final class MediaAsset implements Arrayable
     }
 
     /**
+     * Prefer hero variants for full-bleed homepage backgrounds.
+     */
+    public function heroUrl(): ?string
+    {
+        foreach (['hero_ultra', 'hero', 'hero_md', 'detail', 'display'] as $variant) {
+            $url = $this->url($variant);
+
+            if ($url !== null) {
+                return $url;
+            }
+        }
+
+        return $this->cardUrl();
+    }
+
+    /**
      * Prefer card/list variants for compact surfaces.
      */
     public function cardUrl(): ?string

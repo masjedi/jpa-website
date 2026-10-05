@@ -28,12 +28,11 @@ export function InvoiceFormDialog({
     const dialogTitle = mode === 'edit' ? 'Edit invoice' : 'New invoice';
     const dialogDescription =
         mode === 'edit'
-            ? 'Update client details, services and totals. The invoice number stays unchanged.'
-            : 'Prepare a professional quotation or invoice with branded letterhead and rich-text services.';
+            ? 'Update client, services, and totals. The invoice number stays unchanged.'
+            : 'Prepare a quotation or invoice. This does not collect online payment.';
 
     const handleSubmit = async (values: InvoiceFormValues) => {
         await onSubmit(values);
-        onClose();
     };
 
     return (
@@ -42,7 +41,7 @@ export function InvoiceFormDialog({
             title={dialogTitle}
             description={dialogDescription}
             onClose={onClose}
-            size="xl"
+            size="lg"
         >
             {open ? (
                 <InvoiceEntityForm

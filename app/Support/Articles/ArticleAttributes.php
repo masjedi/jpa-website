@@ -4,34 +4,45 @@ namespace App\Support\Articles;
 
 use App\Enums\ArticleStatus;
 use App\Models\Article;
+use App\Models\TeamMember;
+use App\Support\Team\TeamMemberPresenter;
+use App\Support\Translatable;
 
 final class ArticleAttributes
 {
-    private const DEFAULT_AUTHOR_NAME = 'Sara Ahmad';
-
-    private const DEFAULT_AUTHOR_ROLE = 'Lead travel editor';
-
-    private const DEFAULT_AUTHOR_AVATAR = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80';
-
     /**
      * @param  array<string, mixed>  $validated
      * @return array<string, mixed>
      */
     public static function fromValidated(array $validated, ?Article $existing = null): array
     {
-        $content = (string) $validated['content'];
+        $content = Translatable::sanitize($validated['content']);
         $status = ArticleStatus::fromFrontend((string) $validated['status']);
+        $teamMember = filled($validated['team_member_id'] ?? null)
+            ? TeamMember::query()->find((int) $validated['team_member_id'])
+            : null;
+
+        $authorName = trim((string) ($validated['author_name'] ?? ''));
+        $authorRole = trim((string) ($validated['author_role'] ?? ''));
+
+        if ($teamMember !== null) {
+            $authorName = $authorName !== '' ? $authorName : Translatable::resolve($teamMember->name);
+            $authorRole = $authorRole !== '' ? $authorRole : Translatable::resolve($teamMember->role);
+        }
 
         $attributes = [
             'status' => $status,
-            'title' => (string) $validated['title'],
-            'summary' => (string) $validated['summary'],
+            'title' => Translatable::sanitize($validated['title']),
+            'summary' => Translatable::sanitize($validated['summary']),
             'category' => (string) $validated['category'],
             'content' => $content,
-            'reading_time_minutes' => ArticleText::readingTimeMinutes($content),
-            'author_name' => self::DEFAULT_AUTHOR_NAME,
-            'author_role' => self::DEFAULT_AUTHOR_ROLE,
-            'author_avatar' => self::DEFAULT_AUTHOR_AVATAR,
+            'reading_time_minutes' => ArticleText::readingTimeMinutes(Translatable::resolve($content)),
+            'team_member_id' => $teamMember?->id,
+            'author_name' => $authorName,
+            'author_role' => $authorRole,
+            'author_avatar' => $teamMember !== null
+                ? TeamMemberPresenter::avatarUrl($teamMember)
+                : ($existing?->author_avatar),
             'is_featured' => (bool) ($validated['is_featured'] ?? false),
             'related_tour_slugs' => $existing?->related_tour_slugs ?? [],
         ];

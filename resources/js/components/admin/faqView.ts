@@ -1,10 +1,14 @@
 import type { ContentRecordViewModel } from '@/components/admin/contentRecordViewModel';
+import { primaryTranslation } from '@/lib/translations';
 import type { FaqItem } from '@/types/faq';
 
 export function buildFaqViewModel(item: FaqItem): ContentRecordViewModel {
+    const question = primaryTranslation(item.question);
+    const answer = primaryTranslation(item.answer);
+
     return {
-        title: item.question,
-        subtitle: item.answer,
+        title: question,
+        subtitle: answer,
         status: item.status,
         showCardPreview: false,
         showContentSection: false,

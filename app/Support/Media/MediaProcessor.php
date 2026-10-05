@@ -15,6 +15,8 @@ class MediaProcessor
      */
     public function store(UploadedFile $file, string $profileKey): MediaAsset
     {
+        $this->extendExecutionTimeForImageProcessing();
+
         $profile = MediaProfile::fromConfig($profileKey);
 
         $this->assertSafeUpload($file, $profile);
@@ -210,6 +212,13 @@ class MediaProcessor
         foreach ($profile->variants as $name => $variant) {
             $width = (int) $variant['width'];
             $height = (int) $variant['height'];
+            $scale = max($width / $sourceWidth, $height / $sourceHeight);
+
+            // Never upscale — skip variants larger than the source (saves CPU on shared hosts).
+            if ($scale > 1) {
+                continue;
+            }
+
             $processed = $profile->fit === 'contain'
                 ? $this->containFit($source, $width, $height)
                 : $this->coverCrop($source, $width, $height);
@@ -226,6 +235,17 @@ class MediaProcessor
                 'height' => $height,
                 'format' => $format,
             ];
+        }
+
+        if ($variants === []) {
+            $variants[$this->fallbackVariantName($profile)] = $this->storeSourceSizedVariant(
+                $source,
+                $profile,
+                $directory,
+                $format,
+                $sourceWidth,
+                $sourceHeight,
+            );
         }
 
         if ($profile->retainOriginal) {
@@ -446,5 +466,45 @@ class MediaProcessor
         }
 
         return $binary;
+    }
+
+    private function fallbackVariantName(MediaProfile $profile): string
+    {
+        $names = array_keys($profile->variants);
+
+        return $names[0] ?? 'default';
+    }
+
+    /**
+     * @param  \GdImage  $source
+     * @return array{path: string, width: int, height: int, format: string}
+     */
+    private function storeSourceSizedVariant(
+        $source,
+        MediaProfile $profile,
+        string $directory,
+        string $format,
+        int $sourceWidth,
+        int $sourceHeight,
+    ): array {
+        $name = $this->fallbackVariantName($profile);
+        $binary = $this->encode($source, $format, $profile->quality);
+        $path = $directory.'/'.$name.'.'.$this->extensionForFormat($format);
+
+        Storage::disk($profile->disk)->put($path, $binary);
+
+        return [
+            'path' => $path,
+            'width' => $sourceWidth,
+            'height' => $sourceHeight,
+            'format' => $format,
+        ];
+    }
+
+    private function extendExecutionTimeForImageProcessing(): void
+    {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(120);
+        }
     }
 }

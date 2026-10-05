@@ -1,10 +1,11 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 
 import { DataTableDialog } from '@/components/admin/DataTableDialog';
 import { HeroSlideEntityForm } from '@/components/admin/HeroSlideEntityForm';
 import {
     createEmptyHeroSlideFormValues,
     type HeroSlideFormValues,
+    type HeroSlideSubmitPayload,
 } from '@/components/admin/heroSlideForm';
 
 interface HeroSlideFormDialogProps {
@@ -13,7 +14,7 @@ interface HeroSlideFormDialogProps {
     resetKey: string;
     initialValues?: HeroSlideFormValues;
     onClose: () => void;
-    onSubmit: (values: HeroSlideFormValues) => void | Promise<void>;
+    onSubmit: (payload: HeroSlideSubmitPayload) => void | Promise<void>;
 }
 
 export function HeroSlideFormDialog({
@@ -25,15 +26,21 @@ export function HeroSlideFormDialog({
     onSubmit,
 }: HeroSlideFormDialogProps) {
     const formId = useId();
+    const [submitting, setSubmitting] = useState(false);
     const dialogTitle = mode === 'edit' ? 'Edit hero slide' : 'New hero slide';
     const dialogDescription =
         mode === 'edit'
-            ? 'Update the headline and subtitle shown in the homepage hero carousel.'
-            : 'Add a new rotating message to the homepage hero carousel.';
+            ? 'Update the headline, subtitle, and full-screen background image shown in the homepage hero carousel.'
+            : 'Add a new rotating hero slide with a full-screen background image, headline, and subtitle.';
 
-    const handleSubmit = async (values: HeroSlideFormValues) => {
-        await onSubmit(values);
-        onClose();
+    const handleSubmit = async (payload: HeroSlideSubmitPayload) => {
+        setSubmitting(true);
+
+        try {
+            await onSubmit(payload);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -42,7 +49,9 @@ export function HeroSlideFormDialog({
             title={dialogTitle}
             description={dialogDescription}
             onClose={onClose}
-            size="md"
+            size="lg"
+            preventDismiss={submitting}
+            loadingMessage="Saving hero slide. The image is uploading and being processed — please keep this window open."
         >
             {open ? (
                 <HeroSlideEntityForm
@@ -52,6 +61,7 @@ export function HeroSlideFormDialog({
                     initialValues={initialValues ?? createEmptyHeroSlideFormValues()}
                     onCancel={onClose}
                     onSubmit={handleSubmit}
+                    onSubmittingChange={setSubmitting}
                 />
             ) : null}
         </DataTableDialog>

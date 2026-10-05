@@ -3,6 +3,7 @@
 namespace App\Support\Faq;
 
 use App\Models\FaqItem;
+use App\Support\Translatable;
 
 class FaqItemPresenter
 {
@@ -42,8 +43,8 @@ class FaqItemPresenter
     {
         return [
             'id' => $item->id,
-            'question' => (string) $item->question,
-            'answer' => (string) $item->answer,
+            'question' => Translatable::normalize($item->question),
+            'answer' => Translatable::normalize($item->answer),
             'order' => (int) $item->sort_order,
             'status' => $item->status->frontendLabel(),
             'updated' => $item->updated_at?->timezone(config('app.timezone'))->diffForHumans() ?? '',
@@ -57,8 +58,8 @@ class FaqItemPresenter
     {
         return [
             'id' => $item->id,
-            'question' => (string) $item->question,
-            'answer' => (string) $item->answer,
+            'question' => Translatable::resolve($item->question),
+            'answer' => Translatable::resolve($item->answer),
         ];
     }
 }

@@ -50,9 +50,20 @@
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
         ],
+        "lint": [
+            "@php vendor/bin/pint --test"
+        ],
+        "check": [
+            "@lint",
+            "@test"
+        ],
+        "hooks": [
+            "@php -r \"if (is_dir('.git')) { passthru('git config core.hooksPath .githooks'); }\""
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
+            "@php artisan package:discover --ansi",
+            "@hooks"
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"

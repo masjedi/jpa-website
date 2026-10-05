@@ -47,6 +47,8 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'locale' => $locale,
             'direction' => Locale::direction($locale),
+            'locales' => Locale::supported(),
+            'translations' => fn () => Locale::publicTranslations($locale),
             'appName' => Brand::appName(),
             'appUrl' => rtrim((string) config('app.url'), '/'),
             'siteSettings' => fn () => SiteSettingsPresenter::forShared(),
@@ -59,6 +61,8 @@ class HandleInertiaRequests extends Middleware
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+                'customBookingSuccess' => fn () => $request->session()->pull('customBookingSuccess'),
             ],
             'adminFeed' => fn () => $user !== null && $request->is('admin', 'admin/*')
                 ? AdminFeedPresenter::forNavbar()

@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Enums\GalleryPhotoStatus;
 use App\Models\GalleryPhoto;
 use App\Models\User;
+use App\Support\Translatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -37,7 +38,7 @@ class GalleryTest extends TestCase
                 ->component('admin/Gallery')
                 ->has('photos', 1)
                 ->where('photos.0.id', $photo->id)
-                ->where('photos.0.caption', 'Band-e Amir'));
+                ->where('photos.0.caption.en', 'Band-e Amir'));
     }
 
     public function test_authenticated_admin_can_bulk_upload_update_and_delete_gallery_photos(): void
@@ -58,32 +59,25 @@ class GalleryTest extends TestCase
 
         $photo = GalleryPhoto::query()->orderBy('id')->firstOrFail();
 
-        $this->assertDatabaseHas('gallery_photos', [
-            'id' => $photo->id,
-            'status' => GalleryPhotoStatus::Draft->value,
-            'sort_order' => 1,
-        ]);
-
+        $this->assertSame(GalleryPhotoStatus::Draft, $photo->status);
+        $this->assertSame(1, $photo->sort_order);
         $this->assertNotNull($photo->image_media);
 
-        $payload = [
-            'alt' => 'Updated alt text',
-            'caption' => 'Updated caption',
-            'status' => 'Published',
-            'sort_order' => 5,
-        ];
-
         $this->actingAs($user)
-            ->patch("/admin/gallery/{$photo->id}", $payload)
+            ->patch("/admin/gallery/{$photo->id}", [
+                'alt' => $this->translation('Updated alt text'),
+                'caption' => $this->translation('Updated caption'),
+                'status' => 'Published',
+                'sort_order' => 5,
+            ])
             ->assertRedirect(route('admin.gallery.index'));
 
-        $this->assertDatabaseHas('gallery_photos', [
-            'id' => $photo->id,
-            'alt' => 'Updated alt text',
-            'caption' => 'Updated caption',
-            'status' => GalleryPhotoStatus::Published->value,
-            'sort_order' => 5,
-        ]);
+        $photo->refresh();
+
+        $this->assertSame('Updated alt text', Translatable::resolve($photo->alt));
+        $this->assertSame('Updated caption', Translatable::resolve($photo->caption));
+        $this->assertSame(GalleryPhotoStatus::Published, $photo->status);
+        $this->assertSame(5, $photo->sort_order);
 
         $this->actingAs($user)
             ->delete("/admin/gallery/{$photo->id}")
@@ -106,8 +100,8 @@ class GalleryTest extends TestCase
         ])->assertRedirect(route('admin.login'));
 
         $this->patch("/admin/gallery/{$photo->id}", [
-            'alt' => 'Alt',
-            'caption' => 'Caption',
+            'alt' => $this->translation('Alt'),
+            'caption' => $this->translation('Caption'),
             'status' => 'Draft',
         ])->assertRedirect(route('admin.login'));
 
@@ -131,15 +125,15 @@ class GalleryTest extends TestCase
 
         $this->actingAs($user)
             ->patch("/admin/gallery/{$photo->id}", [
-                'alt' => 'Updated alt',
-                'caption' => 'Updated caption',
+                'alt' => $this->translation('Updated alt'),
+                'caption' => $this->translation('Updated caption'),
                 'status' => 'Draft',
             ])
             ->assertRedirect(route('admin.gallery.index'));
 
         $photo->refresh();
 
-        $this->assertSame('Updated alt', $photo->alt);
+        $this->assertSame('Updated alt', Translatable::resolve($photo->alt));
         $this->assertSame($originalMedia, $photo->image_media);
     }
 
@@ -158,8 +152,8 @@ class GalleryTest extends TestCase
     {
         return GalleryPhoto::query()->create([
             'status' => GalleryPhotoStatus::Published,
-            'alt' => 'Band-e Amir lakes at sunset, Bamiyan',
-            'caption' => 'Band-e Amir',
+            'alt' => Translatable::normalize('Band-e Amir lakes at sunset, Bamiyan'),
+            'caption' => Translatable::normalize('Band-e Amir'),
             'sort_order' => 1,
             'image_media' => null,
         ]);

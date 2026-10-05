@@ -1,4 +1,4 @@
-import { X } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { useEffect, useId, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -10,12 +10,15 @@ interface DataTableDialogProps {
     description?: string;
     children: ReactNode;
     onClose: () => void;
-    size?: 'sm' | 'md' | 'xl';
+    size?: 'sm' | 'md' | 'lg' | 'xl';
+    preventDismiss?: boolean;
+    loadingMessage?: string;
 }
 
 const dialogSizes = {
     sm: 'max-w-sm',
     md: 'max-w-lg',
+    lg: 'max-w-2xl',
     xl: 'max-w-[min(96vw,90rem)]',
 } as const;
 
@@ -26,6 +29,8 @@ export function DataTableDialog({
     children,
     onClose,
     size = 'md',
+    preventDismiss = false,
+    loadingMessage,
 }: DataTableDialogProps) {
     const titleId = useId();
     const descriptionId = useId();
@@ -36,7 +41,7 @@ export function DataTableDialog({
         }
 
         const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
+            if (event.key === 'Escape' && !preventDismiss) {
                 onClose();
             }
         };
@@ -49,7 +54,7 @@ export function DataTableDialog({
             document.body.style.overflow = previousOverflow;
             document.removeEventListener('keydown', handleEscape);
         };
-    }, [onClose, open]);
+    }, [onClose, open, preventDismiss]);
 
     if (!open || typeof document === 'undefined') {
         return null;
@@ -61,7 +66,8 @@ export function DataTableDialog({
                 type="button"
                 aria-label="Close dialog"
                 className="absolute inset-0 bg-brand-deep/65 backdrop-blur-[2px]"
-                onClick={onClose}
+                onClick={preventDismiss ? undefined : onClose}
+                disabled={preventDismiss}
             />
             <section
                 role="dialog"
@@ -90,13 +96,29 @@ export function DataTableDialog({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                        disabled={preventDismiss}
+                        className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50"
                         aria-label="Close"
                     >
                         <X className="size-4" aria-hidden />
                     </button>
                 </header>
-                <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+                <div className="relative min-h-0 flex-1 overflow-y-auto">
+                    {children}
+                    {preventDismiss ? (
+                        <div
+                            className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-surface/92 px-6 text-center backdrop-blur-[1px]"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            <Loader2 className="size-8 animate-spin text-secondary" aria-hidden />
+                            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
+                                {loadingMessage ??
+                                    'Saving changes. Large hero images can take up to a minute on shared hosting.'}
+                            </p>
+                        </div>
+                    ) : null}
+                </div>
             </section>
         </div>,
         document.body,

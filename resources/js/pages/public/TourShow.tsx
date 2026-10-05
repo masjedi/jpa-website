@@ -14,7 +14,7 @@ export default function TourShow({ offer }: TourShowProps) {
 
     return (
         <>
-            <PageMeta title={offer.title} description={offer.tagline} image={offer.image} />
+            <PageMeta />
             <OfferDetailLanding offer={offer} />
         </>
     );

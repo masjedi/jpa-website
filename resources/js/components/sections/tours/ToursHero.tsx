@@ -2,12 +2,12 @@ import { Link } from '@inertiajs/react';
 import { ChevronRight, Compass } from 'lucide-react';
 
 import { FadeInOnMount } from '@/components/motion/FadeIn';
+import { openCustomTourRequest } from '@/components/public/CustomTourRequestHost';
+import { useTranslations } from '@/hooks/use-translations';
 
-interface ToursHeroProps {
-    onOpenCustomInquiry: () => void;
-}
+export function ToursHero() {
+    const { t } = useTranslations();
 
-export function ToursHero({ onOpenCustomInquiry }: ToursHeroProps) {
     return (
         <section className="relative overflow-hidden bg-brand-surface text-brand-on-surface">
             <div
@@ -18,32 +18,31 @@ export function ToursHero({ onOpenCustomInquiry }: ToursHeroProps) {
             <div className="relative z-10 mx-auto max-w-3xl px-4 pb-14 pt-32 text-center sm:px-6 lg:pb-16 lg:pt-36">
                 <FadeInOnMount>
                 <nav
-                    aria-label="Breadcrumb"
+                    aria-label={t('common.breadcrumb')}
                     className="flex items-center justify-center gap-2 text-xs font-medium text-brand-on-surface/65"
                 >
                     <Link
                         href="/"
                         className="transition-colors hover:text-brand-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                     >
-                        Home
+                        {t('common.home')}
                     </Link>
-                    <ChevronRight className="size-3.5 opacity-50" aria-hidden />
+                    <ChevronRight className="size-3.5 opacity-50 rtl:rotate-180" aria-hidden />
                     <span className="text-brand-on-surface" aria-current="page">
-                        Tours & Packages
+                        {t('nav.toursAndPackages')}
                     </span>
                 </nav>
 
                 <p className="mt-6 text-xs font-semibold uppercase tracking-[0.16em] text-brand-on-surface/60">
-                    Guided journeys in Afghanistan
+                    {t('toursPage.hero.eyebrow')}
                 </p>
 
                 <h1 className="font-heading mt-4 text-3xl font-semibold tracking-tight text-brand-on-surface sm:text-4xl lg:text-5xl">
-                    Tours & packages
+                    {t('toursPage.hero.title')}
                 </h1>
 
                 <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-brand-on-surface/75">
-                    Curated itineraries and flexible packages — planned with
-                    local guides, clear permits, and honest advice.
+                    {t('toursPage.hero.description')}
                 </p>
 
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -51,21 +50,21 @@ export function ToursHero({ onOpenCustomInquiry }: ToursHeroProps) {
                         href="#packages"
                         className="inline-flex items-center justify-center rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                     >
-                        View packages
+                        {t('buttons.viewPackages')}
                     </a>
                     <a
                         href="#tour-catalog"
                         className="inline-flex items-center justify-center rounded-full border border-brand-on-surface/25 px-6 py-2.5 text-sm font-medium text-brand-on-surface transition-colors hover:bg-brand-on-surface/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                     >
-                        Browse tours
+                        {t('buttons.browseTours')}
                     </a>
                     <button
                         type="button"
-                        onClick={onOpenCustomInquiry}
+                        onClick={() => openCustomTourRequest()}
                         className="inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium text-brand-on-surface/80 transition-colors hover:text-brand-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                     >
                         <Compass className="size-4 text-accent" aria-hidden />
-                        <span>Custom trip</span>
+                        <span>{t('buttons.customTrip')}</span>
                     </button>
                 </div>
                 </FadeInOnMount>

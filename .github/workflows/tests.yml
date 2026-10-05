@@ -2,9 +2,6 @@ name: Tests
 
 on:
   push:
-    branches:
-      - main
-      - "*.x"
   pull_request:
   schedule:
     - cron: "0 0 * * *"
@@ -13,13 +10,13 @@ permissions:
   contents: read
 
 jobs:
-  tests:
+  php:
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: true
       matrix:
-        php: [8.3, 8.4, 8.5]
+        php: [8.4, 8.5]
 
     name: PHP ${{ matrix.php }}
 
@@ -57,5 +54,45 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
+      - name: Check PHP formatting
+        run: php vendor/bin/pint --test
+
+      - name: Audit Composer dependencies
+        run: composer audit
+
+      - name: Application sanity
+        run: |
+          php artisan about
+          php artisan route:list
+          php artisan config:cache
+          php artisan config:clear
+
+      - name: Validate migrations
+        run: |
+          php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');"
+          php artisan migrate --force --no-interaction
+
       - name: Execute tests
         run: php artisan test
+
+  frontend:
+    runs-on: ubuntu-latest
+    name: Frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Production build
+        run: npm run build

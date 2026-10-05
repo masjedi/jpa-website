@@ -1,40 +1,51 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { useTranslations } from '@/hooks/use-translations';
 import { cn } from '@/lib/utils';
-
-export interface Testimonial {
-    name: string;
-    journey: string;
-    text: string;
-    rating: number;
-}
+import type { PublicTestimonial } from '@/types/testimonials';
 
 interface TestimonialsCarouselProps {
-    items: readonly Testimonial[];
+    items: readonly PublicTestimonial[];
 }
 
-const AUTO_ADVANCE_MS = 5500;
+const AUTO_ADVANCE_MS = 6000;
 
-function StarRating({ rating }: { rating: number }) {
+function TestimonialAvatar({ name, image }: { name: string; image: string }) {
+    const initials = name
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? '')
+        .join('');
+
     return (
-        <div className="flex justify-center gap-1" aria-label={`${rating} out of 5 stars`}>
-            {Array.from({ length: 5 }, (_, index) => (
-                <Star
-                    key={index}
-                    className={cn(
-                        'size-4',
-                        index < rating ? 'fill-accent text-accent' : 'text-border',
-                    )}
-                    aria-hidden
+        <div className="mx-auto size-28 rounded-full border-4 border-accent p-1 sm:size-32">
+            {image ? (
+                <img
+                    src={image}
+                    alt=""
+                    width={128}
+                    height={128}
+                    className="size-full rounded-full object-cover object-center"
+                    loading="lazy"
+                    decoding="async"
                 />
-            ))}
+            ) : (
+                <div
+                    aria-hidden
+                    className="flex size-full items-center justify-center rounded-full bg-surface-muted font-heading text-lg font-semibold text-muted-foreground"
+                >
+                    {initials || '?'}
+                </div>
+            )}
         </div>
     );
 }
 
 export function TestimonialsCarousel({ items }: TestimonialsCarouselProps) {
+    const { t } = useTranslations();
     const reducedMotion = useReducedMotion();
     const [activeIndex, setActiveIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
@@ -42,19 +53,24 @@ export function TestimonialsCarousel({ items }: TestimonialsCarouselProps) {
 
     const total = items.length;
 
-    const goTo = useCallback((index: number, slideDirection?: number) => {
-        if (total === 0) {
-            return;
-        }
+    const goTo = useCallback(
+        (index: number, slideDirection?: number) => {
+            if (total === 0) {
+                return;
+            }
 
-        const nextIndex = ((index % total) + total) % total;
-        if (slideDirection !== undefined) {
-            setDirection(slideDirection);
-        } else {
-            setDirection(nextIndex >= activeIndex ? 1 : -1);
-        }
-        setActiveIndex(nextIndex);
-    }, [activeIndex, total]);
+            const nextIndex = ((index % total) + total) % total;
+
+            if (slideDirection !== undefined) {
+                setDirection(slideDirection);
+            } else {
+                setDirection(nextIndex >= activeIndex ? 1 : -1);
+            }
+
+            setActiveIndex(nextIndex);
+        },
+        [activeIndex, total],
+    );
 
     const goNext = useCallback(() => {
         if (total === 0) {
@@ -89,13 +105,13 @@ export function TestimonialsCarousel({ items }: TestimonialsCarouselProps) {
     }
 
     const activeItem = items[activeIndex];
-    const slideOffset = reducedMotion ? 0 : 48;
+    const slideOffset = reducedMotion ? 0 : 32;
 
     return (
         <div
-            className="relative mt-12"
+            className="relative mt-10 sm:mt-12"
             aria-roledescription="carousel"
-            aria-label="Traveller testimonials"
+            aria-label={t('home.testimonials.title')}
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
             onFocusCapture={() => setIsPaused(true)}
@@ -105,124 +121,94 @@ export function TestimonialsCarousel({ items }: TestimonialsCarouselProps) {
                 }
             }}
         >
-            <div
-                aria-hidden
-                className="pointer-events-none absolute inset-x-8 top-8 text-[7rem] font-serif leading-none text-secondary/10 sm:text-[9rem]"
-            >
-                “
-            </div>
+            <div className="relative mx-auto max-w-3xl px-12 sm:px-16">
+                {total > 1 ? (
+                    <>
+                        <button
+                            type="button"
+                            onClick={goPrev}
+                            aria-label="Previous testimonial"
+                            className="absolute start-0 top-[4.5rem] z-10 inline-flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-sm transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:top-[5rem] sm:size-11"
+                        >
+                            <ChevronLeft className="size-5 rtl:rotate-180" aria-hidden />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={goNext}
+                            aria-label="Next testimonial"
+                            className="absolute end-0 top-[4.5rem] z-10 inline-flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-sm transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:top-[5rem] sm:size-11"
+                        >
+                            <ChevronRight className="size-5 rtl:rotate-180" aria-hidden />
+                        </button>
+                    </>
+                ) : null}
 
-            <div className="relative mx-auto max-w-3xl px-2 text-center sm:px-6">
-                <div className="grid min-h-[14rem] place-items-center sm:min-h-[15rem]">
+                <div className="grid min-h-[18rem] place-items-center sm:min-h-[19rem]">
                     <AnimatePresence mode="wait" custom={direction} initial={false}>
                         <motion.figure
-                            key={activeItem.name}
+                            key={activeItem.id}
                             custom={direction}
                             initial={
                                 reducedMotion
                                     ? false
-                                    : { opacity: 0, x: direction * slideOffset }
+                                    : { opacity: 0, y: direction * slideOffset }
                             }
-                            animate={{ opacity: 1, x: 0 }}
+                            animate={{ opacity: 1, y: 0 }}
                             exit={
                                 reducedMotion
                                     ? undefined
-                                    : { opacity: 0, x: direction * -slideOffset }
+                                    : { opacity: 0, y: direction * -slideOffset }
                             }
-                            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                            className="w-full"
+                            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                            className="w-full text-center"
                         >
-                            <blockquote className="font-heading text-xl font-medium leading-relaxed text-foreground sm:text-2xl lg:text-[1.75rem] lg:leading-snug">
+                            <TestimonialAvatar name={activeItem.name} image={activeItem.image} />
+
+                            <blockquote className="mt-8 text-base leading-relaxed text-muted-foreground sm:text-lg">
+                                <span aria-hidden className="text-secondary/70">
+                                    “
+                                </span>
                                 {activeItem.text}
+                                <span aria-hidden className="text-secondary/70">
+                                    ”
+                                </span>
                             </blockquote>
-                            <figcaption className="mt-8">
-                                <div className="mx-auto flex max-w-md items-center justify-center gap-4">
-                                    <span
-                                        aria-hidden
-                                        className="h-px w-10 bg-gradient-to-r from-transparent to-secondary/70"
-                                    />
-                                    <div>
-                                        <p className="font-heading text-sm font-semibold text-foreground">
-                                            {activeItem.name}
-                                        </p>
-                                        <p className="mt-1 text-xs text-secondary sm:text-sm">
-                                            {activeItem.journey}
-                                        </p>
-                                    </div>
-                                    <span
-                                        aria-hidden
-                                        className="h-px w-10 bg-gradient-to-l from-transparent to-secondary/70"
-                                    />
-                                </div>
-                                <div className="mt-4">
-                                    <StarRating rating={activeItem.rating} />
-                                </div>
+
+                            <figcaption className="mt-6">
+                                <p className="font-heading text-xl font-semibold text-foreground sm:text-2xl">
+                                    {activeItem.name}
+                                </p>
+                                {activeItem.journey ? (
+                                    <p className="mt-1 text-sm text-secondary">{activeItem.journey}</p>
+                                ) : null}
                             </figcaption>
                         </motion.figure>
                     </AnimatePresence>
                 </div>
-
-                <div className="mt-8 flex items-center justify-center gap-4">
-                    <button
-                        type="button"
-                        onClick={goPrev}
-                        aria-label="Previous testimonial"
-                        className="inline-flex size-10 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:border-secondary/50 hover:bg-secondary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                    >
-                        <ChevronLeft className="size-5 rtl:rotate-180" aria-hidden />
-                    </button>
-
-                    <div
-                        className="flex items-center gap-2"
-                        aria-label="Choose a testimonial"
-                    >
-                        {items.map((item, index) => (
-                            <button
-                                key={item.name}
-                                type="button"
-                                onClick={() =>
-                                    goTo(index, index > activeIndex ? 1 : -1)
-                                }
-                                aria-label={`Show testimonial ${index + 1} of ${total}`}
-                                aria-current={index === activeIndex ? 'true' : undefined}
-                                className={cn(
-                                    'h-1.5 rounded-full transition-[width,background-color] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
-                                    index === activeIndex
-                                        ? 'w-8 bg-secondary'
-                                        : 'w-2.5 bg-border hover:bg-secondary/40',
-                                )}
-                            />
-                        ))}
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={goNext}
-                        aria-label="Next testimonial"
-                        className="inline-flex size-10 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:border-secondary/50 hover:bg-secondary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                    >
-                        <ChevronRight className="size-5 rtl:rotate-180" aria-hidden />
-                    </button>
-                </div>
-
-                {!reducedMotion && total > 1 && !isPaused ? (
-                    <div
-                        aria-hidden
-                        className="mx-auto mt-6 h-px max-w-xs overflow-hidden rounded-full bg-border/60"
-                    >
-                        <motion.div
-                            key={activeIndex}
-                            className="h-full origin-left bg-gradient-to-r from-secondary to-accent"
-                            initial={{ scaleX: 0 }}
-                            animate={{ scaleX: 1 }}
-                            transition={{
-                                duration: AUTO_ADVANCE_MS / 1000,
-                                ease: 'linear',
-                            }}
-                        />
-                    </div>
-                ) : null}
             </div>
+
+            {total > 1 ? (
+                <div
+                    className="mt-8 flex items-center justify-center gap-2"
+                    aria-label={t('home.testimonials.title')}
+                >
+                    {items.map((item, index) => (
+                        <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => goTo(index, index > activeIndex ? 1 : -1)}
+                            aria-label={`Show testimonial ${index + 1} of ${total}`}
+                            aria-current={index === activeIndex ? 'true' : undefined}
+                            className={cn(
+                                'rounded-full transition-[width,background-color] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
+                                index === activeIndex
+                                    ? 'size-2.5 bg-accent'
+                                    : 'size-2 bg-border hover:bg-secondary/40',
+                            )}
+                        />
+                    ))}
+                </div>
+            ) : null}
         </div>
     );
 }

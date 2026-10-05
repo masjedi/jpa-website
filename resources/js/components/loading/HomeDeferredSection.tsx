@@ -1,10 +1,10 @@
 import { WhenVisible } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
-import { SkeletonCard } from '@/components/ui/skeleton';
+import { SkeletonCard, SkeletonImage } from '@/components/ui/skeleton';
 
 interface HomeDeferredSectionProps {
-    data: 'featuredTours' | 'featuredDestinations' | 'galleryPreview' | 'latestArticles' | 'faqItems';
+    data: 'featuredTours' | 'featuredDestinations' | 'galleryPreview' | 'latestArticles' | 'faqItems' | 'testimonials';
     columns?: 1 | 3 | 4 | 6;
     children: ReactNode;
 }
@@ -32,9 +32,17 @@ function HomeSectionSkeleton({ columns = 3 }: { columns?: 1 | 3 | 4 | 6 }) {
 
     return (
         <div className={gridClassName} aria-busy="true" aria-label="Loading section content">
-            {Array.from({ length: columns }, (_, index) => (
-                <SkeletonCard key={index} />
-            ))}
+            {Array.from({ length: columns }, (_, index) =>
+                columns === 6 ? (
+                    <SkeletonImage
+                        key={index}
+                        aspectRatio="aspect-square"
+                        className="rounded-xl"
+                    />
+                ) : (
+                    <SkeletonCard key={index} />
+                ),
+            )}
         </div>
     );
 }

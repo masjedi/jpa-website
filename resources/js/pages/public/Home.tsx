@@ -8,7 +8,9 @@ import type { Destination } from '@/types/destinations';
 import type { GalleryPhoto } from '@/types/gallery';
 import type { PublicHeroSection } from '@/types/heroSection';
 import type { PublicFaqItem } from '@/types/faq';
+import type { PublicTestimonial } from '@/types/testimonials';
 import type { SharedPageProps } from '@/types/inertia';
+import type { HomeServicePreview } from '@/types/services';
 import type { Tour } from '@/types/tours';
 
 interface HomePageProps extends SharedPageProps {
@@ -18,6 +20,9 @@ interface HomePageProps extends SharedPageProps {
     galleryPreview?: GalleryPhoto[];
     latestArticles?: ArticleListItem[];
     faqItems?: PublicFaqItem[];
+    testimonials?: PublicTestimonial[];
+    homeServices: HomeServicePreview[];
+    homeServicesImage: string;
 }
 
 export default function Home() {
@@ -30,24 +35,28 @@ export default function Home() {
         galleryPreview,
         latestArticles,
         faqItems,
-        appName,
+        testimonials,
+        homeServices,
+        homeServicesImage,
     } = usePage<HomePageProps>().props;
-    const leadSlide = hero.slides[0];
-    const description =
-        leadSlide?.subtitle?.trim() ||
-        'Discover Afghanistan through premium guided travel, local expertise and thoughtfully planned journeys. Inquiries are reviewed personally — not instant bookings.';
 
     return (
         <>
-            <PageMeta title={appName} description={description} />
+            <PageMeta />
+
             <HomeLanding
-                key={`hero-${hero.eyebrow}-${hero.slides.map((slide) => slide.id).join('-')}`}
+                key={`hero-${hero.eyebrow}-${hero.slides
+                    .map((slide) => slide.id)
+                    .join('-')}`}
                 hero={hero}
+                homeServices={homeServices}
+                homeServicesImage={homeServicesImage}
                 featuredTours={featuredTours}
                 featuredDestinations={featuredDestinations}
                 galleryPreview={galleryPreview}
                 latestArticles={latestArticles}
                 faqItems={faqItems}
+                testimonials={testimonials}
             />
         </>
     );

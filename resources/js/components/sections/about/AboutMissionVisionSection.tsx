@@ -1,9 +1,17 @@
 import { Eye, Target } from 'lucide-react';
 
 import { FadeIn } from '@/components/motion/FadeIn';
-import { aboutMissionVision } from '@/data/aboutData';
+import type { AboutMissionSectionContent, AboutMissionVisionContent } from '@/types/aboutPage';
 
-export function AboutMissionVisionSection() {
+interface AboutMissionVisionSectionProps {
+    missionSection: AboutMissionSectionContent;
+    missionVision: AboutMissionVisionContent;
+}
+
+export function AboutMissionVisionSection({
+    missionSection,
+    missionVision,
+}: AboutMissionVisionSectionProps) {
     return (
         <section
             id="mission"
@@ -23,42 +31,42 @@ export function AboutMissionVisionSection() {
                 <FadeIn>
                     <div className="max-w-2xl text-start">
                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-on-surface/60">
-                            JPA
+                            {missionSection.eyebrow}
                         </p>
                         <h2
                             id="mission-vision-heading"
                             className="font-heading mt-2 text-2xl font-semibold tracking-tight sm:text-3xl"
                         >
-                            Our Mission &amp; Vision
+                            {missionSection.title}
                         </h2>
                     </div>
                 </FadeIn>
 
                 <div className="mt-10 grid gap-6 lg:grid-cols-2">
-                    <FadeIn delay={0.05}>
-                        <article className="rounded-2xl border border-brand-on-surface/10 bg-brand-on-surface/5 p-6 sm:p-8">
+                    <FadeIn delay={0.05} className="h-full">
+                        <article className="flex h-full flex-col rounded-2xl border border-brand-on-surface/10 bg-brand-on-surface/5 p-6 sm:p-8">
                             <div className="flex size-12 items-center justify-center rounded-2xl bg-secondary/15 text-secondary">
                                 <Target className="size-6" aria-hidden />
                             </div>
                             <h3 className="font-heading mt-5 text-xl font-semibold">
-                                {aboutMissionVision.mission.title}
+                                {missionVision.mission.title}
                             </h3>
                             <p className="mt-3 text-sm leading-relaxed text-brand-on-surface/75 sm:text-base">
-                                {aboutMissionVision.mission.description}
+                                {missionVision.mission.description}
                             </p>
                         </article>
                     </FadeIn>
 
-                    <FadeIn delay={0.1}>
-                        <article className="rounded-2xl border border-brand-on-surface/10 bg-brand-on-surface/5 p-6 sm:p-8">
+                    <FadeIn delay={0.1} className="h-full">
+                        <article className="flex h-full flex-col rounded-2xl border border-brand-on-surface/10 bg-brand-on-surface/5 p-6 sm:p-8">
                             <div className="flex size-12 items-center justify-center rounded-2xl bg-accent/15 text-accent">
                                 <Eye className="size-6" aria-hidden />
                             </div>
                             <h3 className="font-heading mt-5 text-xl font-semibold">
-                                {aboutMissionVision.vision.title}
+                                {missionVision.vision.title}
                             </h3>
                             <p className="mt-3 text-sm leading-relaxed text-brand-on-surface/75 sm:text-base">
-                                {aboutMissionVision.vision.description}
+                                {missionVision.vision.description}
                             </p>
                         </article>
                     </FadeIn>

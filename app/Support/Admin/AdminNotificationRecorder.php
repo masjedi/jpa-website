@@ -4,7 +4,11 @@ namespace App\Support\Admin;
 
 use App\Enums\AdminNotificationType;
 use App\Models\AdminNotification;
+use App\Models\ChatConversation;
+use App\Models\ChatMessage;
+use App\Models\CustomBooking;
 use App\Models\NewsletterSubscription;
+use App\Support\Chat\ChatConversationLabel;
 
 class AdminNotificationRecorder
 {
@@ -15,6 +19,41 @@ class AdminNotificationRecorder
             'title' => 'New newsletter subscription',
             'description' => $subscription->email.' subscribed from '.$subscription->source->frontendLabel().'.',
             'href' => '/admin/subscriptions',
+            'read_at' => null,
+        ]);
+    }
+
+    public static function forCustomBooking(CustomBooking $booking): AdminNotification
+    {
+        $name = trim((string) $booking->full_name);
+        $isSeasonalPackage = $booking->request_kind?->isSeasonalPackage() ?? false;
+        $packageTitle = trim((string) ($booking->package_title ?? ''));
+
+        return AdminNotification::query()->create([
+            'type' => AdminNotificationType::CustomBooking,
+            'title' => $isSeasonalPackage ? 'New seasonal package request' : 'New custom tour request',
+            'description' => $isSeasonalPackage
+                ? ($name !== '' ? $name : 'A traveler')
+                    .' requested '
+                    .($packageTitle !== '' ? $packageTitle : 'a seasonal package')
+                    .' ('.$booking->reference.').'
+                : ($name !== '' ? $name : 'A traveler').' submitted '.$booking->reference.'.',
+            'href' => '/admin/bookings/'.$booking->id,
+            'read_at' => null,
+        ]);
+    }
+
+    public static function forChatConversation(ChatConversation $conversation, ChatMessage $message): AdminNotification
+    {
+        $label = ChatConversationLabel::forConversation($conversation);
+        $preview = trim((string) $message->message);
+        $preview = mb_strlen($preview) > 120 ? mb_substr($preview, 0, 117).'…' : $preview;
+
+        return AdminNotification::query()->create([
+            'type' => AdminNotificationType::ChatConversation,
+            'title' => 'New chat message',
+            'description' => "{$label}: {$preview}",
+            'href' => '/admin/dashboard',
             'read_at' => null,
         ]);
     }

@@ -41,6 +41,7 @@ class PublicHomeTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('public/Home')
                 ->has('hero')
+                ->has('homeServices')
                 ->missing('featuredTours')
                 ->missing('featuredDestinations')
                 ->missing('galleryPreview')

@@ -5,6 +5,14 @@
 
     RewriteEngine On
 
+    # Production host: www and HTTP permanently redirect to https://journey-to-afghanistan.com
+    RewriteCond %{HTTP_HOST} ^www\.journey-to-afghanistan\.com$ [NC]
+    RewriteRule ^(.*)$ https://journey-to-afghanistan.com/$1 [L,R=301,QSA]
+
+    RewriteCond %{HTTP_HOST} ^journey-to-afghanistan\.com$ [NC]
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^(.*)$ https://journey-to-afghanistan.com/$1 [L,R=301,QSA]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

@@ -14,7 +14,11 @@ class AdminAuthTest extends TestCase
     {
         $this->get('/admin/login')
             ->assertOk()
-            ->assertSee('<meta name="robots" content="noindex, nofollow">', false);
+            ->assertSee('noindex, nofollow, noarchive, nosnippet', false)
+            ->assertSee('<meta name="referrer" content="no-referrer">', false)
+            ->assertHeader('Referrer-Policy', 'no-referrer')
+            ->assertDontSee('Administrator sign in', false)
+            ->assertDontSee('admin@journeytopeace.com');
     }
 
     public function test_admin_root_redirects_guests_to_login(): void
@@ -50,6 +54,42 @@ class AdminAuthTest extends TestCase
             ->post('/admin/login', [
                 'email' => 'admin@journeytopeace.com',
                 'password' => 'wrong-password',
+            ])
+            ->assertRedirect('/admin/login')
+            ->assertSessionHasErrors('email');
+
+        $this->assertGuest();
+    }
+
+    public function test_login_requires_the_exact_email_stored_in_the_database(): void
+    {
+        User::factory()->create([
+            'email' => 'Admin@journeytopeace.com',
+            'password' => 'Admin!@#123',
+        ]);
+
+        $this->from('/admin/login')
+            ->post('/admin/login', [
+                'email' => 'admin@journeytopeace.com',
+                'password' => 'Admin!@#123',
+            ])
+            ->assertRedirect('/admin/login')
+            ->assertSessionHasErrors('email');
+
+        $this->assertGuest();
+    }
+
+    public function test_unknown_email_is_rejected_with_the_same_error(): void
+    {
+        User::factory()->create([
+            'email' => 'admin@journeytopeace.com',
+            'password' => 'Admin!@#123',
+        ]);
+
+        $this->from('/admin/login')
+            ->post('/admin/login', [
+                'email' => 'nobody@journeytopeace.com',
+                'password' => 'Admin!@#123',
             ])
             ->assertRedirect('/admin/login')
             ->assertSessionHasErrors('email');

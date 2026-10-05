@@ -12,6 +12,10 @@ export interface InquiryDetail {
     tour: string;
     status: 'New' | 'In review' | 'Awaiting reply' | 'Closed';
     source: string;
+    sourceValue?: string;
+    isSeasonalPackage?: boolean;
+    requestKind?: string;
+    packagePrice?: string;
     received: string;
     receivedAt?: string;
     message: string;
@@ -247,7 +251,9 @@ export function InquiryViewDialog({ open, inquiry, onClose }: InquiryViewDialogP
 
                                 <div className="min-w-[12rem] text-start sm:text-end">
                                     <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-secondary">
-                                        Traveler inquiry
+                                        {inquiry.isSeasonalPackage
+                                            ? 'Seasonal package request'
+                                            : 'Traveler inquiry'}
                                     </p>
                                     <p className="mt-2 font-heading text-2xl font-semibold text-foreground">
                                         #{inquiry.id}
@@ -314,10 +320,27 @@ export function InquiryViewDialog({ open, inquiry, onClose }: InquiryViewDialogP
 
                             <section>
                                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                                    Trip request
+                                    {inquiry.isSeasonalPackage ? 'Seasonal package' : 'Trip request'}
                                 </h3>
                                 <dl className="inquiry-section-divider mt-3 border-t border-border">
-                                    <DetailRow label="Subject" value={inquiry.tour} />
+                                    <DetailRow
+                                        label={inquiry.isSeasonalPackage ? 'Package title' : 'Subject'}
+                                        value={inquiry.tour}
+                                    />
+                                    {inquiry.isSeasonalPackage ? (
+                                        <DetailRow
+                                            label="Package price"
+                                            value={inquiry.packagePrice || 'Not listed'}
+                                        />
+                                    ) : null}
+                                    <DetailRow
+                                        label="Request type"
+                                        value={
+                                            inquiry.isSeasonalPackage
+                                                ? 'Seasonal package (not a custom tour)'
+                                                : inquiry.source
+                                        }
+                                    />
                                     <DetailRow
                                         label="Preferred dates"
                                         value={inquiry.preferredDate ?? ''}
@@ -347,9 +370,9 @@ export function InquiryViewDialog({ open, inquiry, onClose }: InquiryViewDialogP
                         </section>
 
                         <p className="mt-8 border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground">
-                            This record confirms that an inquiry was submitted through the website.
-                            It does not reserve a seat, confirm a trip, or constitute a booking
-                            confirmation.
+                            {inquiry.isSeasonalPackage
+                                ? 'This is a seasonal package request from the website. It is not a Custom Tour booking and does not reserve a place until confirmed in writing.'
+                                : 'This record confirms that an inquiry was submitted through the website. It does not reserve a seat, confirm a trip, or constitute a booking confirmation.'}
                         </p>
                     </div>
                 </section>

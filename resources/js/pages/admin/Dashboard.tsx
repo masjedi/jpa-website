@@ -1,9 +1,10 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ArrowRight, BookOpen, Compass, LayoutDashboard, Map, MessageSquareText } from 'lucide-react';
 
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
 import { AdminSectionPanel } from '@/components/admin/AdminSectionPanel';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
+import { cardSummaryClass, cardTitleClass } from '@/lib/cardText';
 import '@/types/inertia';
 
 const quickLinks = [
@@ -28,20 +29,18 @@ const quickLinks = [
     {
         label: 'Inquiries',
         href: '/admin/inquiries',
-        description: 'Review booking requests and traveler messages.',
+        description: 'Review contact messages and tour inquiries.',
         icon: MessageSquareText,
-        badge: '3 new',
     },
 ] as const;
 
 export default function Dashboard() {
-    const { auth } = usePage().props;
+    const { auth, adminFeed } = usePage().props;
     const firstName = auth.user?.name.split(' ')[0] ?? 'Admin';
+    const unreadInquiries = adminFeed?.unreadMessages ?? 0;
 
     return (
         <>
-            <Head title="Dashboard" />
-
             <div className="space-y-4">
                 <AdminSectionHeader
                     eyebrow="Overview"
@@ -53,30 +52,34 @@ export default function Dashboard() {
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     {quickLinks.map((item) => {
                         const Icon = item.icon;
+                        const badge =
+                            item.href === '/admin/inquiries' && unreadInquiries > 0
+                                ? `${unreadInquiries > 99 ? '99+' : unreadInquiries} new`
+                                : null;
 
                         return (
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className="group rounded-2xl border border-border bg-surface p-5 shadow-sm transition-colors hover:border-secondary/30 hover:bg-surface-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                                className="group flex h-full flex-col rounded-2xl border border-border bg-surface p-5 shadow-sm transition-colors hover:border-secondary/30 hover:bg-surface-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                                         <Icon className="size-4" aria-hidden />
                                     </span>
-                                    {item.badge ? (
+                                    {badge ? (
                                         <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold text-accent">
-                                            {item.badge}
+                                            {badge}
                                         </span>
                                     ) : null}
                                 </div>
-                                <h3 className="mt-4 font-heading text-base font-semibold text-foreground">
+                                <h3 className={`mt-4 font-heading text-base font-semibold text-foreground ${cardTitleClass}`}>
                                     {item.label}
                                 </h3>
-                                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                                <p className={`mt-2 text-sm leading-relaxed text-muted-foreground ${cardSummaryClass}`}>
                                     {item.description}
                                 </p>
-                                <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-secondary">
+                                <span className="mt-auto inline-flex items-center gap-1 pt-4 text-sm font-medium text-secondary">
                                     Open section
                                     <ArrowRight
                                         className="size-4 transition-transform group-hover:translate-x-0.5"

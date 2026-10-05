@@ -13,7 +13,7 @@ class Brand
     public static function appName(): string
     {
         try {
-            $brandName = trim((string) SiteSetting::current()->brand_name);
+            $brandName = trim(Translatable::resolve(SiteSetting::current()->brand_name));
 
             if ($brandName !== '' && strcasecmp($brandName, 'Laravel') !== 0) {
                 return $brandName;

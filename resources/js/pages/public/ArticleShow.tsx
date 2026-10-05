@@ -20,11 +20,7 @@ export default function ArticleShow({
 
     return (
         <>
-            <PageMeta
-                title={article.title}
-                description={article.summary}
-                image={article.image}
-            />
+            <PageMeta />
             <ArticleDetailLanding
                 article={article}
                 relatedArticles={relatedArticles}

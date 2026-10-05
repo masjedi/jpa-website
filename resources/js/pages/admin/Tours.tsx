@@ -1,10 +1,11 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Map, Plus } from 'lucide-react';
 import { Suspense, lazy, useState } from 'react';
 
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
 import {
     buildTourFormData,
+    createEmptyTourFormValues,
     listingTypeLabel,
     type TourFormSubmitPayload,
 } from '@/components/admin/tourForm';
@@ -17,7 +18,9 @@ import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
+import { primaryTranslation } from '@/lib/translations';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
+import type { TourFilterFieldOptions } from '@/types/tourFilterOptions';
 
 const TourFormDialog = lazy(() =>
     import('@/components/admin/TourFormDialog').then((module) => ({
@@ -46,30 +49,31 @@ interface OfferRow {
 
 interface ToursPageProps {
     offers: ManagedOffer[];
+    filterOptions: TourFilterFieldOptions;
 }
 
 function buildOfferRow(offer: ManagedOffer): OfferRow {
     if (offer.listingType === 'package') {
         return {
             id: offer.id,
-            title: offer.title,
+            title: primaryTranslation(offer.title),
             slug: offer.slug,
             listingType: offer.listingType,
             region: 'Packages section',
             style: '—',
-            duration: offer.duration,
+            duration: primaryTranslation(offer.duration),
             status: offer.status,
         };
     }
 
     return {
         id: offer.id,
-        title: offer.title,
+        title: primaryTranslation(offer.title),
         slug: offer.slug,
         listingType: offer.listingType,
         region: offer.region,
-        style: offer.travelStyle,
-        duration: offer.duration,
+        style: offer.travelStyle ?? '—',
+        duration: primaryTranslation(offer.duration),
         status: offer.status,
     };
 }
@@ -153,7 +157,7 @@ function submitTourForm(
     });
 }
 
-export default function Tours({ offers }: ToursPageProps) {
+export default function Tours({ offers, filterOptions }: ToursPageProps) {
     const { flash } = usePage().props;
     const [formOpen, setFormOpen] = useState(false);
     const [viewOpen, setViewOpen] = useState(false);
@@ -220,8 +224,6 @@ export default function Tours({ offers }: ToursPageProps) {
 
     return (
         <>
-            <Head title="Tours" />
-
             <div className="space-y-4">
                 {flash.success ? (
                     <div
@@ -268,7 +270,9 @@ export default function Tours({ offers }: ToursPageProps) {
                     <ContentRecordViewDialog
                         open={viewOpen}
                         title="View listing"
-                        description={viewingOffer?.title}
+                        description={
+                            viewingOffer ? primaryTranslation(viewingOffer.title) : undefined
+                        }
                         model={viewingOffer ? buildOfferViewModel(viewingOffer) : null}
                         onClose={closeView}
                         onEdit={openEditFromView}
@@ -282,7 +286,12 @@ export default function Tours({ offers }: ToursPageProps) {
                         open={formOpen}
                         mode={editingOfferId ? 'edit' : 'create'}
                         resetKey={editingOfferId ? String(editingOfferId) : 'create'}
-                        initialValues={editingOffer ? offerToFormValues(editingOffer) : undefined}
+                        initialValues={
+                            editingOffer
+                                ? offerToFormValues(editingOffer)
+                                : createEmptyTourFormValues(filterOptions)
+                        }
+                        filterOptions={filterOptions}
                         onClose={closeForm}
                         onSubmit={handleSubmitOffer}
                     />

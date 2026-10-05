@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Models\SiteSetting;
 use App\Support\Brand;
 use App\Support\SiteSettings\SiteSettingsDefaults;
+use App\Support\Translatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -24,7 +25,7 @@ class BrandTest extends TestCase
         config(['app.name' => 'Custom Agency Name']);
 
         SiteSetting::current()->update([
-            'brand_name' => 'Settings Brand Name',
+            'brand_name' => Translatable::normalize('Settings Brand Name'),
         ]);
 
         $this->assertSame('Settings Brand Name', Brand::appName());

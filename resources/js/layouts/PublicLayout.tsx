@@ -2,8 +2,11 @@ import { usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
 import { Footer } from '@/components/public/Footer';
+import { ChatLauncher } from '@/components/public/ChatLauncher';
+import { CustomTourRequestHost } from '@/components/public/CustomTourRequestHost';
 import { Navbar } from '@/components/public/Navbar';
 import { WhatsAppFloat } from '@/components/public/WhatsAppFloat';
+import { useTranslations } from '@/hooks/use-translations';
 import { cn } from '@/lib/utils';
 import '@/types/inertia';
 
@@ -14,6 +17,7 @@ interface PublicLayoutProps {
 
 export function PublicLayout({ children, transparentHeader = false }: PublicLayoutProps) {
     const { locale, direction } = usePage().props;
+    const { t } = useTranslations();
 
     return (
         <div
@@ -25,7 +29,7 @@ export function PublicLayout({ children, transparentHeader = false }: PublicLayo
                 href="#main-content"
                 className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-accent-foreground focus:outline-2 focus:outline-offset-2 focus:outline-focus"
             >
-                Skip to content
+                {t('common.skipToContent')}
             </a>
             <Navbar transparent={transparentHeader} />
             <main
@@ -36,7 +40,9 @@ export function PublicLayout({ children, transparentHeader = false }: PublicLayo
                 {children}
             </main>
             <Footer />
+            <ChatLauncher />
             <WhatsAppFloat />
+            <CustomTourRequestHost />
         </div>
     );
 }

@@ -11,6 +11,7 @@ use App\Support\Destinations\DestinationPresenter;
 use App\Support\Destinations\DestinationSlug;
 use App\Support\Media\DestinationCoverImage;
 use App\Support\Media\MediaValidationException;
+use App\Support\Translatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -34,7 +35,7 @@ class DestinationsController extends Controller
                 Destination::query()->create(array_merge(
                     DestinationAttributes::fromValidated($validated),
                     [
-                        'slug' => DestinationSlug::unique((string) $validated['name']),
+                        'slug' => DestinationSlug::unique(Translatable::resolve($validated['name'])),
                         'cover_media' => $cover->toArray(),
                     ],
                 ));
@@ -58,7 +59,7 @@ class DestinationsController extends Controller
             DB::transaction(function () use ($validated, $request, $destination): void {
                 $attributes = array_merge(
                     DestinationAttributes::fromValidated($validated),
-                    ['slug' => DestinationSlug::unique((string) $validated['name'], $destination->id)],
+                    ['slug' => DestinationSlug::unique(Translatable::resolve($validated['name']), $destination->id)],
                 );
 
                 if ($request->hasFile('cover_image')) {

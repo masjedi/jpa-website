@@ -2,6 +2,8 @@
 
 namespace App\Support\SiteSettings;
 
+use App\Support\Translatable;
+
 final class SiteSettingsDefaults
 {
     public const BRAND_NAME = 'Journey to Peace Afghanistan Tours';
@@ -55,11 +57,11 @@ final class SiteSettingsDefaults
     public static function attributes(): array
     {
         return [
-            'brand_name' => self::BRAND_NAME,
+            'brand_name' => Translatable::normalize(self::BRAND_NAME),
             'contact_email' => self::CONTACT_EMAIL,
-            'whatsapp_display' => self::WHATSAPP_DISPLAY,
+            'whatsapp_display' => Translatable::normalize(self::WHATSAPP_DISPLAY),
             'whatsapp_href' => self::WHATSAPP_HREF,
-            'office_location' => self::OFFICE_LOCATION,
+            'office_location' => Translatable::normalize(self::OFFICE_LOCATION),
             'office_maps_href' => self::OFFICE_MAPS_HREF,
             'office_maps_embed_src' => self::OFFICE_MAPS_EMBED_SRC,
             'social_links' => self::socialLinks(),

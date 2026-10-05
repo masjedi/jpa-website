@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Translatable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,11 +10,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['eyebrow'])]
 class HeroSection extends Model
 {
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'eyebrow' => 'array',
+        ];
+    }
+
     public static function current(): self
     {
         return static::query()->firstOrCreate(
             [],
-            ['eyebrow' => 'Premium guided travel in Afghanistan'],
+            ['eyebrow' => Translatable::normalize('Premium guided travel in Afghanistan')],
         );
     }
 

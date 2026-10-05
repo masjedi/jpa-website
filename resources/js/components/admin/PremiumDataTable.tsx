@@ -43,7 +43,7 @@ export interface DataTableColumn<T extends object> {
 interface PremiumDataTableProps<T extends object> {
     title: string;
     description?: string;
-    data: readonly T[];
+    data?: readonly T[] | null;
     columns: readonly DataTableColumn<T>[];
     rowKey: (row: T) => string | number;
     emptyTitle?: string;
@@ -55,6 +55,7 @@ interface PremiumDataTableProps<T extends object> {
     onView?: (row: T) => void | Promise<void>;
     onEdit?: (row: T) => void | Promise<void>;
     onDelete?: (row: T) => void | Promise<void>;
+    onPrint?: (row: T) => void | Promise<void>;
 }
 
 type DialogName =
@@ -106,7 +107,9 @@ export function PremiumDataTable<T extends object>({
     onView,
     onEdit,
     onDelete,
+    onPrint,
 }: PremiumDataTableProps<T>) {
+    const rows = data ?? [];
     const [searchQuery, setSearchQuery] = useState('');
     const [filterColumnId, setFilterColumnId] = useState(columns[0]?.id ?? '');
     const [filterValue, setFilterValue] = useState('');
@@ -127,8 +130,8 @@ export function PremiumDataTable<T extends object>({
     const [processingSelection, setProcessingSelection] = useState(false);
 
     const selectedRow = useMemo(
-        () => data.find((row) => rowKey(row) === selectedRowKey) ?? null,
-        [data, rowKey, selectedRowKey],
+        () => rows.find((row) => rowKey(row) === selectedRowKey) ?? null,
+        [rows, rowKey, selectedRowKey],
     );
 
     const selectedRowLabel = selectedRow
@@ -145,7 +148,7 @@ export function PremiumDataTable<T extends object>({
         const normalizedFilter = filterValue.trim().toLocaleLowerCase();
         const filterColumn = columns.find((column) => column.id === filterColumnId);
 
-        const matchingRows = data.filter((row) => {
+        const matchingRows = rows.filter((row) => {
             const matchesSearch =
                 !normalizedSearch ||
                 columns
@@ -200,7 +203,7 @@ export function PremiumDataTable<T extends object>({
 
             return sort.direction === 'asc' ? comparison : -comparison;
         });
-    }, [columns, data, filterColumnId, filterValue, rowKey, searchQuery, sort]);
+    }, [columns, rows, filterColumnId, filterValue, rowKey, searchQuery, sort]);
 
     const totalPages = Math.max(1, Math.ceil(processedRows.length / pageSize));
     const safePage = Math.min(page, totalPages);
@@ -360,6 +363,21 @@ export function PremiumDataTable<T extends object>({
             frameWindow.focus();
             frameWindow.print();
         }, 50);
+    };
+
+    const printSelectedRecord = async (asPdf: boolean) => {
+        if (!onPrint || !selectedRow) {
+            printTable(asPdf);
+            return;
+        }
+
+        setProcessingSelection(true);
+        try {
+            await onPrint(selectedRow);
+        } finally {
+            setProcessingSelection(false);
+            setDialog(null);
+        }
     };
 
     const exportCsv = () => {
@@ -630,7 +648,7 @@ export function PremiumDataTable<T extends object>({
                                 <ToolbarButton
                                     label="Edit selected record"
                                     onClick={() => setDialog('edit')}
-                                    disabled={!selectedRow}
+                                    disabled={!selectedRow || !onEdit}
                                 >
                                     <Pencil className="size-4" aria-hidden />
                                 </ToolbarButton>
@@ -753,12 +771,24 @@ export function PremiumDataTable<T extends object>({
 
             <ActionDialog
                 open={dialog === 'print'}
-                title="Print table"
-                description={`Print ${processedRows.length} filtered records using the currently visible columns.`}
-                actionLabel="Print"
+                title={onPrint ? 'Print selected record' : 'Print table'}
+                description={
+                    onPrint
+                        ? selectedRow
+                            ? `Print all received information for ${selectedRowLabel}.`
+                            : 'Select a record first to print its full submitted details.'
+                        : `Print ${processedRows.length} filtered records using the currently visible columns.`
+                }
+                actionLabel={processingSelection ? 'Preparing…' : 'Print'}
                 onClose={() => setDialog(null)}
-                onConfirm={() => printTable(false)}
+                onConfirm={() => printSelectedRecord(false)}
+                disabled={processingSelection || (Boolean(onPrint) && !selectedRow)}
                 icon={<Printer className="size-5" aria-hidden />}
+                note={
+                    onPrint
+                        ? 'The printed document includes the full request, not only the table columns.'
+                        : 'Only the current search, filter, and visible columns are included.'
+                }
             />
 
             <ActionDialog
@@ -774,11 +804,16 @@ export function PremiumDataTable<T extends object>({
 
             <ActionDialog
                 open={dialog === 'pdf'}
-                title="Export as PDF"
-                description="Use your browser print dialog and choose “Save as PDF” as the destination."
-                actionLabel="Open PDF preview"
+                title={onPrint && selectedRow ? 'Export selected record' : 'Export as PDF'}
+                description={
+                    onPrint && selectedRow
+                        ? `Open the print dialog for ${selectedRowLabel} and choose “Save as PDF”.`
+                        : 'Use your browser print dialog and choose “Save as PDF” as the destination.'
+                }
+                actionLabel={processingSelection ? 'Preparing…' : 'Open PDF preview'}
                 onClose={() => setDialog(null)}
-                onConfirm={() => printTable(true)}
+                onConfirm={() => printSelectedRecord(true)}
+                disabled={processingSelection}
                 icon={<FileText className="size-5" aria-hidden />}
             />
 

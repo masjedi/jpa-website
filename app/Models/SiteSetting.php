@@ -28,6 +28,9 @@ class SiteSetting extends Model
     protected function casts(): array
     {
         return [
+            'brand_name' => 'array',
+            'office_location' => 'array',
+            'whatsapp_display' => 'array',
             'social_links' => 'array',
             'logo_color_media' => 'array',
             'logo_white_media' => 'array',

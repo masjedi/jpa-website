@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react';
 
 import { FadeInOnMount } from '@/components/motion/FadeIn';
 import { LazyDomeGallery } from '@/components/sections/gallery/LazyDomeGallery';
+import { useTranslations } from '@/hooks/use-translations';
 import type { GalleryPhoto } from '@/types/gallery';
 
 interface GalleryLandingProps {
@@ -10,6 +11,8 @@ interface GalleryLandingProps {
 }
 
 export function GalleryHero() {
+    const { t } = useTranslations();
+
     return (
         <section className="relative overflow-hidden bg-brand-surface text-brand-on-surface">
             <div
@@ -20,32 +23,31 @@ export function GalleryHero() {
             <div className="relative z-10 mx-auto max-w-3xl px-4 pb-10 pt-32 text-center sm:px-6 lg:pb-12 lg:pt-36">
                 <FadeInOnMount>
                     <nav
-                        aria-label="Breadcrumb"
+                        aria-label={t('common.breadcrumb')}
                         className="flex items-center justify-center gap-2 text-xs font-medium text-brand-on-surface/65"
                     >
                         <Link
                             href="/"
                             className="transition-colors hover:text-brand-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                         >
-                            Home
+                            {t('common.home')}
                         </Link>
-                        <ChevronRight className="size-3.5 opacity-50" aria-hidden />
+                        <ChevronRight className="size-3.5 opacity-50 rtl:rotate-180" aria-hidden />
                         <span className="text-brand-on-surface" aria-current="page">
-                            Gallery
+                            {t('nav.gallery')}
                         </span>
                     </nav>
 
                     <p className="mt-6 text-xs font-semibold uppercase tracking-[0.16em] text-brand-on-surface/60">
-                        Travel photography
+                        {t('galleryPage.hero.eyebrow')}
                     </p>
 
                     <h1 className="font-heading mt-4 text-3xl font-semibold tracking-tight text-brand-on-surface sm:text-4xl lg:text-5xl">
-                        Gallery
+                        {t('galleryPage.hero.title')}
                     </h1>
 
                     <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-brand-on-surface/75">
-                        Landscapes, cities and everyday moments from journeys across Afghanistan —
-                        explore the dome below and tap any image to view it larger.
+                        {t('galleryPage.hero.description')}
                     </p>
                 </FadeInOnMount>
             </div>
@@ -54,6 +56,7 @@ export function GalleryHero() {
 }
 
 export function GalleryDomeSection({ photos }: { photos: readonly GalleryPhoto[] }) {
+    const { t } = useTranslations();
     const domeImages = photos.map((photo) => ({
         src: photo.src,
         alt: photo.alt,
@@ -62,12 +65,12 @@ export function GalleryDomeSection({ photos }: { photos: readonly GalleryPhoto[]
     return (
         <section
             id="gallery-dome"
-            aria-label="Interactive photo gallery"
+            aria-label={t('galleryPage.dome.ariaLabel')}
             className="relative bg-brand-deep"
         >
             <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
                 <p className="text-center text-sm text-brand-on-surface/65">
-                    Drag to explore · Click or tap a tile to enlarge · Press Escape to close
+                    {t('galleryPage.dome.instructions')}
                 </p>
             </div>
 
@@ -88,16 +91,14 @@ export function GalleryDomeSection({ photos }: { photos: readonly GalleryPhoto[]
             ) : (
                 <div className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6">
                     <p className="text-sm leading-relaxed text-brand-on-surface/70">
-                        No published gallery photos yet. Upload and publish images from the admin
-                        dashboard to populate this experience.
+                        {t('galleryPage.dome.empty')}
                     </p>
                 </div>
             )}
 
             <div className="mx-auto max-w-2xl px-4 pb-16 pt-6 text-center sm:px-6">
                 <p className="text-sm leading-relaxed text-brand-on-surface/60">
-                    Images shown are representative of regions and experiences we guide. Captions
-                    and full-resolution sets are curated for each journey.
+                    {t('galleryPage.dome.footnote')}
                 </p>
             </div>
         </section>

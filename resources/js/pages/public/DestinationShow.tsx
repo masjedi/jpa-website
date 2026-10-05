@@ -24,11 +24,7 @@ export default function DestinationShow({
 
     return (
         <>
-            <PageMeta
-                title={destination.name}
-                description={destination.tagline}
-                image={destination.image}
-            />
+            <PageMeta />
             <DestinationDetailLanding
                 destination={destination}
                 relatedTours={relatedTours}

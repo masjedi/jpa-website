@@ -79,6 +79,31 @@ class PublicNewsletterSubscriptionTest extends TestCase
         $this->assertDatabaseCount('newsletter_subscriptions', 0);
     }
 
+    public function test_invalid_source_is_rejected(): void
+    {
+        $this->from('/')
+            ->post('/newsletter/subscribe', [
+                'email' => 'traveler@example.com',
+                'source' => 'invalid-source',
+            ])
+            ->assertSessionHasErrors('source');
+
+        $this->assertDatabaseCount('newsletter_subscriptions', 0);
+    }
+
+    public function test_mass_assignment_fields_are_rejected(): void
+    {
+        $this->from('/')
+            ->post('/newsletter/subscribe', [
+                'email' => 'traveler@example.com',
+                'source' => 'footer',
+                'status' => 'active',
+            ])
+            ->assertSessionHasErrors('status');
+
+        $this->assertDatabaseCount('newsletter_subscriptions', 0);
+    }
+
     public function test_authenticated_admin_can_view_saved_subscriptions(): void
     {
         $user = User::factory()->create();

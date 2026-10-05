@@ -3,8 +3,11 @@
 namespace Tests\Feature\Admin;
 
 use App\Enums\ArticleStatus;
+use App\Enums\TeamMemberStatus;
 use App\Models\Article;
+use App\Models\TeamMember;
 use App\Models\User;
+use App\Support\Translatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -13,6 +16,8 @@ use Tests\TestCase;
 class ArticlesTest extends TestCase
 {
     use RefreshDatabase;
+
+    private TeamMember $teamMember;
 
     protected function setUp(): void
     {
@@ -23,6 +28,8 @@ class ArticlesTest extends TestCase
         }
 
         Storage::fake('public');
+
+        $this->teamMember = $this->createTeamMember();
     }
 
     public function test_authenticated_admin_can_view_articles_index(): void
@@ -37,7 +44,7 @@ class ArticlesTest extends TestCase
                 ->component('admin/Articles')
                 ->has('articles', 1)
                 ->where('articles.0.id', $article->id)
-                ->where('articles.0.title', 'Spring packing guide'));
+                ->where('articles.0.title.en', 'Spring packing guide'));
     }
 
     public function test_authenticated_admin_can_create_update_and_delete_article(): void
@@ -52,17 +59,21 @@ class ArticlesTest extends TestCase
 
         $this->assertDatabaseHas('articles', [
             'id' => $article->id,
-            'title' => 'Spring packing guide',
             'status' => ArticleStatus::Draft->value,
             'slug' => 'spring-packing-guide',
             'is_featured' => true,
+            'team_member_id' => $this->teamMember->id,
+            'author_name' => 'Wahid Rahimi',
+            'author_role' => 'Founder & lead guide',
         ]);
+
+        $this->assertSame('Spring packing guide', Translatable::resolve($article->fresh()->title));
 
         $this->assertNotNull($article->cover_media);
 
         $payload = $this->validArticlePayload();
         unset($payload['cover_image']);
-        $payload['title'] = 'Updated spring packing guide';
+        $payload['title'] = Translatable::normalize('Updated spring packing guide');
         $payload['status'] = 'Published';
 
         $this->actingAs($user)
@@ -71,10 +82,11 @@ class ArticlesTest extends TestCase
 
         $this->assertDatabaseHas('articles', [
             'id' => $article->id,
-            'title' => 'Updated spring packing guide',
             'status' => ArticleStatus::Published->value,
             'slug' => 'updated-spring-packing-guide',
         ]);
+
+        $this->assertSame('Updated spring packing guide', Translatable::resolve($article->fresh()->title));
 
         $this->actingAs($user)
             ->delete("/admin/articles/{$article->id}")
@@ -114,7 +126,7 @@ class ArticlesTest extends TestCase
 
         $payload = $this->validArticlePayload();
         unset($payload['cover_image']);
-        $payload['title'] = 'Updated without new cover';
+        $payload['title'] = Translatable::normalize('Updated without new cover');
 
         $this->actingAs($user)
             ->patch("/admin/articles/{$article->id}", $payload)
@@ -122,8 +134,27 @@ class ArticlesTest extends TestCase
 
         $article->refresh();
 
-        $this->assertSame('Updated without new cover', $article->title);
+        $this->assertSame('Updated without new cover', Translatable::resolve($article->title));
         $this->assertSame($originalCover, $article->cover_media);
+    }
+
+    public function test_authenticated_admin_can_create_article_without_team_member(): void
+    {
+        $user = User::factory()->create();
+        $payload = $this->validArticlePayload();
+        unset($payload['team_member_id']);
+        $payload['author_name'] = 'Sara Ahmad';
+        $payload['author_role'] = 'Travel editor';
+
+        $this->actingAs($user)
+            ->post('/admin/articles', $payload)
+            ->assertRedirect(route('admin.articles.index'));
+
+        $this->assertDatabaseHas('articles', [
+            'author_name' => 'Sara Ahmad',
+            'author_role' => 'Travel editor',
+            'team_member_id' => null,
+        ]);
     }
 
     public function test_article_create_requires_cover_image(): void
@@ -143,14 +174,32 @@ class ArticlesTest extends TestCase
     private function validArticlePayload(): array
     {
         return [
-            'title' => 'Spring packing guide',
-            'summary' => 'Layering, footwear and small essentials for variable mountain weather.',
+            'title' => Translatable::normalize('Spring packing guide'),
+            'summary' => Translatable::normalize('Layering, footwear and small essentials for variable mountain weather.'),
             'category' => 'Travel tips',
-            'content' => '<p>Pack layers for highland mornings and warm afternoons.</p>',
+            'content' => Translatable::normalize('<p>Pack layers for highland mornings and warm afternoons.</p>'),
+            'team_member_id' => (string) $this->teamMember->id,
+            'author_name' => 'Wahid Rahimi',
+            'author_role' => 'Founder & lead guide',
             'is_featured' => '1',
             'status' => 'Draft',
             'cover_image' => $this->makeCoverUpload(),
         ];
+    }
+
+    private function createTeamMember(): TeamMember
+    {
+        return TeamMember::query()->create([
+            'status' => TeamMemberStatus::Published,
+            'name' => Translatable::normalize('Wahid Rahimi'),
+            'role' => Translatable::normalize('Founder & lead guide'),
+            'bio' => Translatable::normalize('Wahid has guided across all 34 provinces.'),
+            'email' => 'wahid@journey-to-afghanistan.com',
+            'whatsapp' => '+93 70 123 4567',
+            'whatsapp_href' => 'https://wa.me/93701234567',
+            'avatar_media' => null,
+            'sort_order' => 1,
+        ]);
     }
 
     private function createArticleRecord(): Article
@@ -158,13 +207,14 @@ class ArticlesTest extends TestCase
         return Article::query()->create([
             'slug' => 'existing-article',
             'status' => ArticleStatus::Published,
-            'title' => 'Spring packing guide',
-            'summary' => 'Sample summary.',
+            'title' => Translatable::normalize('Spring packing guide'),
+            'summary' => Translatable::normalize('Sample summary.'),
             'category' => 'Travel tips',
-            'content' => '<p>Existing article.</p>',
+            'content' => Translatable::normalize('<p>Existing article.</p>'),
             'reading_time_minutes' => 3,
-            'author_name' => 'Sara Ahmad',
-            'author_role' => 'Lead travel editor',
+            'team_member_id' => $this->teamMember->id,
+            'author_name' => 'Wahid Rahimi',
+            'author_role' => 'Founder & lead guide',
             'author_avatar' => null,
             'is_featured' => false,
             'related_tour_slugs' => [],

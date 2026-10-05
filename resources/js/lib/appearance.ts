@@ -4,6 +4,8 @@ export type ResolvedAppearance = 'light' | 'dark';
 
 export const APPEARANCE_STORAGE_KEY = 'appearance';
 
+export const DEFAULT_APPEARANCE: AppearancePreference = 'light';
+
 const validPreferences: AppearancePreference[] = ['system', 'light', 'dark'];
 
 export function isAppearancePreference(value: string | null): value is AppearancePreference {
@@ -12,12 +14,12 @@ export function isAppearancePreference(value: string | null): value is Appearanc
 
 export function getStoredAppearance(): AppearancePreference {
     if (typeof window === 'undefined') {
-        return 'system';
+        return DEFAULT_APPEARANCE;
     }
 
     const stored = window.localStorage.getItem(APPEARANCE_STORAGE_KEY);
 
-    return isAppearancePreference(stored) ? stored : 'system';
+    return isAppearancePreference(stored) ? stored : DEFAULT_APPEARANCE;
 }
 
 export function getSystemAppearance(): ResolvedAppearance {
@@ -41,6 +43,7 @@ export function applyAppearance(preference: AppearancePreference): ResolvedAppea
 
     if (typeof document !== 'undefined') {
         document.documentElement.classList.toggle('dark', resolved === 'dark');
+        document.documentElement.style.colorScheme = resolved === 'dark' ? 'dark' : 'light';
     }
 
     return resolved;

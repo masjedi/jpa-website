@@ -1,5 +1,12 @@
 import type { SelectedGalleryImage } from '@/components/admin/MultiImageUploadField';
 import type { ManagedGalleryPhoto } from '@/types/gallery';
+import type { TranslatedString } from '@/types/locale';
+import {
+    appendTranslatedStringToFormData,
+    createEmptyTranslatedString,
+    normalizeTranslatedString,
+} from '@/lib/translations';
+import { buildTranslatableFieldMap, mapTranslatableServerErrors, validateEnglishRequired } from '@/lib/translatableForm';
 
 export type GalleryFormStatus = 'Published' | 'Draft';
 
@@ -8,8 +15,8 @@ export interface GalleryBulkFormValues {
 }
 
 export interface GalleryEditFormValues {
-    alt: string;
-    caption: string;
+    alt: TranslatedString;
+    caption: TranslatedString;
     image: string;
     status: GalleryFormStatus;
     sortOrder: number;
@@ -33,8 +40,8 @@ export function createEmptyGalleryBulkFormValues(): GalleryBulkFormValues {
 
 export function createEmptyGalleryEditFormValues(): GalleryEditFormValues {
     return {
-        alt: '',
-        caption: '',
+        alt: createEmptyTranslatedString(),
+        caption: createEmptyTranslatedString(),
         image: '',
         status: 'Draft',
         sortOrder: 0,
@@ -43,8 +50,8 @@ export function createEmptyGalleryEditFormValues(): GalleryEditFormValues {
 
 export function galleryPhotoToEditFormValues(photo: ManagedGalleryPhoto): GalleryEditFormValues {
     return {
-        alt: photo.alt,
-        caption: photo.caption,
+        alt: normalizeTranslatedString(photo.alt),
+        caption: normalizeTranslatedString(photo.caption),
         image: photo.src,
         status: photo.status,
         sortOrder: photo.sortOrder,
@@ -61,9 +68,8 @@ const bulkServerFieldMap: Record<string, GalleryBulkFormField> = {
     gallery_images: 'galleryImages',
 };
 
-const editServerFieldMap: Record<string, GalleryEditFormField> = {
-    alt: 'alt',
-    caption: 'caption',
+const editServerFieldMap = {
+    ...buildTranslatableFieldMap('', ['alt', 'caption']),
     gallery_image: 'image',
     sort_order: 'sortOrder',
 };
@@ -89,19 +95,7 @@ export function mapServerGalleryBulkFormErrors(
 export function mapServerGalleryEditFormErrors(
     errors: Record<string, string | string[] | undefined>,
 ): GalleryEditFormErrors {
-    const mapped: GalleryEditFormErrors = {};
-
-    for (const [key, message] of Object.entries(errors)) {
-        const field = editServerFieldMap[key];
-
-        if (!field || message === undefined) {
-            continue;
-        }
-
-        mapped[field] = Array.isArray(message) ? message[0] : message;
-    }
-
-    return mapped;
+    return mapTranslatableServerErrors(errors, editServerFieldMap);
 }
 
 export function buildGalleryBulkFormData({
@@ -125,8 +119,8 @@ export function buildGalleryEditFormData({
 }: GalleryEditFormSubmitPayload): FormData {
     const formData = new FormData();
 
-    formData.append('alt', values.alt);
-    formData.append('caption', values.caption);
+    appendTranslatedStringToFormData(formData, 'alt', values.alt);
+    appendTranslatedStringToFormData(formData, 'caption', values.caption);
     formData.append('status', values.status);
     formData.append('sort_order', String(values.sortOrder));
 
@@ -155,12 +149,14 @@ export function validateGalleryEditFormValues(
 ): GalleryEditFormErrors {
     const errors: GalleryEditFormErrors = {};
 
-    if (!values.alt.trim()) {
-        errors.alt = 'Required';
+    const altError = validateEnglishRequired(values.alt, 'Alt text');
+    if (altError) {
+        errors.alt = altError;
     }
 
-    if (!values.caption.trim()) {
-        errors.caption = 'Required';
+    const captionError = validateEnglishRequired(values.caption, 'Caption');
+    if (captionError) {
+        errors.caption = captionError;
     }
 
     if (!hasImage) {

@@ -1,4 +1,6 @@
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /admin/
+Disallow: /login
 
-# CLIENT REVIEW MODE: replace Disallow with Allow and restore the sitemap after final approval.
+Sitemap: https://journey-to-afghanistan.com/sitemap.xml

@@ -2,9 +2,12 @@
 
 namespace App\Support\Destinations;
 
+use App\Enums\TourFilterOptionType;
 use App\Enums\TourListingType;
 use App\Models\Destination;
 use App\Models\Tour;
+use App\Support\Tours\TourFilterOptionPresenter;
+use App\Support\Translatable;
 use Illuminate\Support\Collection;
 
 class DestinationPresenter
@@ -89,16 +92,18 @@ class DestinationPresenter
             'id' => $destination->id,
             'slug' => $destination->slug,
             'status' => $destination->status->frontendLabel(),
-            'name' => (string) $destination->name,
-            'tagline' => (string) $destination->tagline,
+            'name' => Translatable::normalize($destination->name),
+            'tagline' => Translatable::normalize($destination->tagline),
             'region' => (string) $destination->region,
-            'badge' => (string) ($destination->badge ?? ''),
+            'badge' => Translatable::normalize($destination->badge ?? []),
             'image' => self::coverCardUrl($destination),
-            'description' => (string) $destination->description,
-            'highlights' => $destination->highlights ?? [],
-            'bestSeason' => (string) ($destination->best_season ?? ''),
-            'travelStyle' => (string) ($destination->travel_style ?? ''),
-            'practicalNotes' => $destination->practical_notes ?? [],
+            'description' => Translatable::normalize($destination->description),
+            'highlightsText' => Translatable::stringListToTextMap($destination->highlights ?? []),
+            'highlights' => Translatable::resolveStringList($destination->highlights ?? []),
+            'bestSeason' => Translatable::normalize($destination->best_season ?? []),
+            'travelStyle' => Translatable::normalize($destination->travel_style ?? []),
+            'practicalNotesText' => Translatable::stringListToTextMap($destination->practical_notes ?? []),
+            'practicalNotes' => Translatable::resolveStringList($destination->practical_notes ?? []),
             'tourMatchKeywords' => $destination->tour_match_keywords ?? [],
             'isFeatured' => (bool) $destination->is_featured,
             'linkedToursCount' => $linkedTours->count(),
@@ -106,9 +111,9 @@ class DestinationPresenter
                 ->take(4)
                 ->map(fn (Tour $tour): array => [
                     'id' => (string) $tour->id,
-                    'title' => (string) $tour->title,
+                    'title' => Translatable::resolve($tour->title),
                     'meta' => trim(implode(' · ', array_filter([
-                        (string) ($tour->duration_label ?? ''),
+                        Translatable::resolve($tour->duration_label ?? []),
                         (string) ($tour->travel_style ?? ''),
                     ]))),
                 ])
@@ -128,16 +133,22 @@ class DestinationPresenter
         return [
             'id' => $destination->slug,
             'slug' => $destination->slug,
-            'name' => (string) $destination->name,
-            'tagline' => (string) $destination->tagline,
-            'region' => (string) $destination->region,
-            'badge' => filled($destination->badge) ? (string) $destination->badge : null,
+            'name' => Translatable::resolve($destination->name),
+            'tagline' => Translatable::resolve($destination->tagline),
+            'region' => TourFilterOptionPresenter::labelFor(
+                TourFilterOptionType::Region,
+                (string) $destination->region,
+            ),
+            'regionValue' => (string) $destination->region,
+            'badge' => filled(Translatable::resolve($destination->badge ?? []))
+                ? Translatable::resolve($destination->badge)
+                : null,
             'image' => self::coverCardUrl($destination),
-            'description' => (string) $destination->description,
-            'highlights' => $destination->highlights ?? [],
-            'bestSeason' => (string) ($destination->best_season ?? ''),
-            'travelStyle' => (string) ($destination->travel_style ?? ''),
-            'practicalNotes' => $destination->practical_notes ?? [],
+            'description' => Translatable::resolve($destination->description),
+            'highlights' => Translatable::resolveStringList($destination->highlights ?? []),
+            'bestSeason' => Translatable::resolve($destination->best_season ?? []),
+            'travelStyle' => Translatable::resolve($destination->travel_style ?? []),
+            'practicalNotes' => Translatable::resolveStringList($destination->practical_notes ?? []),
             'tourMatchKeywords' => $destination->tour_match_keywords ?? [],
             'isFeatured' => (bool) $destination->is_featured,
             'linkedToursCount' => $linkedTours->count(),
@@ -152,16 +163,22 @@ class DestinationPresenter
         return [
             'id' => $destination->slug,
             'slug' => $destination->slug,
-            'name' => (string) $destination->name,
-            'tagline' => (string) $destination->tagline,
-            'region' => (string) $destination->region,
-            'badge' => filled($destination->badge) ? (string) $destination->badge : null,
+            'name' => Translatable::resolve($destination->name),
+            'tagline' => Translatable::resolve($destination->tagline),
+            'region' => TourFilterOptionPresenter::labelFor(
+                TourFilterOptionType::Region,
+                (string) $destination->region,
+            ),
+            'regionValue' => (string) $destination->region,
+            'badge' => filled(Translatable::resolve($destination->badge ?? []))
+                ? Translatable::resolve($destination->badge)
+                : null,
             'image' => self::coverDetailUrl($destination),
-            'description' => (string) $destination->description,
-            'highlights' => $destination->highlights ?? [],
-            'bestSeason' => (string) ($destination->best_season ?? ''),
-            'travelStyle' => (string) ($destination->travel_style ?? ''),
-            'practicalNotes' => $destination->practical_notes ?? [],
+            'description' => Translatable::resolve($destination->description),
+            'highlights' => Translatable::resolveStringList($destination->highlights ?? []),
+            'bestSeason' => Translatable::resolve($destination->best_season ?? []),
+            'travelStyle' => Translatable::resolve($destination->travel_style ?? []),
+            'practicalNotes' => Translatable::resolveStringList($destination->practical_notes ?? []),
             'tourMatchKeywords' => $destination->tour_match_keywords ?? [],
             'isFeatured' => (bool) $destination->is_featured,
         ];
@@ -177,9 +194,12 @@ class DestinationPresenter
             ->map(fn (Tour $tour): array => [
                 'id' => $tour->slug,
                 'slug' => $tour->slug,
-                'title' => (string) $tour->title,
-                'duration' => (string) $tour->duration_label,
-                'travelStyle' => (string) ($tour->travel_style ?? ''),
+                'title' => Translatable::resolve($tour->title),
+                'duration' => Translatable::resolve($tour->duration_label),
+                'travelStyle' => TourFilterOptionPresenter::labelFor(
+                    TourFilterOptionType::TravelStyle,
+                    (string) ($tour->travel_style ?? ''),
+                ),
                 'href' => '/tours/'.$tour->slug,
             ])
             ->values()
@@ -210,9 +230,13 @@ class DestinationPresenter
             ->map(fn (Destination $destination): array => [
                 'id' => $destination->slug,
                 'slug' => $destination->slug,
-                'name' => (string) $destination->name,
-                'tagline' => (string) $destination->tagline,
-                'region' => (string) $destination->region,
+                'name' => Translatable::resolve($destination->name),
+                'tagline' => Translatable::resolve($destination->tagline),
+                'region' => TourFilterOptionPresenter::labelFor(
+                    TourFilterOptionType::Region,
+                    (string) $destination->region,
+                ),
+                'regionValue' => (string) $destination->region,
                 'image' => self::coverCardUrl($destination),
             ])
             ->values()
@@ -233,10 +257,49 @@ class DestinationPresenter
     }
 
     /**
+     * Map each published tour slug to destination slugs that match it.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function tourDestinationSlugMap(): array
+    {
+        $tours = self::tourCandidates();
+        $map = [];
+
+        foreach (Destination::query()->published()->get(['id', 'slug', 'tour_match_keywords']) as $destination) {
+            foreach (self::matchingTours($destination, $tours) as $tour) {
+                $map[$tour->slug] ??= [];
+                $map[$tour->slug][] = $destination->slug;
+            }
+        }
+
+        return $map;
+    }
+
+    /**
+     * Compact destination options for tour discovery filtering.
+     *
+     * @return list<array{slug: string, name: string}>
+     */
+    public static function forTourDiscoveryFilters(): array
+    {
+        return Destination::query()
+            ->published()
+            ->featuredFirst()
+            ->get(['slug', 'name'])
+            ->map(fn (Destination $destination): array => [
+                'slug' => $destination->slug,
+                'name' => Translatable::resolve($destination->name),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
      * @param  Collection<int, Tour>|null  $tours
      * @return Collection<int, Tour>
      */
-    private static function matchingTours(Destination $destination, $tours = null): Collection
+    public static function matchingTours(Destination $destination, $tours = null): Collection
     {
         $keywords = collect($destination->tour_match_keywords ?? [])
             ->map(fn ($keyword) => mb_strtolower(trim((string) $keyword)))
@@ -251,8 +314,8 @@ class DestinationPresenter
 
         return $haystack->filter(function (Tour $tour) use ($keywords): bool {
             $blob = mb_strtolower(implode(' ', array_filter([
-                (string) $tour->title,
-                (string) ($tour->destination ?? ''),
+                Translatable::resolve($tour->title),
+                Translatable::resolve($tour->destination ?? []),
                 (string) ($tour->region ?? ''),
             ])));
 

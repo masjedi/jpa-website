@@ -1,0 +1,610 @@
+{
+    "nav": {
+        "home": "Startseite",
+        "tours": "Touren",
+        "allTours": "Alle Touren",
+        "tourPackages": "Tourpakete",
+        "destinations": "Reiseziele",
+        "services": "Leistungen",
+        "articles": "Artikel",
+        "gallery": "Galerie",
+        "about": "Über uns",
+        "ourTeam": "Unser Team",
+        "contact": "Kontakt",
+        "toursAndPackages": "Touren & Pakete",
+        "bookingProcess": "Buchungsablauf",
+        "customTourRequest": "Individuelle Touranfrage",
+        "travelInformation": "Reiseinformationen",
+        "donation": "Spende",
+        "privacyPolicy": "Datenschutz",
+        "termsConditions": "Allgemeine Geschäftsbedingungen",
+        "primary": "Primär",
+        "mobilePrimary": "Primär mobil"
+    },
+    "footer": {
+        "tagline": "Geführte Reisen durch Afghanistan mit lokaler Expertise, kulturellem Respekt und sorgfältig geplanter Entdeckung.",
+        "explore": "Entdecken",
+        "company": "Unternehmen",
+        "travelHelp": "Reisehilfe",
+        "allRightsReserved": "Alle Rechte vorbehalten.",
+        "followOn": "Folgen Sie uns auf :label",
+        "newsletterTitle": "Reisenotizen & Inspiration",
+        "newsletterDescription": "Gelegentliche Updates zu Reiserouten, saisonalen Highlights und praktischen Tipps.",
+        "newsletterSuccess": "Vielen Dank. Wir senden Reisenotizen, sobald neue Leitfäden und Updates erscheinen.",
+        "emailAddress": "E-Mail-Adresse",
+        "emailPlaceholder": "sie@beispiel.com",
+        "subscribe": "Abonnieren",
+        "subscribing": "Wird abonniert…"
+    },
+    "seo": {
+        "pages": {
+            "home": {
+                "title": "Private Afghanistan-Touren",
+                "description": "Entdecken Sie private Afghanistan-Touren mit vertrauenswürdigen lokalen Guides. Erleben Sie Kabul, Bamiyan, Herat, Pandschir und mehr auf sorgfältig geplanten Reisen."
+            },
+            "tours": {
+                "title": "Touren und Pakete",
+                "description": "Entdecken Sie kuratierte afghanische Tourpakete und maßgeschneiderte Reiserouten durch Bamiyan, Herat, Kabul und Wakhan. Nur Anfrage — keine Sofortbuchung."
+            },
+            "packages": {
+                "title": "Tourpakete",
+                "description": "Durchsuchen Sie anfragebereite Afghanistan-Tourpakete mit klaren Laufzeiten, Routen-Highlights und Leistungen. Nur Anfrage — keine Sofortbuchung."
+            },
+            "destinations": {
+                "title": "Reiseziele",
+                "description": "Entdecken Sie afghanische Reiseziele — Bamiyan, Kabul, Herat, Mazar-i-Sharif und Wakhan — mit lokal geführter Reiseplanung."
+            },
+            "articles": {
+                "title": "Reiseartikel",
+                "description": "Reisenotizen, kulturelle Leitfäden und praktische Tipps für eine Reise nach Afghanistan vom Team von Journey to Peace."
+            },
+            "services": {
+                "title": "Reiseleistungen",
+                "description": "Geführte Touren, Privatreisen, individuelle Reiserouten, lokale Guides, Transport und Visumunterstützung für Reisen in Afghanistan."
+            },
+            "gallery": {
+                "title": "Reisegalerie",
+                "description": "Reisefotografie aus Afghanistan — Landschaften, Kulturerbestätten und Alltag, festgehalten auf geführten Reisen."
+            },
+            "about": {
+                "title": "Über uns",
+                "description": "Erfahren Sie, wie Journey to Peace private Afghanistan-Touren mit lokalen Guides, kulturellem Respekt und sorgfältig vorbereiteten Reiserouten plant."
+            },
+            "team": {
+                "title": "Unser Team",
+                "description": "Lernen Sie die afghanischen Guides, Planer und Koordinatoren kennen, die jede Reiseroute von Journey to Peace gestalten und begleiten."
+            },
+            "booking": {
+                "title": "Individuelle Touranfrage",
+                "description": "Fragen Sie eine individuelle Afghanistan-Tour an. Unser Team prüft jede Anfrage und sendet ein Angebot — dies ist keine Sofortbuchung."
+            },
+            "contact": {
+                "title": "Kontakt und Anfrage",
+                "description": "Kontaktieren Sie Journey to Peace zu Reisen in Afghanistan. Jede Anfrage wird persönlich geprüft und bestätigt keine Reise."
+            },
+            "privacy": {
+                "title": "Datenschutz",
+                "description": "Wie Journey to Peace Informationen erfasst, verwendet und schützt, die Sie über Anfrageformulare und die öffentliche Website teilen."
+            },
+            "terms": {
+                "title": "Allgemeine Geschäftsbedingungen",
+                "description": "Bedingungen für die Nutzung der Website von Journey to Peace und das Absenden einer Reiseanfrage. Anfragen sind keine bestätigten Reservierungen."
+            }
+        }
+    },
+    "language": {
+        "label": "Sprache",
+        "choose": "Sprache wählen",
+        "current": "Aktuelle Sprache: :language",
+        "english": "Englisch",
+        "dari": "Dari",
+        "pashto": "Paschtu",
+        "german": "Deutsch",
+        "french": "Französisch"
+    },
+    "buttons": {
+        "bookNow": "Jetzt anfragen",
+        "donate": "Spenden",
+        "back": "Zurück",
+        "continue": "Weiter",
+        "close": "Schließen",
+        "explore": "Entdecken",
+        "viewAll": "Alle anzeigen",
+        "viewAllTours": "Alle Touren anzeigen",
+        "exploreAllDestinations": "Alle Reiseziele entdecken",
+        "exploreTours": "Touren entdecken",
+        "sendInquiry": "Anfrage senden",
+        "requestThisTour": "Diese Tour anfragen",
+        "priceOnRequest": "Preis auf Anfrage",
+        "sendBookingRequest": "Buchungsanfrage senden",
+        "sendTripInquiry": "Reiseanfrage senden",
+        "sendInquiryShort": "Anfrage senden",
+        "sending": "Wird gesendet…",
+        "sendingRequest": "Anfrage wird gesendet…",
+        "requestMyCustomTour": "Meine individuelle Tour anfragen",
+        "backToHome": "Zurück zur Startseite",
+        "backToWebsite": "Zurück zur Website",
+        "contactOurTeam": "Unser Team kontaktieren",
+        "exploreServices": "Leistungen entdecken",
+        "continueReading": "Weiterlesen",
+        "sendMessage": "Nachricht senden",
+        "request": "Anfragen",
+        "seeAllServices": "Alle Leistungen anzeigen",
+        "viewFullGallery": "Gesamte Galerie anzeigen",
+        "readAllArticles": "Alle Artikel lesen",
+        "readArticle": "Artikel lesen",
+        "findTours": "Touren finden",
+        "view": "Anzeigen",
+        "viewItinerary": "Reiseverlauf anzeigen",
+        "viewPackage": "Paket anzeigen",
+        "exploreDestination": "Reiseziel entdecken",
+        "browseRegions": "Regionen durchsuchen",
+        "viewTours": "Touren anzeigen",
+        "viewPackages": "Pakete anzeigen",
+        "browseTours": "Touren durchsuchen",
+        "customTrip": "Individuelle Reise",
+        "browseArticles": "Artikel durchsuchen",
+        "getUpdates": "Updates erhalten",
+        "loadMoreArticles": "Weitere Artikel laden",
+        "viewDestination": "Reiseziel anzeigen",
+        "openInGoogleMaps": "In Google Maps öffnen"
+    },
+    "common": {
+        "skipToContent": "Zum Inhalt springen",
+        "theme": "Design",
+        "openMenu": "Menü öffnen",
+        "closeMenu": "Menü schließen",
+        "switchToLightTheme": "Zum hellen Design wechseln",
+        "switchToDarkTheme": "Zum dunklen Design wechseln",
+        "home": "Startseite",
+        "breadcrumb": "Brotkrumen",
+        "clear": "Löschen",
+        "clearAll": "Alles löschen",
+        "resetFilters": "Filter zurücksetzen",
+        "region": "Region",
+        "difficulty": "Schwierigkeit",
+        "duration": "Dauer",
+        "topic": "Thema",
+        "of": ":current von :total",
+        "minRead": ":minutes Min. Lesezeit",
+        "minShort": ":minutes Min.",
+        "by": "Von",
+        "article": "Artikel",
+        "articles": "Artikel",
+        "destination": "Reiseziel",
+        "destinations": "Reiseziele"
+    },
+    "bookNowDialog": {
+        "title": "Buchen Sie Ihre Tour",
+        "description": "Damit senden Sie eine Anfrage. Es wird kein Platz reserviert und keine Reise bestätigt.",
+        "customTitle": "Individuelle Tour",
+        "customDescription": "Planen Sie Ihre eigene Afghanistan-Reise mit unserem Team.",
+        "fixedTitle": "Saisonale Tour",
+        "fixedDescription": "Wählen Sie ein anfragebereites Tourpaket."
+    },
+    "whatsapp": {
+        "chat": "Per WhatsApp chatten unter :number"
+    },
+    "chat": {
+        "open": "Chat öffnen",
+        "close": "Chat schließen",
+        "minimize": "Chat minimieren",
+        "title": "Mit uns chatten",
+        "greeting": "Hallo! Wie können wir Ihnen bei Ihrer Afghanistan-Reise helfen?",
+        "offlineNotice": "Senden Sie uns eine Nachricht, und unser Team antwortet so bald wie möglich.",
+        "placeholder": "Nachricht eingeben…",
+        "send": "Senden",
+        "sending": "Wird gesendet…",
+        "continueWhatsApp": "Auf WhatsApp fortsetzen",
+        "closedNotice": "Dieses Gespräch ist geschlossen. Sie erreichen uns weiterhin über WhatsApp.",
+        "sendError": "Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+        "loadError": "Nachrichten konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+        "teamTyping": "Unser Team schreibt…"
+    },
+    "contact": {
+        "sendMessage": "Nachricht senden",
+        "email": "E-Mail",
+        "whatsapp": "WhatsApp",
+        "location": "Standort",
+        "topicGeneral": "Allgemeine Frage",
+        "topicCustomTrip": "Individuelle Reise planen",
+        "topicGroupTour": "An einer Gruppentour teilnehmen",
+        "topicPress": "Presse & Partnerschaften",
+        "successMessage": "Vielen Dank für Ihre Nachricht. Wir melden uns in Kürze.",
+        "eyebrow": "Kontakt aufnehmen",
+        "title": "Planen Sie Ihre Reise mit uns",
+        "intro": "Jede Nachricht wird persönlich geprüft. Das Absenden eines Formulars reserviert keinen Platz und bestätigt keine Reise.",
+        "replyTime": "Typische Antwort innerhalb von 24–48 Stunden",
+        "formTitle": "Nachricht senden",
+        "yourName": "Ihr Name",
+        "emailAddress": "E-Mail-Adresse",
+        "subject": "Betreff",
+        "howCanWeHelp": "Wie können wir helfen?",
+        "errors": {
+            "name": "Bitte geben Sie Ihren Namen ein (mindestens 2 Zeichen).",
+            "nameMax": "Der Name darf höchstens 25 Zeichen haben.",
+            "email": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+            "emailMax": "Die E-Mail darf höchstens 50 Zeichen haben.",
+            "subject": "Bitte geben Sie einen Betreff ein (mindestens 3 Zeichen).",
+            "subjectMax": "Der Betreff darf höchstens 50 Zeichen haben.",
+            "message": "Bitte schreiben Sie mindestens 10 Zeichen in Ihre Nachricht.",
+            "messageMax": "Die Nachricht darf höchstens 200 Zeichen haben."
+        },
+        "messageCounter": ":count / :max",
+        "submitDisclaimer": "Das Absenden dieser Nachricht reserviert keinen Platz und bestätigt keine Reise.",
+        "messageSent": "Nachricht gesendet",
+        "findUs": "Finden Sie uns",
+        "officeLocation": "Bürostandort",
+        "mapsTitle": "Google Maps — :location"
+    },
+    "tours": {
+        "requestThisTour": "Diese Tour anfragen",
+        "inquiryReceived": "Anfrage eingegangen"
+    },
+    "toursPage": {
+        "hero": {
+            "eyebrow": "Afghanistan entdecken",
+            "title": "Finden Sie Ihre nächste Reise",
+            "description": "Durchsuchen Sie geführte Touren, entdecken Sie bemerkenswerte Reiseziele und planen Sie eine Reise nach Ihren Interessen."
+        },
+        "views": {
+            "navLabel": "Kataloge durchsuchen",
+            "allTours": "Alle Touren",
+            "packages": "Tourpakete",
+            "destinations": "Reiseziele"
+        },
+        "filters": {
+            "title": "Filter",
+            "showResults": "Ergebnisse anzeigen",
+            "sort": "Sortieren",
+            "sortNewest": "Neueste",
+            "sortTitle": "Titel A–Z",
+            "sortDurationAsc": "Kürzere zuerst",
+            "sortDurationDesc": "Längere zuerst"
+        },
+        "packages": {
+            "eyebrow": "Reisepakete",
+            "title": "Anfragebereite Pakete",
+            "description": "All-inclusive-Pakete — nur Anfrage, keine Sofortbuchung.",
+            "searchPlaceholder": "Pakete, Routen oder Leistungen suchen…",
+            "filterNote": "Suchen Sie Pakete nach Titel, Routen-Highlights oder Leistungen.",
+            "noResultsTitle": "Keine passenden Pakete"
+        },
+        "catalog": {
+            "eyebrow": "Touren",
+            "title": "Reiserouten durchsuchen",
+            "countNote": ":shown von :total Reisen. Jede Tour kann privat oder in kleiner Gruppe stattfinden.",
+            "resultsCount": ":count Ergebnisse",
+            "searchPlaceholder": "Touren, Orte oder Themen suchen…",
+            "searchAria": "Touren suchen",
+            "travelStyle": "Reisestil",
+            "allDestinations": "Alle Reiseziele",
+            "allRegions": "Alle Regionen",
+            "allStyles": "Alle Stile",
+            "allDifficulties": "Alle Schwierigkeitsgrade",
+            "anyLength": "Beliebige Dauer",
+            "upTo5Days": "Bis zu 5 Tagen",
+            "days6to8": "6–8 Tage",
+            "days9Plus": "9+ Tage",
+            "loadMore": "Mehr laden",
+            "noResultsTitle": "Keine passenden Touren",
+            "noResultsDescription": "Versuchen Sie eine andere Suche oder setzen Sie die Filter zurück."
+        }
+    },
+    "destinationsPage": {
+        "hero": {
+            "eyebrow": "Afghanistan entdecken",
+            "title": "Reiseziele",
+            "description": "Von Hochlandseen bis zu Städten der Seidenstraße — jede Region zeigt ein anderes Gesicht des Landes, geführt mit lokaler Expertise."
+        },
+        "grid": {
+            "eyebrow": "Regionen",
+            "title": "Wo wir führen",
+            "countNote": ":shown von :total Reisezielen",
+            "searchPlaceholder": "Reiseziele suchen…",
+            "searchAria": "Reiseziele suchen",
+            "allRegions": "Alle Regionen",
+            "relatedTour": "zugehörige Tour",
+            "relatedTours": "zugehörige Touren",
+            "relatedTourCount": ":count zugehörige Tour",
+            "relatedToursCount": ":count zugehörige Touren",
+            "noResultsTitle": "Keine Reiseziele gefunden",
+            "noResultsFilter": "Versuchen Sie eine andere Suche oder setzen Sie die Filter zurück.",
+            "noResultsEmpty": "Noch keine veröffentlichten Reiseziele. Setzen Sie ein Reiseziel unter Admin → Reiseziele auf Veröffentlicht, um es hier anzuzeigen."
+        }
+    },
+    "servicesPage": {
+        "hero": {
+            "eyebrow": "Wie wir Ihre Reise unterstützen",
+            "title": "Reiseleistungen",
+            "description": "Von geführten Rundreisen über Visaschreiben bis zur Logistik vor Ort — wir koordinieren die Details, damit Sie sich auf das Erlebnis konzentrieren können."
+        },
+        "featured": {
+            "eyebrow": "Kernleistungen",
+            "title": "Wo die meisten Reisen beginnen"
+        },
+        "catalogue": {
+            "eyebrow": "Vollständiger Katalog",
+            "title": "Alles, was wir koordinieren",
+            "allServices": "Alle Leistungen",
+            "emptyCategory": "In dieser Kategorie gibt es noch keine Leistungen."
+        },
+        "process": {
+            "eyebrow": "So funktioniert es",
+            "title": "Planung auf Anfrage",
+            "description": "Jede Leistung beginnt mit einem Gespräch — nicht mit einem Sofortkauf. Wir bestätigen Details, Genehmigungen und Preise, bevor Sie reisen.",
+            "steps": {
+                "inquiry": {
+                    "title": "Anfrage senden",
+                    "description": "Nennen Sie uns Ihre Daten, Interessen und Gruppengröße. Keine Zahlung und keine Sofortbuchung erforderlich."
+                },
+                "proposal": {
+                    "title": "Angebot erhalten",
+                    "description": "Unser Team antwortet innerhalb von 24 Stunden mit einer maßgeschneiderten Reiseroute, einem Kostenvoranschlag und Hinweisen zu Genehmigungen."
+                },
+                "refine": {
+                    "title": "Gemeinsam verfeinern",
+                    "description": "Passen Sie Routen, Tempo und Unterkunft an, bis der Plan zu Ihrer Gruppe passt."
+                },
+                "travel": {
+                    "title": "Mit Unterstützung reisen",
+                    "description": "Guides, Fahrzeuge und Logistik werden vor Ort koordiniert — und wir bleiben durchgehend erreichbar."
+                }
+            }
+        },
+        "impact": {
+            "eyebrow": "Unser Ansatz",
+            "title": "Reisen, die etwas zurückgeben",
+            "locallyOwned": {
+                "title": "In lokaler Hand",
+                "description": "Tourismuseinnahmen bleiben bei afghanischen Gästehäusern, Fahrern und Handwerkern."
+            },
+            "culturalRespect": {
+                "title": "Kultureller Respekt",
+                "description": "Guides vermitteln Bräuche und Etikette, damit Besuche willkommen sind."
+            },
+            "communityMinded": {
+                "title": "Gemeinschaftsorientiert",
+                "description": "Kleine Gruppen und faire Preise für die Menschen und Orte, die wir besuchen."
+            },
+            "responsibleTravel": {
+                "title": "Verantwortungsvolles Reisen",
+                "description": "Leave-no-trace-Praktiken und Einwilligung zur Fotografie auf jeder Route."
+            }
+        }
+    },
+    "articlesPage": {
+        "hero": {
+            "eyebrow": "Reisetagebuch",
+            "title": "Artikel & Leitfäden",
+            "description": "Praktische Tipps, kulturelle Einblicke und Ideen für Reiserouten von unserem Team vor Ort in Afghanistan."
+        },
+        "featured": {
+            "eyebrow": "Empfehlung der Redaktion",
+            "title": "Ausgewählter Beitrag"
+        },
+        "grid": {
+            "eyebrow": "Bibliothek",
+            "title": "Neues von unserem Team",
+            "allTopics": "Alle Themen",
+            "searchPlaceholder": "Artikel suchen…",
+            "searchAria": "Artikel suchen",
+            "noPublishedTitle": "Noch keine veröffentlichten Artikel",
+            "noPublishedDescription": "Veröffentlichen Sie Artikel im Admin-Dashboard, um diese Bibliothek zu füllen.",
+            "noResultsTitle": "Keine Artikel gefunden",
+            "noResultsDescription": "Versuchen Sie einen anderen Suchbegriff oder setzen Sie die Filter zurück."
+        }
+    },
+    "galleryPage": {
+        "hero": {
+            "eyebrow": "Reisefotografie",
+            "title": "Galerie",
+            "description": "Landschaften, Städte und Alltagsmomente von Reisen durch Afghanistan — erkunden Sie die Kuppel unten und tippen Sie auf ein Bild, um es größer anzuzeigen."
+        },
+        "dome": {
+            "ariaLabel": "Interaktive Fotogalerie",
+            "instructions": "Ziehen zum Erkunden · Klicken oder tippen Sie auf eine Kachel zum Vergrößern · Escape zum Schließen",
+            "empty": "Noch keine veröffentlichten Galeriefotos. Laden Sie Bilder im Admin-Dashboard hoch und veröffentlichen Sie sie, um dieses Erlebnis zu füllen.",
+            "footnote": "Die gezeigten Bilder stehen für Regionen und Erlebnisse, die wir führen. Bildunterschriften und hochauflösende Serien werden für jede Reise kuratiert."
+        }
+    },
+    "aboutPage": {
+        "journeyPathHeading": "Wie unsere Führungsarbeit gewachsen ist"
+    },
+    "teamPage": {
+        "meta": {
+            "title": "Unser Team",
+            "description": "Lernen Sie das JPA-Team kennen — afghanische Guides, Planer und Koordinatoren, die jede Reise mit lokaler Expertise und kulturellem Respekt gestalten und begleiten."
+        },
+        "hero": {
+            "eyebrow": "Unsere Menschen",
+            "title": "Das Team kennenlernen",
+            "description": "Ein vielfältiges Team leidenschaftlicher Fachleute mit einzigartigen Fähigkeiten, das Innovation und Exzellenz auf jeder Reise vorantreibt."
+        },
+        "emptyState": "Teamprofile erscheinen hier, sobald sie veröffentlicht sind.",
+        "portraitAlt": "Porträt von :name",
+        "emailAria": "E-Mail an :name",
+        "whatsappAria": "WhatsApp :name"
+    },
+    "home": {
+        "hero": {
+            "emptySlides": "Veröffentlichen Sie eine Hero-Folie im Admin-Dashboard, um Ihre Überschrift hier anzuzeigen.",
+            "carouselLabel": "Hervorgehobene Reisemitteilungen",
+            "chooseMessage": "Eine Mitteilung wählen",
+            "showMessage": "Mitteilung :current von :total anzeigen"
+        },
+        "trust": {
+            "localExpertise": {
+                "title": "Lokale Expertise",
+                "description": "Erfahrene afghanische Guides, die die Routen, die Kultur und die praktischen Realitäten des Reisens hier kennen."
+            },
+            "tailoredPlanning": {
+                "title": "Individuelle Planung",
+                "description": "Jede Reise wird um Ihre Interessen, Ihr Tempo und Ihren Reisestil herum gestaltet — nicht nach einer festen Vorlage."
+            },
+            "responsibleTourism": {
+                "title": "Verantwortungsvoller Tourismus",
+                "description": "Wir legen Wert auf respektvollen Umgang, klare Kommunikation und gemeinschaftsorientierten Tourismus."
+            },
+            "humanSupport": {
+                "title": "Persönliche Unterstützung",
+                "description": "Echte Menschen prüfen jede Anfrage und bleiben vor und während Ihrer Reise erreichbar."
+            }
+        },
+        "featuredTours": {
+            "eyebrow": "Ausgewählte Touren",
+            "title": "Reisen, die wir gerne führen",
+            "description": "Einige unserer meistgefragten Routen, jeweils aufgebaut auf lokalem Wissen und flexiblem Tempo."
+        },
+        "destinations": {
+            "eyebrow": "Reiseziele",
+            "title": "Wohin wir Sie begleiten können",
+            "description": "Von hochgelegenen Seen bis zu alten Städten bietet jedes Reiseziel eine andere Seite Afghanistans.",
+            "relatedTour": "zugehörige Tour",
+            "relatedTours": "zugehörige Touren"
+        },
+        "services": {
+            "eyebrow": "Leistungen",
+            "title": "Alles, was Ihre Reise braucht, lokal organisiert.",
+            "description": "Von lokalen Guides und privatem Transport bis zu sorgfältig ausgewählten Unterkünften koordinieren wir die praktischen Details, damit Sie sich auf das Erlebnis konzentrieren können.",
+            "imageAlt": "Lokaler afghanischer Guide führt Reisende auf einer malerischen Route in Afghanistan",
+            "cta": "Alle Leistungen entdecken",
+            "rowLinkHint": "Mehr über {title} erfahren",
+            "items": {
+                "tailorMade": {
+                    "title": "Maßgeschneiderte Reisen",
+                    "description": "Persönliche Reiserouten, abgestimmt auf Ihre Interessen, Daten und Ihr Tempo."
+                },
+                "privateGuides": {
+                    "title": "Private lokale Guides",
+                    "description": "Erfahrene afghanische Guides mit tiefem Wissen über jedes Reiseziel."
+                },
+                "transport": {
+                    "title": "Transport & Logistik",
+                    "description": "Zuverlässige Privatfahrzeuge und praktische Koordination entlang Ihrer Route."
+                },
+                "accommodation": {
+                    "title": "Unterkunftsunterstützung",
+                    "description": "Sorgfältig ausgewählte Hotels und Gästehäuser, passend zu Ihrer Reise."
+                }
+            }
+        },
+        "gallery": {
+            "eyebrow": "Galerie",
+            "title": "Momente unterwegs",
+            "description": "Ein Einblick in die Landschaften, Städte und den Alltag, den unsere Reisenden erleben."
+        },
+        "testimonials": {
+            "eyebrow": "Stimmen",
+            "title": "Was Reisende sagen",
+            "description": "Echtes Feedback von Gästen, die Afghanistan mit unserem Team erkundet haben."
+        },
+        "articles": {
+            "eyebrow": "Reiseblog",
+            "title": "Neueste Artikel & Leitfäden",
+            "description": "Praktische Tipps, kulturelle Einblicke und Ideen für Reiserouten von unserem Team."
+        },
+        "faq": {
+            "eyebrow": "Reiseinformationen",
+            "title": "Häufig gestellte Fragen",
+            "description": "Kurze Antworten auf häufige Fragen zur Planung einer Reise nach Afghanistan."
+        }
+    },
+    "booking": {
+        "stepOf": "Schritt :current von :total",
+        "stepsLabel": "Schritte der Buchungsanfrage",
+        "submitHint": "Markieren Sie die drei erforderlichen Zustimmungen, um diese Schaltfläche zu aktivieren.",
+        "reviewSubmitHint": "Meine individuelle Tour anfragen bleibt inaktiv, bis die drei erforderlichen Bestätigungen oben markiert sind.",
+        "steps": {
+            "trip": { "title": "Reisepräferenzen", "short": "Reise" },
+            "travelers": { "title": "Touristen", "short": "Touristen" },
+            "services": { "title": "Leistungen", "short": "Leistungen" },
+            "documents": { "title": "Reisedokumente", "short": "Dokumente" },
+            "requirements": { "title": "Notfallkontakt", "short": "Notfall" },
+            "review": { "title": "Prüfen & Anfragen", "short": "Prüfen" }
+        },
+        "options": {
+            "exactDate": "Genaues Datum",
+            "flex3Days": "Flexibel ±3 Tage",
+            "flexWeek": "Flexibel ±1 Woche",
+            "flexMonth": "Flexibel innerhalb des Monats",
+            "unsure": "Ich bin mir noch nicht sicher",
+            "culture": "Kultur & Geschichte",
+            "nature": "Natur & Landschaften",
+            "adventure": "Abenteuer",
+            "photography": "Fotografie",
+            "communities": "Lokale Gemeinschaften",
+            "food": "Essen & Traditionen",
+            "architecture": "Architektur",
+            "routeKnow": "Ich kenne die Reiseziele, die ich möchte",
+            "routeKnowDesc": "Wir planen rund um die Orte, die Sie auswählen.",
+            "routeRecommend": "Die beste Route empfehlen",
+            "routeRecommendDesc": "Unser Team schlägt Reiseziele und eine Reihenfolge vor.",
+            "routeMix": "Meine ausgewählten Reiseziele mit Ihren Empfehlungen kombinieren",
+            "routeMixDesc": "Wir behalten Ihre Auswahl und füllen die Lücken.",
+            "solo": "Alleinreisend",
+            "couple": "Paar",
+            "family": "Familie",
+            "friends": "Freunde",
+            "privateGroup": "Private Gruppe",
+            "private": "Privat",
+            "group": "Gruppe",
+            "guide": "Reiseführer",
+            "guideDesc": "Ein lokaler Guide für Ihre Reiseroute.",
+            "transportation": "Transport",
+            "transportationDesc": "Fahrzeug mit professionellem Fahrer.",
+            "accommodation": "Unterkunft",
+            "accommodationDesc": "Unterkünfte entlang der Route.",
+            "airport": "Flughafentransfer",
+            "airportDesc": "Unterstützung bei Ankunft und Abreise.",
+            "domestic": "Inländische Reisearrangements",
+            "domesticDesc": "Straße oder Inlandsflüge zwischen Regionen.",
+            "male": "Männlich",
+            "female": "Weiblich",
+            "english": "Englisch",
+            "dari": "Dari",
+            "pashto": "Paschtu",
+            "german": "Deutsch",
+            "other": "Andere",
+            "recommendSeason": "Die beste Zeit empfehlen",
+            "standardCar": "Standardwagen",
+            "suv": "SUV / 4×4",
+            "minivan": "Minivan",
+            "largerVehicle": "Größeres Gruppenfahrzeug",
+            "recommendVehicle": "Das am besten geeignete Fahrzeug empfehlen",
+            "entireTrip": "Gesamte Reise",
+            "selectedDays": "Ausgewählte Reiseziele/Tage",
+            "airportOnly": "Nur Flughafentransfers",
+            "standard": "Standard",
+            "comfortable": "Komfortabel",
+            "premium": "Premium / bestes verfügbares Angebot",
+            "recommendAccommodation": "Empfehlung nach Reiseziel",
+            "single": "Einzelzimmer",
+            "double": "Doppelzimmer",
+            "twin": "Zweibettzimmer",
+            "familyRooms": "Familien- / mehrere Zimmer",
+            "yes": "Ja",
+            "no": "Nein",
+            "flightNotYet": "Flugdaten noch nicht verfügbar",
+            "road": "Straßentransport",
+            "domesticFlight": "Inlandsflug, wo verfügbar",
+            "recommendOption": "Die beste Option empfehlen",
+            "visaObtained": "Bereits erhalten",
+            "visaApplying": "Eigenständige Beantragung",
+            "visaGuidance": "Beratung benötigt",
+            "visaNotStarted": "Noch nicht begonnen",
+            "insuranceArranged": "Bereits organisiert",
+            "insuranceWillArrange": "Wird vor der Reise organisiert",
+            "insuranceGuidance": "Allgemeine Beratung benötigt",
+            "dietaryNone": "Keine",
+            "vegetarian": "Vegetarisch",
+            "vegan": "Vegan",
+            "halal": "Halal",
+            "glutenFree": "Glutenfrei",
+            "allergy": "Lebensmittelallergie",
+            "email": "E-Mail",
+            "whatsapp": "WhatsApp",
+            "phone": "Telefon"
+        }
+    }
+}

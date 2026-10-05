@@ -5,14 +5,10 @@ import {
     type ArticleFormStatus,
 } from '@/components/admin/articleForm';
 import { isRichTextHtml } from '@/lib/richText';
-import type { ArticleDetail } from '@/types/articles';
+import { primaryTranslation } from '@/lib/translations';
+import type { AdminArticleListItem } from '@/types/articles';
 
-export type ManagedArticle = ArticleDetail & {
-    id: number;
-    status: ArticleFormStatus;
-    isFeatured?: boolean;
-    relatedTourSlugs?: readonly string[];
-};
+export type ManagedArticle = AdminArticleListItem;
 
 interface BuildArticleViewModelOptions {
     article: ManagedArticle;
@@ -23,14 +19,16 @@ export function buildArticleViewModel({
     article,
     status,
 }: BuildArticleViewModelOptions): ContentRecordViewModel {
+    const title = primaryTranslation(article.title);
+    const summary = primaryTranslation(article.summary);
     const content = resolveArticleContent(article);
     const usesRichContent = isRichTextHtml(content);
 
     return {
-        title: article.title,
-        subtitle: article.summary,
+        title,
+        subtitle: summary,
         imageUrl: article.image,
-        imageAlt: article.title,
+        imageAlt: title,
         badgeLabel: article.category,
         status,
         cardEyebrow: article.category,
@@ -44,7 +42,11 @@ export function buildArticleViewModel({
                 label: 'Reading time',
                 value: `${article.readingTimeMinutes} min`,
             },
-            { id: 'author', label: 'Author', value: article.author.name },
+            {
+                id: 'author',
+                label: 'Author',
+                value: `${article.author.name} · ${article.author.role}`,
+            },
             {
                 id: 'featured',
                 label: 'Featured',
@@ -53,13 +55,6 @@ export function buildArticleViewModel({
             { id: 'status', label: 'Status', value: status },
         ],
         bodyHtml: usesRichContent ? content : undefined,
-        sections: usesRichContent
-            ? undefined
-            : article.sections.map((section) => ({
-                  id: section.id,
-                  heading: section.heading,
-                  paragraphs: section.paragraphs,
-              })),
     };
 }
 

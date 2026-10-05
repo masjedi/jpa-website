@@ -1,20 +1,10 @@
-export type TourDifficulty = 'Easy' | 'Moderate' | 'Demanding' | 'Expedition';
+import type { TranslatedString } from '@/types/locale';
 
-export type TourTravelStyle =
-    | 'Cultural & Heritage'
-    | 'Adventure & Trekking'
-    | 'Photography Focus'
-    | 'Silk Road History'
-    | 'Small Group Expedition';
+export type TourDifficulty = string;
+
+export type TourTravelStyle = string;
 
 export type TourSeason = 'Spring' | 'Summer' | 'Autumn' | 'Winter' | 'Year-round';
-
-export type DepartureStatus =
-    | 'Guaranteed'
-    | 'Limited Availability'
-    | 'Open for Inquiries'
-    | 'Almost Full'
-    | 'On Request';
 
 export interface TourItineraryDay {
     day: string;
@@ -28,10 +18,13 @@ export interface Tour {
     title: string;
     destination: string;
     region: string;
+    regionValue?: string;
     durationDays: number;
     duration: string;
     difficulty: TourDifficulty;
+    difficultyValue?: string;
     travelStyle: TourTravelStyle;
+    travelStyleValue?: string;
     season: TourSeason;
     bestMonths: string;
     groupSize: string;
@@ -42,11 +35,8 @@ export interface Tour {
     highlights: readonly string[];
     itineraryOverview: readonly TourItineraryDay[];
     inclusions: readonly string[];
-    estimatedStartingPrice: string;
-    nextDeparture: {
-        date: string;
-        status: DepartureStatus;
-    };
+    priceLabel?: string | null;
+    destinationSlugs?: readonly string[];
 }
 
 export interface TourPackage {
@@ -68,6 +58,41 @@ export interface TourPackage {
     isPopular?: boolean;
 }
 
+export interface AdminTourOffer {
+    id: number;
+    slug: string;
+    listingType: 'tour' | 'package';
+    status: 'Published' | 'Draft';
+    title: TranslatedString;
+    durationDays: number;
+    duration: TranslatedString;
+    badge: TranslatedString;
+    image: string;
+    description: TranslatedString;
+    highlightsText: TranslatedString;
+    highlights: readonly string[];
+    inclusions: readonly string[];
+    includedServicesText: TranslatedString;
+    destination: TranslatedString;
+    region: string;
+    tagline?: TranslatedString;
+    featuredPerks?: readonly string[];
+    keyDestinations?: readonly string[];
+    keyDestinationsText?: TranslatedString;
+    priceEstimate?: TranslatedString;
+    idealFor?: TranslatedString;
+    includedServices?: readonly string[];
+    journeyOutline?: Record<string, unknown>;
+    isPopular?: boolean;
+    difficulty?: TourDifficulty;
+    travelStyle?: TourTravelStyle;
+    season?: TranslatedString;
+    bestMonths?: TranslatedString;
+    groupSize?: TranslatedString;
+    content?: TranslatedString;
+    itineraryOverview?: Record<string, unknown>;
+}
+
 export interface PackageJourneyPhase {
     phase: string;
     title: string;
@@ -76,6 +101,8 @@ export interface PackageJourneyPhase {
 
 export interface InquiryFormData {
     tourTitle?: string;
+    packagePrice?: string;
+    requestKind?: 'tour' | 'seasonal_package';
     preferredDate?: string;
     travelerCount?: string;
     durationPreference?: string;

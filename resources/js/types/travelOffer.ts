@@ -10,7 +10,7 @@ export interface TravelOfferRelatedItem {
     durationDays: number;
     durationLabel: string;
     badge?: string;
-    priceLabel: string;
+    priceLabel?: string;
     href: string;
 }
 
@@ -23,7 +23,7 @@ export interface TravelOfferDetail {
     durationDays: number;
     durationLabel: string;
     badge?: string;
-    priceLabel: string;
+    priceLabel?: string;
     description: string;
     content?: string;
     highlights: readonly string[];
@@ -45,5 +45,4 @@ export interface TravelOfferDetail {
         relatedViewAll: string;
     };
     relatedItems: readonly TravelOfferRelatedItem[];
-    inquiryPreferredDate?: string;
 }

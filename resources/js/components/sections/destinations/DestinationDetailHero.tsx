@@ -29,7 +29,7 @@ export function DestinationDetailHero({
                         </Link>
                         <span aria-hidden>/</span>
                         <Link
-                            href="/destinations"
+                            href="/tours?view=destinations"
                             className="transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                         >
                             Destinations
@@ -88,7 +88,7 @@ export function DestinationDetailHero({
                                     <ArrowRight className="size-4" aria-hidden />
                                 </button>
                                 <Link
-                                    href="/destinations"
+                                    href="/tours?view=destinations"
                                     className="inline-flex items-center justify-center gap-1.5 rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                 >
                                     <ArrowLeft className="size-4" aria-hidden />

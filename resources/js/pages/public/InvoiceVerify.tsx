@@ -39,6 +39,7 @@ export default function InvoiceVerify({
             <PageMeta
                 title={isConfirmed ? 'Invoice verified' : 'Verification expired'}
                 description={`Verification result for invoice ${invoiceNumber} from ${brandName}.`}
+                noIndex
             />
             <PublicLayout>
                 <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-4 py-16 sm:px-6 sm:py-24">

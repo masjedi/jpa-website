@@ -16,8 +16,17 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AdminUserSeeder::class,
+            ProvinceSeeder::class,
             HeroSectionSeeder::class,
             SiteSettingsSeeder::class,
+            AboutPageSeeder::class,
+            LegalPageSeeder::class,
+            TourFilterOptionSeeder::class,
+            TourSeeder::class,
+            DestinationSeeder::class,
+            TeamMemberSeeder::class,
+            FaqItemSeeder::class,
+            ServiceOfferingSeeder::class,
         ]);
     }
 }

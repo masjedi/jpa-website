@@ -62,11 +62,13 @@ export function OfferDetailHero({ offer, onRequest }: OfferDetailHeroProps) {
                             {offer.tagline}
                         </p>
 
-                        <p className="font-heading mt-5 text-lg font-semibold text-foreground">
-                            {offer.priceLabel}
-                        </p>
+                        {offer.priceLabel ? (
+                            <p className="font-heading mt-5 text-lg font-semibold text-foreground">
+                                {offer.priceLabel}
+                            </p>
+                        ) : null}
 
-                        <p className="mt-1 text-xs text-muted-foreground">
+                        <p className={`text-xs text-muted-foreground ${offer.priceLabel ? 'mt-1' : 'mt-5'}`}>
                             Inquiry-based pricing — final quote confirmed by email.
                         </p>
 

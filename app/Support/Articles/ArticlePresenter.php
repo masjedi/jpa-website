@@ -3,20 +3,30 @@
 namespace App\Support\Articles;
 
 use App\Models\Article;
+use App\Models\TeamMember;
 use App\Models\Tour;
+use App\Support\Team\TeamMemberPresenter;
+use App\Support\Translatable;
 
 class ArticlePresenter
 {
     /**
-     * @return array{articles: list<array<string, mixed>>}
+     * @return array{articles: list<array<string, mixed>>, teamMembers: list<array{id: int, name: string, role: string}>}
      */
     public static function forAdminIndex(): array
     {
         return [
             'articles' => Article::query()
+                ->with('teamMember')
                 ->latestFirst()
                 ->get()
                 ->map(fn (Article $article): array => self::adminPayload($article))
+                ->values()
+                ->all(),
+            'teamMembers' => TeamMember::query()
+                ->ordered()
+                ->get()
+                ->map(fn (TeamMember $member): array => self::teamMemberOptionPayload($member))
                 ->values()
                 ->all(),
         ];
@@ -30,6 +40,7 @@ class ArticlePresenter
         return [
             'articles' => Article::query()
                 ->published()
+                ->with('teamMember')
                 ->featuredFirst()
                 ->get()
                 ->map(fn (Article $article): array => self::publicCardPayload($article))
@@ -45,6 +56,7 @@ class ArticlePresenter
     {
         return Article::query()
             ->published()
+            ->with('teamMember')
             ->latestFirst()
             ->limit($limit)
             ->get()
@@ -78,13 +90,14 @@ class ArticlePresenter
             'id' => $article->id,
             'slug' => $article->slug,
             'status' => $article->status->frontendLabel(),
-            'title' => (string) $article->title,
-            'summary' => (string) $article->summary,
+            'title' => Translatable::normalize($article->title),
+            'summary' => Translatable::normalize($article->summary),
             'category' => (string) $article->category,
             'image' => self::coverCardUrl($article),
-            'content' => (string) $article->content,
+            'content' => Translatable::normalize($article->content),
             'date' => self::displayDate($article),
             'readingTimeMinutes' => (int) $article->reading_time_minutes,
+            'teamMemberId' => $article->team_member_id,
             'author' => self::authorPayload($article),
             'isFeatured' => (bool) $article->is_featured,
             'relatedTourSlugs' => $article->related_tour_slugs ?? [],
@@ -99,15 +112,15 @@ class ArticlePresenter
         return [
             'id' => $article->slug,
             'slug' => $article->slug,
-            'title' => (string) $article->title,
-            'summary' => (string) $article->summary,
+            'title' => Translatable::resolve($article->title),
+            'summary' => Translatable::resolve($article->summary),
             'category' => (string) $article->category,
             'image' => self::coverCardUrl($article),
             'date' => self::displayDate($article),
             'readingTimeMinutes' => (int) $article->reading_time_minutes,
             'author' => self::authorPayload($article),
             'isFeatured' => (bool) $article->is_featured,
-            'content' => (string) $article->content,
+            'content' => Translatable::resolve($article->content),
             'sections' => [],
         ];
     }
@@ -120,15 +133,15 @@ class ArticlePresenter
         return [
             'id' => $article->slug,
             'slug' => $article->slug,
-            'title' => (string) $article->title,
-            'summary' => (string) $article->summary,
+            'title' => Translatable::resolve($article->title),
+            'summary' => Translatable::resolve($article->summary),
             'category' => (string) $article->category,
             'image' => self::coverDetailUrl($article),
             'date' => self::displayDate($article),
             'readingTimeMinutes' => (int) $article->reading_time_minutes,
             'author' => self::authorPayload($article),
             'isFeatured' => (bool) $article->is_featured,
-            'content' => (string) $article->content,
+            'content' => Translatable::resolve($article->content),
             'sections' => [],
             'relatedTourSlugs' => $article->related_tour_slugs ?? [],
         ];
@@ -141,6 +154,7 @@ class ArticlePresenter
     {
         $candidates = Article::query()
             ->published()
+            ->with('teamMember')
             ->where('slug', '!=', $current->slug)
             ->featuredFirst()
             ->get();
@@ -183,8 +197,8 @@ class ArticlePresenter
             ->map(fn (Tour $tour): array => [
                 'id' => $tour->slug,
                 'slug' => $tour->slug,
-                'title' => (string) $tour->title,
-                'duration' => (string) $tour->duration_label,
+                'title' => Translatable::resolve($tour->title),
+                'duration' => Translatable::resolve($tour->duration_label),
                 'href' => '/tours/'.$tour->slug,
             ])
             ->values()
@@ -196,9 +210,13 @@ class ArticlePresenter
      */
     private static function authorPayload(Article $article): array
     {
+        if ($article->teamMember !== null) {
+            return TeamMemberPresenter::authorPayload($article->teamMember);
+        }
+
         $payload = [
-            'name' => (string) $article->author_name,
-            'role' => (string) $article->author_role,
+            'name' => (string) ($article->author_name ?? ''),
+            'role' => (string) ($article->author_role ?? ''),
         ];
 
         if (filled($article->author_avatar)) {
@@ -206,6 +224,18 @@ class ArticlePresenter
         }
 
         return $payload;
+    }
+
+    /**
+     * @return array{id: int, name: string, role: string}
+     */
+    private static function teamMemberOptionPayload(TeamMember $member): array
+    {
+        return [
+            'id' => $member->id,
+            'name' => Translatable::resolve($member->name),
+            'role' => Translatable::resolve($member->role),
+        ];
     }
 
     private static function displayDate(Article $article): string

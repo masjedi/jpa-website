@@ -25,6 +25,8 @@ class GalleryPhoto extends Model
     {
         return [
             'status' => GalleryPhotoStatus::class,
+            'alt' => 'array',
+            'caption' => 'array',
             'image_media' => 'array',
             'sort_order' => 'integer',
         ];

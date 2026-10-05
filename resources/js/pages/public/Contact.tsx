@@ -9,10 +9,7 @@ export default function Contact() {
 
     return (
         <>
-            <PageMeta
-                title="Contact and Trip Inquiry"
-                description="Contact Journey to Peace about travel in Afghanistan. Every inquiry is reviewed personally. Submitting a message does not reserve a seat or confirm a trip."
-            />
+            <PageMeta />
             <ContactLanding />
         </>
     );

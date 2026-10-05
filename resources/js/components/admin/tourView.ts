@@ -1,129 +1,106 @@
 import {
     listingTypeLabel,
-    packageToFormValues,
-    resolveTourContent,
+    tourOfferToFormValues,
     type TourFormStatus,
-    tourToFormValues,
 } from '@/components/admin/tourForm';
 import type { ContentRecordStatus, ContentRecordViewModel } from '@/components/admin/contentRecordViewModel';
 import { isRichTextHtml, normalizeRichHtml } from '@/lib/richText';
-import type { Tour, TourPackage } from '@/types/tours';
+import { createEmptyTranslatedString, primaryTranslation } from '@/lib/translations';
+import type { AdminTourOffer } from '@/types/tours';
 
-interface BuildTourViewModelOptions {
-    tour: Tour;
-    status: ContentRecordStatus;
-}
+export type ManagedOffer = AdminTourOffer;
 
-interface BuildPackageViewModelOptions {
-    pkg: TourPackage;
-    status: ContentRecordStatus;
-}
-
-export function buildTourViewModel({
-    tour,
-    status,
-}: BuildTourViewModelOptions): ContentRecordViewModel {
-    const storedContent = normalizeRichHtml(tour.content ?? '');
-    const legacyContent = normalizeRichHtml(resolveTourContent(tour));
-    const bodyHtml = storedContent || (isRichTextHtml(legacyContent) ? legacyContent : undefined);
-    const usesRichContent = Boolean(bodyHtml);
-
-    return {
-        title: tour.title,
-        subtitle: tour.description,
-        imageUrl: tour.image,
-        imageAlt: tour.title,
-        badgeLabel: listingTypeLabel('tour'),
-        status,
-        cardEyebrow: tour.region,
-        cardCtaLabel: 'View',
-        metaFields: [
-            { id: 'type', label: 'Listing type', value: 'Tour itinerary' },
-            { id: 'region', label: 'Region', value: tour.region },
-            { id: 'destination', label: 'Destination', value: tour.destination },
-            { id: 'slug', label: 'Slug', value: tour.slug },
-            { id: 'duration', label: 'Duration', value: tour.duration },
-            { id: 'style', label: 'Travel style', value: tour.travelStyle },
-            { id: 'difficulty', label: 'Difficulty', value: tour.difficulty },
-            {
-                id: 'departure',
-                label: 'Next departure',
-                value: `${tour.nextDeparture.date} · ${tour.nextDeparture.status}`,
-            },
-            { id: 'price', label: 'Starting price', value: tour.estimatedStartingPrice },
-            { id: 'status', label: 'Status', value: status },
-        ],
-        bodyHtml,
-        bodyPlain: usesRichContent ? undefined : tour.description,
-        highlights: usesRichContent ? undefined : [...tour.highlights],
-        relatedItems:
-            tour.itineraryOverview.length > 0 && !usesRichContent
-                ? tour.itineraryOverview.slice(0, 4).map((day) => ({
-                      id: `${tour.id}-${day.day}`,
-                      title: `${day.day}: ${day.title}`,
-                      meta: day.summary,
-                  }))
-                : undefined,
-        relatedItemsTitle: usesRichContent ? undefined : 'Itinerary preview',
-    };
-}
-
-export function buildPackageViewModel({
-    pkg,
-    status,
-}: BuildPackageViewModelOptions): ContentRecordViewModel {
-    return {
-        title: pkg.title,
-        subtitle: pkg.tagline,
-        imageUrl: pkg.image,
-        imageAlt: pkg.title,
-        badgeLabel: listingTypeLabel('package'),
-        status,
-        cardEyebrow: pkg.badge,
-        cardCtaLabel: 'View',
-        metaFields: [
-            { id: 'type', label: 'Listing type', value: 'Travel package' },
-            { id: 'tagline', label: 'Tagline', value: pkg.tagline },
-            { id: 'slug', label: 'Slug', value: pkg.slug },
-            { id: 'duration', label: 'Duration', value: pkg.duration },
-            { id: 'price', label: 'Price estimate', value: pkg.priceEstimate },
-            { id: 'idealFor', label: 'Ideal for', value: pkg.idealFor },
-            {
-                id: 'popular',
-                label: 'Featured',
-                value: pkg.isPopular ? 'Popular package' : 'Standard',
-            },
-            { id: 'status', label: 'Status', value: status },
-        ],
-        bodyPlain: pkg.description,
-        highlights: [...pkg.featuredPerks],
-        relatedItems: pkg.keyDestinations.slice(0, 4).map((destination) => ({
-            id: `${pkg.id}-${destination}`,
-            title: destination,
-            meta: 'Key destination',
-        })),
-        relatedItemsTitle: 'Key destinations',
-    };
-}
-
-export type ManagedOffer =
-    | ({ listingType: 'tour'; status: TourFormStatus; id: number } & Omit<Tour, 'id'>)
-    | ({
-          listingType: 'package';
-          status: TourFormStatus;
-          id: number;
-          destination: string;
-          region: string;
-      } & Omit<TourPackage, 'id'>);
-
-export function offerToFormValues(offer: ManagedOffer): ReturnType<typeof tourToFormValues> {
-    return offer.listingType === 'package'
-        ? packageToFormValues(offer, offer.status)
-        : tourToFormValues(offer, offer.status);
+export function offerToFormValues(offer: ManagedOffer) {
+    return tourOfferToFormValues(offer);
 }
 
 export function buildOfferViewModel(offer: ManagedOffer): ContentRecordViewModel {
-    return offer.listingType === 'package'
-        ? buildPackageViewModel({ pkg: offer, status: offer.status })
-        : buildTourViewModel({ tour: offer, status: offer.status });
+    const title = primaryTranslation(offer.title);
+    const summary = primaryTranslation(offer.description);
+    const content = normalizeRichHtml(primaryTranslation(offer.content ?? createEmptyTranslatedString()));
+    const usesRichContent = offer.listingType === 'tour' && isRichTextHtml(content);
+
+    if (offer.listingType === 'package') {
+        return {
+            title,
+            subtitle: primaryTranslation(offer.tagline ?? createEmptyTranslatedString()),
+            imageUrl: offer.image,
+            imageAlt: title,
+            badgeLabel: listingTypeLabel('package'),
+            status: offer.status,
+            cardEyebrow: primaryTranslation(offer.badge),
+            cardCtaLabel: 'View',
+            metaFields: [
+                { id: 'type', label: 'Listing type', value: 'Travel package' },
+                {
+                    id: 'tagline',
+                    label: 'Tagline',
+                    value: primaryTranslation(offer.tagline ?? createEmptyTranslatedString()),
+                },
+                { id: 'slug', label: 'Slug', value: offer.slug },
+                {
+                    id: 'duration',
+                    label: 'Duration',
+                    value: primaryTranslation(offer.duration),
+                },
+                {
+                    id: 'price',
+                    label: 'Price estimate',
+                    value: primaryTranslation(offer.priceEstimate ?? createEmptyTranslatedString()),
+                },
+                {
+                    id: 'idealFor',
+                    label: 'Ideal for',
+                    value: primaryTranslation(offer.idealFor ?? createEmptyTranslatedString()),
+                },
+                {
+                    id: 'popular',
+                    label: 'Featured',
+                    value: offer.isPopular ? 'Popular package' : 'Standard',
+                },
+                { id: 'status', label: 'Status', value: offer.status },
+            ],
+            bodyPlain: summary,
+            highlights: [...(offer.highlights ?? [])],
+            relatedItems: (offer.keyDestinations ?? []).slice(0, 4).map((destination) => ({
+                id: `${offer.id}-${destination}`,
+                title: destination,
+                meta: 'Key destination',
+            })),
+            relatedItemsTitle: 'Key destinations',
+        };
+    }
+
+    return {
+        title,
+        subtitle: summary,
+        imageUrl: offer.image,
+        imageAlt: title,
+        badgeLabel: listingTypeLabel('tour'),
+        status: offer.status,
+        cardEyebrow: offer.region,
+        cardCtaLabel: 'View',
+        metaFields: [
+            { id: 'type', label: 'Listing type', value: 'Tour itinerary' },
+            { id: 'region', label: 'Region', value: offer.region },
+            {
+                id: 'destination',
+                label: 'Destination',
+                value: primaryTranslation(offer.destination),
+            },
+            { id: 'slug', label: 'Slug', value: offer.slug },
+            {
+                id: 'duration',
+                label: 'Duration',
+                value: primaryTranslation(offer.duration),
+            },
+            { id: 'style', label: 'Travel style', value: offer.travelStyle ?? '—' },
+            { id: 'difficulty', label: 'Difficulty', value: offer.difficulty ?? '—' },
+            { id: 'status', label: 'Status', value: offer.status },
+        ],
+        bodyHtml: usesRichContent ? content : undefined,
+        bodyPlain: usesRichContent ? undefined : summary,
+        highlights: usesRichContent ? undefined : [...(offer.highlights ?? [])],
+        relatedItemsTitle: usesRichContent ? undefined : 'Highlights preview',
+    };
 }

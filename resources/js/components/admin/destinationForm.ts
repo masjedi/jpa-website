@@ -1,19 +1,26 @@
 import { normalizeRichHtml, stripHtml } from '@/lib/richText';
-import type { Destination, DestinationRegion } from '@/types/destinations';
+import {
+    appendTranslatedStringToFormData,
+    createEmptyTranslatedString,
+    normalizeTranslatedString,
+} from '@/lib/translations';
+import { buildTranslatableFieldMap, mapTranslatableServerErrors, validateEnglishRequired } from '@/lib/translatableForm';
+import type { AdminDestination, DestinationRegion } from '@/types/destinations';
+import type { TranslatedString } from '@/types/locale';
 
 export type DestinationFormStatus = 'Published' | 'Draft';
 
 export interface DestinationFormValues {
-    name: string;
-    tagline: string;
+    name: TranslatedString;
+    tagline: TranslatedString;
     region: DestinationRegion;
-    badge: string;
+    badge: TranslatedString;
     image: string;
-    description: string;
-    highlightsText: string;
-    bestSeason: string;
-    travelStyle: string;
-    practicalNotesText: string;
+    description: TranslatedString;
+    highlightsText: TranslatedString;
+    bestSeason: TranslatedString;
+    travelStyle: TranslatedString;
+    practicalNotesText: TranslatedString;
     tourMatchKeywordsText: string;
     isFeatured: boolean;
     status: DestinationFormStatus;
@@ -28,35 +35,22 @@ export const destinationRegionOptions: readonly DestinationRegion[] = [
     'Southern Plains',
 ] as const;
 
-function asFormText(value: string | null | undefined): string {
-    return value ?? '';
-}
-
-function linesToFormText(values: readonly string[] | null | undefined): string {
-    return (values ?? []).join('\n');
-}
-
 export function destinationToFormValues(
-    destination: Destination & {
-        status?: DestinationFormStatus;
-        bestSeason?: string;
-        travelStyle?: string;
-        isFeatured?: boolean;
-    },
-    status: DestinationFormStatus,
+    destination: AdminDestination,
+    status: DestinationFormStatus = destination.status,
 ): DestinationFormValues {
     return {
-        name: asFormText(destination.name),
-        tagline: asFormText(destination.tagline),
+        name: normalizeTranslatedString(destination.name),
+        tagline: normalizeTranslatedString(destination.tagline),
         region: destination.region,
-        badge: asFormText(destination.badge),
-        image: asFormText(destination.image),
-        description: normalizeRichHtml(asFormText(destination.description)),
-        highlightsText: linesToFormText(destination.highlights),
-        bestSeason: asFormText(destination.bestSeason),
-        travelStyle: asFormText(destination.travelStyle),
-        practicalNotesText: linesToFormText(destination.practicalNotes),
-        tourMatchKeywordsText: linesToFormText(destination.tourMatchKeywords),
+        badge: normalizeTranslatedString(destination.badge),
+        image: destination.image,
+        description: normalizeTranslatedString(destination.description),
+        highlightsText: normalizeTranslatedString(destination.highlightsText),
+        bestSeason: normalizeTranslatedString(destination.bestSeason),
+        travelStyle: normalizeTranslatedString(destination.travelStyle),
+        practicalNotesText: normalizeTranslatedString(destination.practicalNotesText),
+        tourMatchKeywordsText: (destination.tourMatchKeywords ?? []).join('\n'),
         isFeatured: destination.isFeatured ?? false,
         status,
     };
@@ -64,16 +58,16 @@ export function destinationToFormValues(
 
 export function createEmptyDestinationFormValues(): DestinationFormValues {
     return {
-        name: '',
-        tagline: '',
+        name: createEmptyTranslatedString(),
+        tagline: createEmptyTranslatedString(),
         region: 'Central Highlands',
-        badge: '',
+        badge: createEmptyTranslatedString(),
         image: '',
-        description: '',
-        highlightsText: '',
-        bestSeason: '',
-        travelStyle: '',
-        practicalNotesText: '',
+        description: createEmptyTranslatedString(),
+        highlightsText: createEmptyTranslatedString(),
+        bestSeason: createEmptyTranslatedString(),
+        travelStyle: createEmptyTranslatedString(),
+        practicalNotesText: createEmptyTranslatedString(),
         tourMatchKeywordsText: '',
         isFeatured: false,
         status: 'Draft',
@@ -104,32 +98,27 @@ export interface DestinationFormSubmitPayload {
     coverImage: File | null;
 }
 
-const serverFieldMap: Record<string, DestinationFormField> = {
-    name: 'name',
-    tagline: 'tagline',
+const serverFieldMap = {
+    ...buildTranslatableFieldMap('', [
+        'name',
+        'tagline',
+        'description',
+        'highlights_text',
+        'best_season',
+        'travel_style',
+        'practical_notes_text',
+    ]),
     cover_image: 'image',
-    description: 'description',
     highlights_text: 'highlightsText',
     best_season: 'bestSeason',
     travel_style: 'travelStyle',
+    practical_notes_text: 'practicalNotesText',
 };
 
 export function mapServerDestinationFormErrors(
     errors: Record<string, string | string[] | undefined>,
 ): DestinationFormErrors {
-    const mapped: DestinationFormErrors = {};
-
-    for (const [key, message] of Object.entries(errors)) {
-        const field = serverFieldMap[key];
-
-        if (!field || message === undefined) {
-            continue;
-        }
-
-        mapped[field] = Array.isArray(message) ? message[0] : message;
-    }
-
-    return mapped;
+    return mapTranslatableServerErrors(errors, serverFieldMap);
 }
 
 export function buildDestinationFormData({
@@ -138,15 +127,15 @@ export function buildDestinationFormData({
 }: DestinationFormSubmitPayload): FormData {
     const formData = new FormData();
 
-    formData.append('name', values.name);
-    formData.append('tagline', values.tagline);
+    appendTranslatedStringToFormData(formData, 'name', values.name);
+    appendTranslatedStringToFormData(formData, 'tagline', values.tagline);
+    appendTranslatedStringToFormData(formData, 'badge', values.badge);
+    appendTranslatedStringToFormData(formData, 'description', values.description);
+    appendTranslatedStringToFormData(formData, 'highlights_text', values.highlightsText);
+    appendTranslatedStringToFormData(formData, 'best_season', values.bestSeason);
+    appendTranslatedStringToFormData(formData, 'travel_style', values.travelStyle);
+    appendTranslatedStringToFormData(formData, 'practical_notes_text', values.practicalNotesText);
     formData.append('region', values.region);
-    formData.append('badge', values.badge);
-    formData.append('description', values.description);
-    formData.append('highlights_text', values.highlightsText);
-    formData.append('best_season', values.bestSeason);
-    formData.append('travel_style', values.travelStyle);
-    formData.append('practical_notes_text', values.practicalNotesText);
     formData.append('tour_match_keywords_text', values.tourMatchKeywordsText);
     formData.append('is_featured', values.isFeatured ? '1' : '0');
     formData.append('status', values.status);
@@ -158,8 +147,8 @@ export function buildDestinationFormData({
     return formData;
 }
 
-export function isDestinationDescriptionEmpty(html: string): boolean {
-    return stripHtml(html ?? '').length === 0;
+export function isDestinationDescriptionEmpty(value: TranslatedString): boolean {
+    return stripHtml(value.en ?? '').length === 0;
 }
 
 export function validateDestinationFormValues(
@@ -167,22 +156,23 @@ export function validateDestinationFormValues(
     hasImage: boolean,
 ): DestinationFormErrors {
     const errors: DestinationFormErrors = {};
-    const text = (value: string | null | undefined): string => (value ?? '').trim();
 
-    if (!text(values.name)) {
-        errors.name = 'Required';
+    const nameError = validateEnglishRequired(values.name, 'Name');
+    if (nameError) {
+        errors.name = nameError;
     }
 
-    if (!text(values.tagline)) {
-        errors.tagline = 'Required';
+    const taglineError = validateEnglishRequired(values.tagline, 'Tagline');
+    if (taglineError) {
+        errors.tagline = taglineError;
     }
 
     if (!hasImage) {
         errors.image = 'Required';
     }
 
-    if (isDestinationDescriptionEmpty(values.description ?? '')) {
-        errors.description = 'Required';
+    if (isDestinationDescriptionEmpty(values.description)) {
+        errors.description = 'English description is required';
     }
 
     return errors;

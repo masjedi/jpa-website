@@ -194,7 +194,7 @@ class MediaProcessorTest extends TestCase
     public function test_gallery_contain_fit_keeps_canvas_size(): void
     {
         $asset = $this->processor->store(
-            $this->makeImageUpload(1600, 900, 'wide-gallery.jpg'),
+            $this->makeImageUpload(2000, 2000, 'wide-gallery.jpg'),
             'gallery_image',
         );
 
@@ -209,6 +209,19 @@ class MediaProcessorTest extends TestCase
         $this->assertContains('image', $profile->validationRules());
         $this->assertContains('max:8192', $profile->validationRules());
         $this->assertStringContainsString('1600 × 1000', $profile->uploadHint());
+    }
+
+    public function test_skips_upscaled_variants_for_smaller_sources(): void
+    {
+        $asset = $this->processor->store(
+            $this->makeImageUpload(1920, 1080, 'hero-hd.jpg'),
+            'hero_slide',
+        );
+
+        $this->assertArrayHasKey('thumb', $asset->variants);
+        $this->assertArrayHasKey('hero_md', $asset->variants);
+        $this->assertArrayNotHasKey('hero', $asset->variants);
+        $this->assertArrayNotHasKey('hero_ultra', $asset->variants);
     }
 
     public function test_hydrate_round_trips_inertia_safe_payload(): void

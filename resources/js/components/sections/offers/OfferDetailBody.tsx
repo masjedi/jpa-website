@@ -3,6 +3,7 @@ import { ArrowRight, Check, MapPin, Users } from 'lucide-react';
 
 import { TourOfferBadges } from '@/components/sections/tours/TourOfferBadges';
 import { FadeIn, RevealItem, RevealStagger } from '@/components/motion/FadeIn';
+import { cardSummaryClass, cardTitleClass } from '@/lib/cardText';
 import { isRichTextHtml } from '@/lib/richText';
 import type { TravelOfferDetail } from '@/types/travelOffer';
 
@@ -205,12 +206,12 @@ export function OfferDetailBody({ offer, onRequest }: OfferDetailBodyProps) {
 
                         <RevealStagger className="mt-6 grid gap-5 sm:grid-cols-2">
                             {offer.relatedItems.map((item) => (
-                                <RevealItem key={item.slug}>
+                                <RevealItem key={item.slug} className="h-full">
                                 <Link
                                     href={item.href}
                                     className="group flex h-full overflow-hidden rounded-xl border border-border bg-surface text-start shadow-sm transition-shadow hover:shadow-md"
                                 >
-                                    <div className="relative w-32 shrink-0 overflow-hidden bg-surface-muted sm:w-36">
+                                    <div className="relative w-24 shrink-0 overflow-hidden bg-surface-muted sm:w-36">
                                         <img
                                             src={item.image}
                                             alt={item.title}
@@ -224,15 +225,17 @@ export function OfferDetailBody({ offer, onRequest }: OfferDetailBodyProps) {
                                         />
                                     </div>
                                     <div className="flex flex-1 flex-col p-4">
-                                        <h3 className="font-heading text-sm font-semibold text-foreground line-clamp-2">
+                                        <h3 className={`font-heading text-sm font-semibold text-foreground ${cardTitleClass}`}>
                                             {item.title}
                                         </h3>
-                                        <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                                        <p className={`mt-1 text-xs text-muted-foreground ${cardSummaryClass}`}>
                                             {item.tagline}
                                         </p>
-                                        <p className="mt-auto pt-3 text-xs font-semibold text-foreground">
-                                            {item.priceLabel}
-                                        </p>
+                                        {item.priceLabel ? (
+                                            <p className="mt-auto pt-3 text-xs font-semibold text-foreground">
+                                                {item.priceLabel}
+                                            </p>
+                                        ) : null}
                                     </div>
                                 </Link>
                                 </RevealItem>

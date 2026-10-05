@@ -124,7 +124,7 @@ final class MediaProfile
             return null;
         }
 
-        $preferred = ['detail', 'display', 'card', 'thumb'];
+        $preferred = ['hero', 'hero_ultra', 'hero_md', 'detail', 'display', 'card', 'thumb'];
 
         foreach ($preferred as $name) {
             if (isset($this->variants[$name])) {

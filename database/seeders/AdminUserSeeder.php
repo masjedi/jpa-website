@@ -7,17 +7,27 @@ use Illuminate\Database\Seeder;
 
 class AdminUserSeeder extends Seeder
 {
+    public const DEFAULT_EMAIL = 'admin@journey-to-afghanistan.com';
+
+    public const DEFAULT_PASSWORD = 'Admin!@#$1234';
+
+    public const DEFAULT_NAME = 'JPA Administrator';
+
     /**
-     * Seed the default administrator account for local and review environments.
+     * Seed the primary administrator account.
      */
     public function run(): void
     {
+        $email = trim((string) config('admin.email'));
+        $password = (string) config('admin.password');
+        $name = trim((string) config('admin.name'));
+
         User::query()->updateOrCreate(
-            ['email' => env('ADMIN_EMAIL', 'admin@journeytopeace.com')],
+            ['email' => $email],
             [
-                'name' => env('ADMIN_NAME', 'JPA Administrator'),
+                'name' => $name !== '' ? $name : self::DEFAULT_NAME,
                 'email_verified_at' => now(),
-                'password' => env('ADMIN_PASSWORD', 'Admin!@#123'),
+                'password' => $password,
             ],
         );
     }
