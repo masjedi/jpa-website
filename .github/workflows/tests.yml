@@ -63,7 +63,7 @@ jobs:
       - name: Application sanity
         run: |
           php artisan about
-          php artisan route:list --columns=method,uri,name,action
+          php artisan route:list
           php artisan config:cache
           php artisan config:clear
 
