@@ -4,6 +4,7 @@ namespace App\Support\Admin;
 
 use App\Models\AdminNotification;
 use App\Models\Inquiry;
+use Illuminate\Support\Str;
 
 class AdminFeedPresenter
 {
@@ -68,7 +69,7 @@ class AdminFeedPresenter
         return [
             'id' => (string) $inquiry->id,
             'title' => (string) $inquiry->name,
-            'description' => \Illuminate\Support\Str::limit($description, 120),
+            'description' => Str::limit($description, 120),
             'time' => $inquiry->created_at?->diffForHumans() ?? '',
             'href' => '/admin/inquiries',
             'unread' => $inquiry->isUnread(),

@@ -2,6 +2,4 @@
 
 namespace App\Http\Requests\Admin;
 
-class UpdateInvoiceRequest extends InvoiceListingRequest
-{
-}
+class UpdateInvoiceRequest extends InvoiceListingRequest {}
