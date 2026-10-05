@@ -107,6 +107,8 @@ class InvoiceVerificationTest extends TestCase
 
     public function test_admin_invoice_payload_includes_verification_url(): void
     {
+        Carbon::setTestNow('2026-08-24 12:00:00');
+
         $user = User::factory()->create();
 
         $invoice = Invoice::query()->create([

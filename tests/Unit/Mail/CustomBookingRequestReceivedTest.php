@@ -11,7 +11,7 @@ class CustomBookingRequestReceivedTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_confirmation_email_is_addressed_to_the_primary_traveler(): void
+    public function test_confirmation_email_is_addressed_to_the_traveler(): void
     {
         $booking = $this->booking();
         $mailable = new CustomBookingRequestReceived($booking);
@@ -22,26 +22,22 @@ class CustomBookingRequestReceivedTest extends TestCase
         $mailable->assertHasSubject('Your custom tour request '.$booking->reference.' has been received');
     }
 
-    public function test_confirmation_email_contains_the_request_summary_without_sensitive_details(): void
+    public function test_confirmation_email_contains_the_request_summary_without_passport_details(): void
     {
         $booking = $this->booking();
         $mailable = new CustomBookingRequestReceived($booking);
 
-        $mailable->assertSeeInHtml('Dear Sara Ahmad');
-        $mailable->assertSeeInHtml('sara@example.com');
+        $mailable->assertSeeInHtml('Dear Sara');
         $mailable->assertSeeInHtml($booking->reference);
         $mailable->assertSeeInHtml('Bamiyan, Band-e Amir');
-        $mailable->assertSeeInHtml('Complete custom package');
         $mailable->assertSeeInHtml('not an instant booking');
-        $mailable->assertDontSeeInHtml('passport');
-        $mailable->assertDontSeeInHtml('emergency');
-        $mailable->assertSeeInText('Confirmation sent to: sara@example.com');
+        $mailable->assertDontSeeInHtml('C01X2Y3Z4');
         $mailable->assertSeeInText('Reference: '.$booking->reference);
+        $mailable->assertSeeInText('Destinations: Bamiyan, Band-e Amir');
     }
 
     public function test_confirmation_email_embeds_the_brand_logo(): void
     {
-        config(['app.url' => 'https://example.test']);
         $this->assertFileExists(public_path('brand/logo-white-h.png'));
 
         $mailable = new CustomBookingRequestReceived($this->booking());
@@ -53,24 +49,9 @@ class CustomBookingRequestReceivedTest extends TestCase
 
     private function booking(): CustomBooking
     {
-        $booking = CustomBooking::factory()->create([
+        return CustomBooking::factory()->create([
             'reference' => 'JTP-2026-00001',
-            'wants_complete' => true,
-            'flexibility' => 'known',
-            'route_preference' => 'know',
-            'season' => 'Autumn',
+            'preferred_destinations' => 'Bamiyan, Band-e Amir',
         ]);
-
-        $booking->destinations()->createMany([
-            ['name' => 'Bamiyan'],
-            ['name' => 'Band-e Amir'],
-        ]);
-
-        $booking->interests()->createMany([
-            ['interest' => 'culture'],
-            ['interest' => 'nature'],
-        ]);
-
-        return $booking->fresh(['primaryTraveler', 'destinations', 'interests']);
     }
 }

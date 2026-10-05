@@ -36,6 +36,12 @@ class PublicPagesTest extends TestCase
     #[DataProvider('publicPageProvider')]
     public function test_public_pages_respond_successfully(string $path): void
     {
+        if ($path === '/booking') {
+            $this->get($path)->assertRedirect('/?custom_tour=1');
+
+            return;
+        }
+
         $this->get($path)->assertOk();
     }
 

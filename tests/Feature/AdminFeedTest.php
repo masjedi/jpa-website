@@ -49,7 +49,7 @@ class AdminFeedTest extends TestCase
         $this->post('/inquiries/contact', [
             'name' => 'Contact Person',
             'email' => 'contact@example.com',
-            'topic' => 'General question',
+            'subject' => 'General question',
             'message' => 'First contact message',
         ])->assertSessionHas('success');
 

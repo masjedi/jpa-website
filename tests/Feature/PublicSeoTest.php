@@ -35,7 +35,6 @@ class PublicSeoTest extends TestCase
             'about' => ['/about', 'About Us'],
             'team' => ['/about/team', 'Our Team'],
             'gallery' => ['/gallery', 'Travel Gallery'],
-            'booking' => ['/booking', 'Custom Tour Request'],
             'contact' => ['/contact', 'Contact and Inquiry'],
             'privacy' => ['/privacy', 'Privacy Policy'],
             'terms' => ['/terms', 'Terms and Conditions'],

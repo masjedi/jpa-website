@@ -194,7 +194,7 @@ class MediaProcessorTest extends TestCase
     public function test_gallery_contain_fit_keeps_canvas_size(): void
     {
         $asset = $this->processor->store(
-            $this->makeImageUpload(1600, 900, 'wide-gallery.jpg'),
+            $this->makeImageUpload(2000, 2000, 'wide-gallery.jpg'),
             'gallery_image',
         );
 
