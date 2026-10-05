@@ -47,7 +47,7 @@ class AdminSectionsTest extends TestCase
     }
 
     #[DataProvider('adminSectionProvider')]
-    public function test_guest_cannot_access_sections(string $path): void
+    public function test_guest_cannot_access_sections(string $path, string $component): void
     {
         $this->get($path)->assertRedirect(route('admin.login'));
     }
