@@ -56,11 +56,10 @@ export function ServicesHero() {
                         </a>
                         <Link
                             href={planTripHref}
-                            prefetch="hover"
                             className="inline-flex items-center justify-center gap-1.5 rounded-full border border-brand-on-surface/25 px-6 py-2.5 text-sm font-medium text-brand-on-surface transition-colors hover:bg-brand-on-surface/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                         >
                             <MessageCircle className="size-4 text-accent" aria-hidden />
-                            Plan my trip
+                            Book Now
                         </Link>
                     </div>
                 </FadeInOnMount>

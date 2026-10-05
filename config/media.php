@@ -145,6 +145,28 @@ return [
             ],
         ],
 
+        'brand_logo' => [
+            'type' => 'image',
+            'disk' => 'public',
+            'directory' => 'media/brand/logos',
+            'allowed_mimes' => ['image/jpeg', 'image/png', 'image/webp'],
+            'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp'],
+            'max_upload_kilobytes' => 4096,
+            'max_source_width' => 4000,
+            'max_source_height' => 2000,
+            'max_source_pixels' => 8_000_000,
+            'aspect_ratio' => null,
+            'fit' => 'contain',
+            'output_format' => 'webp',
+            'fallback_format' => 'png',
+            'quality' => 90,
+            'retain_original' => false,
+            'visibility' => 'public',
+            'variants' => [
+                'display' => ['width' => 640, 'height' => 160],
+            ],
+        ],
+
         'product_image' => [
             'type' => 'image',
             'disk' => 'public',

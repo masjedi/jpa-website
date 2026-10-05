@@ -36,9 +36,18 @@ export function LinkedInIcon(props: IconProps) {
     );
 }
 
+export function XIcon(props: IconProps) {
+    return (
+        <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+            <path d="M17.3 4h3.1l-6.8 7.8L21.5 20h-6.1l-4.8-6.3-5.5 6.3H2l7.3-8.4L2.5 4h6.2l4.3 5.7L17.3 4Zm-1.1 14.3h1.7L7.9 5.6H6.1l10.1 12.7Z" />
+        </svg>
+    );
+}
+
 export const socialIconComponents = {
     Instagram: InstagramIcon,
     Facebook: FacebookIcon,
     YouTube: YouTubeIcon,
     LinkedIn: LinkedInIcon,
+    X: XIcon,
 } as const;

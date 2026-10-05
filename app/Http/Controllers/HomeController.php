@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\HeroSection;
+use App\Support\Articles\ArticlePresenter;
+use App\Support\Destinations\DestinationPresenter;
+use App\Support\Faq\FaqItemPresenter;
 use App\Support\Gallery\GalleryPhotoPresenter;
 use App\Support\HeroSectionPresenter;
+use App\Support\Tours\TourPresenter;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,7 +22,11 @@ class HomeController extends Controller
 
         return Inertia::render('public/Home', [
             'hero' => HeroSectionPresenter::forPublicHome($section),
-            'galleryPreview' => GalleryPhotoPresenter::forPublicHomePreview(6),
+            'featuredTours' => Inertia::defer(fn () => TourPresenter::forPublicHomePreview(3)),
+            'featuredDestinations' => Inertia::defer(fn () => DestinationPresenter::forPublicHomePreview(4)),
+            'galleryPreview' => Inertia::defer(fn () => GalleryPhotoPresenter::forPublicHomePreview(6)),
+            'latestArticles' => Inertia::defer(fn () => ArticlePresenter::forPublicHomePreview(3)),
+            'faqItems' => Inertia::defer(fn () => FaqItemPresenter::forPublicHomePreview()),
         ]);
     }
 }

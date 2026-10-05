@@ -1,3 +1,4 @@
+import { useForm } from '@inertiajs/react';
 import { CheckCircle2, Send, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 
@@ -28,11 +29,14 @@ export function TourInquiryModal({
     const phoneFieldId = useId();
     const notesFieldId = useId();
     const firstFieldRef = useRef<HTMLInputElement>(null);
-    const [formData, setFormData] = useState<InquiryFormData>({
+    const [submitted, setSubmitted] = useState(false);
+    const [submittedName, setSubmittedName] = useState('');
+    const [submittedTour, setSubmittedTour] = useState('');
+
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         tourTitle: '',
         preferredDate: '',
         travelerCount: '2',
-        durationPreference: '',
         fullName: '',
         email: '',
         nationality: '',
@@ -40,24 +44,28 @@ export function TourInquiryModal({
         notes: '',
     });
 
-    const [submitted, setSubmitted] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
     useEffect(() => {
-        if (initialData) {
-            setFormData((prev) => ({
-                ...prev,
-                ...initialData,
-                tourTitle: initialData.tourTitle ?? prev.tourTitle,
-                preferredDate: initialData.preferredDate ?? prev.preferredDate,
-            }));
+        if (!isOpen) {
+            return;
         }
-    }, [initialData]);
+
+        setData({
+            tourTitle: initialData?.tourTitle ?? '',
+            preferredDate: initialData?.preferredDate ?? '',
+            travelerCount: initialData?.travelerCount ?? '2',
+            fullName: initialData?.fullName ?? '',
+            email: initialData?.email ?? '',
+            nationality: initialData?.nationality ?? '',
+            whatsappOrPhone: initialData?.whatsappOrPhone ?? '',
+            notes: initialData?.notes ?? '',
+        });
+    }, [isOpen, initialData?.tourTitle, initialData?.preferredDate]);
 
     useEffect(() => {
         if (!isOpen) {
             setSubmitted(false);
-            setIsSubmitting(false);
+            setSubmittedName('');
+            setSubmittedTour('');
             return;
         }
 
@@ -85,16 +93,21 @@ export function TourInquiryModal({
     const handleSubmit = (event: FormEvent) => {
         event.preventDefault();
 
-        if (isSubmitting || submitted) {
+        if (processing || submitted) {
             return;
         }
 
-        setIsSubmitting(true);
+        clearErrors();
 
-        window.setTimeout(() => {
-            setIsSubmitting(false);
-            setSubmitted(true);
-        }, 600);
+        post('/inquiries/tour', {
+            preserveScroll: true,
+            onSuccess: () => {
+                setSubmittedName(data.fullName);
+                setSubmittedTour(data.tourTitle);
+                setSubmitted(true);
+                reset();
+            },
+        });
     };
 
     return (
@@ -109,7 +122,6 @@ export function TourInquiryModal({
                 className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl transition-all"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Header */}
                 <div className="flex items-center justify-between gap-4 border-b border-border px-6 py-4 sm:px-8">
                     <h2
                         id={titleId}
@@ -134,16 +146,16 @@ export function TourInquiryModal({
                                 <CheckCircle2 className="size-9" />
                             </div>
                             <h3 className="font-heading mt-5 text-2xl font-semibold text-foreground">
-                                Thank you{formData.fullName ? `, ${formData.fullName}` : ''}
+                                Thank you{submittedName ? `, ${submittedName}` : ''}
                             </h3>
                             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
                                 We received your inquiry
-                                {formData.tourTitle ? (
+                                {submittedTour ? (
                                     <>
                                         {' '}
                                         for{' '}
                                         <strong className="font-semibold text-foreground">
-                                            {formData.tourTitle}
+                                            {submittedTour}
                                         </strong>
                                     </>
                                 ) : null}
@@ -163,7 +175,7 @@ export function TourInquiryModal({
                             </div>
                         </div>
                     ) : (
-                        <form onSubmit={handleSubmit} className="space-y-4 text-start">
+                        <form onSubmit={handleSubmit} className="space-y-4 text-start" noValidate>
                             <div>
                                 <label htmlFor={tourFieldId} className={labelClass}>
                                     Tour
@@ -172,13 +184,16 @@ export function TourInquiryModal({
                                     id={tourFieldId}
                                     ref={firstFieldRef}
                                     type="text"
-                                    value={formData.tourTitle}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, tourTitle: e.target.value })
-                                    }
+                                    value={data.tourTitle}
+                                    onChange={(e) => setData('tourTitle', e.target.value)}
                                     required
                                     className={fieldClass}
                                 />
+                                {errors.tourTitle ? (
+                                    <p className="mt-1 text-xs text-destructive" role="alert">
+                                        {errors.tourTitle}
+                                    </p>
+                                ) : null}
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-2">
@@ -189,10 +204,8 @@ export function TourInquiryModal({
                                     <input
                                         id={dateFieldId}
                                         type="text"
-                                        value={formData.preferredDate}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, preferredDate: e.target.value })
-                                        }
+                                        value={data.preferredDate}
+                                        onChange={(e) => setData('preferredDate', e.target.value)}
                                         className={fieldClass}
                                     />
                                 </div>
@@ -202,10 +215,8 @@ export function TourInquiryModal({
                                     </label>
                                     <select
                                         id={groupFieldId}
-                                        value={formData.travelerCount}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, travelerCount: e.target.value })
-                                        }
+                                        value={data.travelerCount}
+                                        onChange={(e) => setData('travelerCount', e.target.value)}
                                         className={fieldClass}
                                     >
                                         <option value="1">1 traveler</option>
@@ -226,13 +237,16 @@ export function TourInquiryModal({
                                         id={nameFieldId}
                                         type="text"
                                         autoComplete="name"
-                                        value={formData.fullName}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, fullName: e.target.value })
-                                        }
+                                        value={data.fullName}
+                                        onChange={(e) => setData('fullName', e.target.value)}
                                         required
                                         className={fieldClass}
                                     />
+                                    {errors.fullName ? (
+                                        <p className="mt-1 text-xs text-destructive" role="alert">
+                                            {errors.fullName}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <div>
                                     <label htmlFor={emailFieldId} className={labelClass}>
@@ -242,13 +256,16 @@ export function TourInquiryModal({
                                         id={emailFieldId}
                                         type="email"
                                         autoComplete="email"
-                                        value={formData.email}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, email: e.target.value })
-                                        }
+                                        value={data.email}
+                                        onChange={(e) => setData('email', e.target.value)}
                                         required
                                         className={fieldClass}
                                     />
+                                    {errors.email ? (
+                                        <p className="mt-1 text-xs text-destructive" role="alert">
+                                            {errors.email}
+                                        </p>
+                                    ) : null}
                                 </div>
                             </div>
 
@@ -261,10 +278,8 @@ export function TourInquiryModal({
                                         id={nationalityFieldId}
                                         type="text"
                                         autoComplete="country-name"
-                                        value={formData.nationality}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, nationality: e.target.value })
-                                        }
+                                        value={data.nationality}
+                                        onChange={(e) => setData('nationality', e.target.value)}
                                         className={fieldClass}
                                     />
                                 </div>
@@ -276,10 +291,8 @@ export function TourInquiryModal({
                                         id={phoneFieldId}
                                         type="tel"
                                         autoComplete="tel"
-                                        value={formData.whatsappOrPhone}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, whatsappOrPhone: e.target.value })
-                                        }
+                                        value={data.whatsappOrPhone}
+                                        onChange={(e) => setData('whatsappOrPhone', e.target.value)}
                                         className={fieldClass}
                                     />
                                 </div>
@@ -292,10 +305,8 @@ export function TourInquiryModal({
                                 <textarea
                                     id={notesFieldId}
                                     rows={3}
-                                    value={formData.notes}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, notes: e.target.value })
-                                    }
+                                    value={data.notes}
+                                    onChange={(e) => setData('notes', e.target.value)}
                                     className={`${fieldClass} resize-y`}
                                 />
                             </div>
@@ -314,11 +325,11 @@ export function TourInquiryModal({
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={isSubmitting}
+                                    disabled={processing}
                                     className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
                                 >
                                     <Send className="size-4" aria-hidden />
-                                    {isSubmitting ? 'Sending…' : 'Send inquiry'}
+                                    {processing ? 'Sending…' : 'Send inquiry'}
                                 </button>
                             </div>
                         </form>

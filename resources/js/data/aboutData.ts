@@ -1,5 +1,4 @@
 import {
-    Award,
     Bus,
     Compass,
     FileCheck2,
@@ -12,15 +11,67 @@ import {
 } from 'lucide-react';
 
 import type {
+    AboutJourneyStep,
     AboutMissionVision,
     AboutMilestone,
-    AboutPartner,
     AboutStat,
     AboutValue,
     AboutWhatWeDoItem,
     AboutWhyChooseItem,
     TeamMember,
 } from '@/types/about';
+
+export const aboutPage = {
+    intro: {
+        eyebrow: 'JPA',
+        title: 'Our Journey',
+        description:
+            'Journey to Peace Afghanistan Tours began with Afghan guides showing travellers the country through local eyes. Today we plan, lead and stand behind every itinerary — from first inquiry to the final farewell.',
+    },
+} as const;
+
+export const aboutJourneySteps: readonly AboutJourneyStep[] = [
+    {
+        title: 'Local guiding roots',
+        description:
+            'We began in 2019 guiding researchers, photographers and early visitors through Kabul and Bamiyan — learning routes face to face and building trust with hosts along the way.',
+        image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80',
+        imageAlt: 'Mountain landscape in the Afghan highlands',
+        icon: Compass,
+    },
+    {
+        title: 'Small-group tour seasons',
+        description:
+            'By 2021 we launched structured small-group departures led by Afghan guides — turning lived knowledge into carefully timed seasons across the central highlands.',
+        image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80',
+        imageAlt: 'Travellers sharing tea with local hosts',
+        icon: Users,
+    },
+    {
+        title: 'Heritage-led itineraries',
+        description:
+            'Our guides now weave Silk Road history, mosque etiquette and artisan visits into every route — helping travellers engage respectfully with the places they explore.',
+        image: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=900&q=80',
+        imageAlt: 'Historic architecture and cultural heritage in Afghanistan',
+        icon: HandHeart,
+    },
+    {
+        title: 'Guides across Afghanistan',
+        description:
+            'Today our team coordinates guides, drivers and regional hosts across twelve areas — each itinerary reviewed by someone who has recently travelled the route.',
+        image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=900&q=80',
+        imageAlt: 'Local artisan workshop visit on a guided journey',
+        icon: Route,
+    },
+    {
+        title: 'Responsible tourism ahead',
+        description:
+            'We are expanding village homestays, guide training and community partnerships — so tourism supports Afghan families and preserves the heritage our guides interpret every day.',
+        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&q=80',
+        imageAlt: 'Guide preparing for a cultural heritage journey',
+        icon: ShieldCheck,
+    },
+];
 
 export const aboutStory = {
     eyebrow: 'Our story',
@@ -43,14 +94,14 @@ export const aboutStory = {
 
 export const aboutMissionVision: AboutMissionVision = {
     mission: {
-        title: 'Our mission',
+        title: 'Our Mission',
         description:
-            'To open Afghanistan to thoughtful travellers through Afghan-led guiding — with transparent planning, cultural respect and safety at the centre of every journey.',
+            'To guide thoughtful travellers through Afghanistan with Afghan-led expertise — offering honest planning, cultural respect and safety at the centre of every tour, trek and custom itinerary.',
     },
     vision: {
-        title: 'Our vision',
+        title: 'Our Vision',
         description:
-            'A future where responsible tourism strengthens Afghan communities, preserves heritage and rebuilds connection between visitors and the country we call home.',
+            'A future where responsible tourism strengthens Afghan communities, preserves heritage and rebuilds trust between visitors and the guides who welcome them across the country we call home.',
     },
 };
 
@@ -92,62 +143,25 @@ export const aboutWhyChooseUs: readonly AboutWhyChooseItem[] = [
         title: 'Afghan-owned expertise',
         description:
             'Every itinerary is designed and reviewed by our Kabul-based team — not outsourced to a distant operator.',
-        image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80',
-        imageAlt: 'Guide leading travellers through mountain terrain',
+        icon: MapPinned,
     },
     {
         title: 'Human-reviewed planning',
         description:
             'Inquiry-based bookings with clear pricing and honest limitations — no instant-confirmation theatre.',
-        image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80',
-        imageAlt: 'Planning session with maps and notes',
+        icon: FileCheck2,
     },
     {
         title: 'Culture-first guiding',
         description:
             'We prepare travellers on customs, dress and photography consent so visits are welcomed, not tolerated.',
-        image: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=900&q=80',
-        imageAlt: 'Historic architecture and cultural heritage site',
+        icon: HandHeart,
     },
     {
         title: 'Community partnerships',
         description:
             'Direct relationships with guesthouses, artisans and village hosts keep tourism income local.',
-        image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=900&q=80',
-        imageAlt: 'Local artisan craft workshop',
-    },
-];
-
-export const aboutPartners: readonly AboutPartner[] = [
-    {
-        name: 'Afghan Tourism Board',
-        category: 'Industry affiliation',
-        description: 'Registered tour operator partner for heritage and cultural routes.',
-    },
-    {
-        name: 'Herat Craft Cooperative',
-        category: 'Artisan network',
-        description: 'Direct visits to tile-work and miniature-painting workshops.',
-    },
-    {
-        name: 'Bamiyan Homestay Network',
-        category: 'Community tourism',
-        description: 'Village stays vetted for guest comfort and fair compensation.',
-    },
-    {
-        name: 'First Aid & Safety Training',
-        category: 'Guide certification',
-        description: 'Annual wilderness first-aid certification for all field guides.',
-    },
-    {
-        name: 'Leave No Trace Alliance',
-        category: 'Responsible travel',
-        description: 'Commitment to low-impact practices on mountain and heritage routes.',
-    },
-    {
-        name: 'Silk Road Heritage Forum',
-        category: 'Cultural partner',
-        description: 'Interpretation support for Timurid and pre-Islamic archaeological sites.',
+        icon: Handshake,
     },
 ];
 
@@ -218,6 +232,19 @@ export const aboutValues: readonly AboutValue[] = [
     },
 ];
 
+export const aboutTeam = {
+    hero: {
+        title: 'Meet our Team',
+        description:
+            'A diverse team of passionate professionals with unique skills driving innovation and excellence in every journey.',
+    },
+    grid: {
+        title: 'Team',
+        description:
+            'A diverse group of passionate professionals, each bringing unique skills and experiences to drive innovation and excellence in every project we undertake.',
+    },
+} as const;
+
 export const teamMembers: readonly TeamMember[] = [
     {
         id: 'wahid-rahimi',
@@ -228,6 +255,9 @@ export const teamMembers: readonly TeamMember[] = [
         bio: 'Wahid has guided across all 34 provinces and still leads our flagship heritage circuits. He started JPA to show travellers the Afghanistan he grew up in — hospitable, layered and unforgettable.',
         languages: ['Dari', 'Pashto', 'English'],
         isFounder: true,
+        email: 'wahid@journey-to-afghanistan.com',
+        whatsapp: '+93 70 123 4567',
+        whatsappHref: 'https://wa.me/93701234567',
     },
     {
         id: 'sara-ahmad',
@@ -237,6 +267,9 @@ export const teamMembers: readonly TeamMember[] = [
         image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80',
         bio: 'Sara coordinates every itinerary from inquiry to departure and writes most of our travel guides. She believes good planning is invisible.',
         languages: ['Dari', 'English'],
+        email: 'sara@journey-to-afghanistan.com',
+        whatsapp: '+93 70 234 5678',
+        whatsappHref: 'https://wa.me/93702345678',
     },
     {
         id: 'omar-khair',
@@ -246,6 +279,9 @@ export const teamMembers: readonly TeamMember[] = [
         image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
         bio: 'A former museum researcher, Omar leads our Silk Road interpretation and artisan visits in Herat and Balkh.',
         languages: ['Dari', 'English', 'Farsi'],
+        email: 'omar@journey-to-afghanistan.com',
+        whatsapp: '+93 72 345 6789',
+        whatsappHref: 'https://wa.me/93723456789',
     },
     {
         id: 'fatima-noori',
@@ -255,6 +291,9 @@ export const teamMembers: readonly TeamMember[] = [
         image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=800&q=80',
         bio: 'Fatima runs our pre-departure briefings and monitors route conditions daily. Nothing moves until her checklist says so.',
         languages: ['Dari', 'Pashto', 'English'],
+        email: 'fatima@journey-to-afghanistan.com',
+        whatsapp: '+93 70 456 7890',
+        whatsappHref: 'https://wa.me/93704567890',
     },
     {
         id: 'ahmad-popal',
@@ -264,6 +303,9 @@ export const teamMembers: readonly TeamMember[] = [
         image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
         bio: 'Born in the Foladi valley, Ahmad has led treks around Band-e Amir for a decade and knows every highland family we stay with.',
         languages: ['Dari', 'Hazaragi', 'English'],
+        email: 'ahmad@journey-to-afghanistan.com',
+        whatsapp: '+93 79 567 8901',
+        whatsappHref: 'https://wa.me/93795678901',
     },
     {
         id: 'laila-sadat',
@@ -273,5 +315,8 @@ export const teamMembers: readonly TeamMember[] = [
         image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80',
         bio: 'Laila is the first voice most travellers hear. She answers inquiries, matches travellers to itineraries and follows up after every journey.',
         languages: ['Dari', 'English', 'Urdu'],
+        email: 'info@journey-to-afghanistan.com',
+        whatsapp: '+49 177 6687088',
+        whatsappHref: 'https://wa.me/491776687088',
     },
 ];

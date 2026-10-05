@@ -1,80 +1,20 @@
-import { Head } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { MessageSquareText } from 'lucide-react';
+import { useState } from 'react';
 
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader';
+import {
+    InquiryViewDialog,
+    type InquiryDetail,
+} from '@/components/admin/InquiryViewDialog';
 import {
     PremiumDataTable,
     type DataTableColumn,
 } from '@/components/admin/PremiumDataTable';
 import { withAdminLayout } from '@/layouts/withAdminLayout';
+import type { SharedPageProps } from '@/types/inertia';
 
-interface InquiryRow {
-    id: number;
-    name: string;
-    email: string;
-    tour: string;
-    status: 'New' | 'In review' | 'Awaiting reply' | 'Closed';
-    received: string;
-}
-
-const mockInquiries: InquiryRow[] = [
-    {
-        id: 1,
-        name: 'Sarah Mitchell',
-        email: 'sarah@example.com',
-        tour: 'Bamiyan Heritage Journey',
-        status: 'New',
-        received: '2 hours ago',
-    },
-    {
-        id: 2,
-        name: 'Omar Hassani',
-        email: 'omar@example.com',
-        tour: 'Kabul Cultural Weekend',
-        status: 'In review',
-        received: 'Yesterday',
-    },
-    {
-        id: 3,
-        name: 'Elena Petrova',
-        email: 'elena@example.com',
-        tour: 'Panjshir Valley Trek',
-        status: 'Awaiting reply',
-        received: '2 days ago',
-    },
-    {
-        id: 4,
-        name: 'Daniel Weber',
-        email: 'daniel@example.com',
-        tour: 'Herat Art and Heritage',
-        status: 'New',
-        received: '3 days ago',
-    },
-    {
-        id: 5,
-        name: 'Amina Rahimi',
-        email: 'amina@example.com',
-        tour: 'Mazar and Balkh Discovery',
-        status: 'Closed',
-        received: '4 days ago',
-    },
-    {
-        id: 6,
-        name: 'Thomas Lee',
-        email: 'thomas@example.com',
-        tour: 'Wakhan Explorer',
-        status: 'In review',
-        received: '5 days ago',
-    },
-    {
-        id: 7,
-        name: 'Nadia Collins',
-        email: 'nadia@example.com',
-        tour: 'Kabul Cultural Weekend',
-        status: 'Awaiting reply',
-        received: '1 week ago',
-    },
-];
+type InquiryRow = InquiryDetail;
 
 const statusStyles: Record<InquiryRow['status'], string> = {
     New: 'bg-accent/15 text-accent',
@@ -96,7 +36,8 @@ const columns: DataTableColumn<InquiryRow>[] = [
         ),
     },
     { id: 'email', header: 'Email', accessor: (row) => row.email },
-    { id: 'tour', header: 'Tour', accessor: (row) => row.tour },
+    { id: 'tour', header: 'Subject', accessor: (row) => row.tour },
+    { id: 'source', header: 'Source', accessor: (row) => row.source },
     {
         id: 'status',
         header: 'Status',
@@ -112,12 +53,34 @@ const columns: DataTableColumn<InquiryRow>[] = [
     { id: 'received', header: 'Received', accessor: (row) => row.received },
 ];
 
+interface InquiriesPageProps extends SharedPageProps {
+    inquiries: InquiryRow[];
+}
+
 export default function Inquiries() {
+    const { inquiries = [], flash } = usePage<InquiriesPageProps>().props;
+    const [viewingInquiry, setViewingInquiry] = useState<InquiryRow | null>(null);
+
+    const handleDeleteInquiry = (row: InquiryRow) => {
+        router.delete(`/admin/inquiries/${row.id}`, {
+            preserveScroll: true,
+        });
+    };
+
     return (
         <>
             <Head title="Inquiries" />
 
             <div className="space-y-4">
+                {flash.success ? (
+                    <div
+                        role="status"
+                        className="rounded-xl border border-secondary/20 bg-secondary/10 px-4 py-3 text-sm text-secondary"
+                    >
+                        {flash.success}
+                    </div>
+                ) : null}
+
                 <AdminSectionHeader
                     eyebrow="Public website"
                     title="Inquiries"
@@ -127,14 +90,22 @@ export default function Inquiries() {
 
                 <PremiumDataTable
                     title="Recent inquiries"
-                    description="Sample records for the UX phase. Live inquiry intake will connect here later."
-                    data={mockInquiries}
+                    description="Messages from the contact form and tour inquiry requests, newest first."
+                    data={inquiries}
                     columns={columns}
                     rowKey={(row) => row.id}
                     selectionLabel={(row) => row.name}
                     initialPageSize={5}
+                    onView={(row) => setViewingInquiry(row)}
+                    onDelete={handleDeleteInquiry}
                 />
             </div>
+
+            <InquiryViewDialog
+                open={viewingInquiry !== null}
+                inquiry={viewingInquiry}
+                onClose={() => setViewingInquiry(null)}
+            />
         </>
     );
 }

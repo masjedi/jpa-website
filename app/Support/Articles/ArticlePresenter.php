@@ -39,6 +39,21 @@ class ArticlePresenter
     }
 
     /**
+     * @return list<array<string, mixed>>
+     */
+    public static function forPublicHomePreview(int $limit = 3): array
+    {
+        return Article::query()
+            ->published()
+            ->latestFirst()
+            ->limit($limit)
+            ->get()
+            ->map(fn (Article $article): array => self::publicCardPayload($article))
+            ->values()
+            ->all();
+    }
+
+    /**
      * @return array{
      *     article: array<string, mixed>,
      *     relatedArticles: list<array<string, mixed>>,

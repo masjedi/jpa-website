@@ -9,6 +9,17 @@ export interface TeamMember {
     bio: string;
     languages: readonly string[];
     isFounder?: boolean;
+    email: string;
+    whatsapp: string;
+    whatsappHref: string;
+}
+
+export interface AboutJourneyStep {
+    title: string;
+    description: string;
+    image: string;
+    imageAlt: string;
+    icon: LucideIcon;
 }
 
 export interface AboutMilestone {
@@ -48,12 +59,5 @@ export interface AboutWhatWeDoItem {
 export interface AboutWhyChooseItem {
     title: string;
     description: string;
-    image: string;
-    imageAlt: string;
-}
-
-export interface AboutPartner {
-    name: string;
-    category: string;
-    description: string;
+    icon: LucideIcon;
 }

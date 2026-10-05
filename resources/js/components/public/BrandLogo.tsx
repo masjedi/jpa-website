@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 
-import { BRAND_LOGO, BRAND_NAME } from '@/components/public/brand';
+import { useSiteSettings } from '@/hooks/use-site-settings';
 import { cn } from '@/lib/utils';
 
 export type BrandLogoVariant = 'horizontal-white' | 'horizontal-color';
@@ -13,26 +13,6 @@ interface BrandLogoProps {
     onClick?: () => void;
 }
 
-const variantConfig: Record<
-    BrandLogoVariant,
-    { src: string; alt: string; defaultImageClass: string; width: number; height: number }
-> = {
-    'horizontal-white': {
-        src: BRAND_LOGO.white,
-        alt: BRAND_NAME,
-        defaultImageClass: 'h-8 w-auto sm:h-9',
-        width: 300,
-        height: 70,
-    },
-    'horizontal-color': {
-        src: BRAND_LOGO.color,
-        alt: BRAND_NAME,
-        defaultImageClass: 'h-8 w-auto sm:h-9',
-        width: 300,
-        height: 70,
-    },
-};
-
 export function BrandLogo({
     variant = 'horizontal-white',
     className,
@@ -40,7 +20,9 @@ export function BrandLogo({
     href = '/',
     onClick,
 }: BrandLogoProps) {
-    const config = variantConfig[variant];
+    const settings = useSiteSettings();
+    const isWhite = variant === 'horizontal-white';
+    const src = isWhite ? settings.logoWhite : settings.logoColor;
 
     return (
         <Link
@@ -52,13 +34,12 @@ export function BrandLogo({
             )}
         >
             <img
-                src={config.src}
-                alt={config.alt}
-                width={config.width}
-                height={config.height}
+                src={src}
+                alt={settings.brandName}
+                width={300}
+                height={70}
                 className={cn(
-                    config.defaultImageClass,
-                    'object-contain object-left',
+                    'h-8 w-auto object-contain object-left sm:h-9',
                     imageClassName,
                 )}
                 decoding="async"

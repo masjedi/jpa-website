@@ -62,7 +62,6 @@ export function CommunityImpactSection() {
                     <div className="mt-6">
                         <Link
                             href="/about"
-                            prefetch="hover"
                             className="inline-flex items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-medium text-secondary-foreground transition-colors hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                         >
                             Our story &amp; values

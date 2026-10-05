@@ -3,6 +3,18 @@ export interface PublicNavLink {
     href: string;
 }
 
+export interface PublicNavDropdown {
+    label: string;
+    href: string;
+    children: readonly PublicNavLink[];
+}
+
+export type PrimaryNavItem = PublicNavLink | PublicNavDropdown;
+
+export function isNavDropdown(item: PrimaryNavItem): item is PublicNavDropdown {
+    return 'children' in item;
+}
+
 export const primaryLinks = [
     { label: 'Home', href: '/' },
     { label: 'Tours', href: '/tours' },
@@ -10,9 +22,16 @@ export const primaryLinks = [
     { label: 'Services', href: '/services' },
     { label: 'Articles', href: '/articles' },
     { label: 'Gallery', href: '/gallery' },
-    { label: 'About', href: '/about' },
+    {
+        label: 'About',
+        href: '/about',
+        children: [
+            { label: 'About', href: '/about' },
+            { label: 'Our Team', href: '/about/team' },
+        ],
+    },
     { label: 'Contact', href: '/contact' },
-] as const satisfies readonly PublicNavLink[];
+] as const satisfies readonly PrimaryNavItem[];
 
 export const exploreLinks = [
     { label: 'Home', href: '/' },
@@ -23,6 +42,7 @@ export const exploreLinks = [
 
 export const companyLinks = [
     { label: 'About', href: '/about' },
+    { label: 'Our Team', href: '/about/team' },
     { label: 'Services', href: '/services' },
     { label: 'Articles', href: '/articles' },
     { label: 'Contact', href: '/contact' },

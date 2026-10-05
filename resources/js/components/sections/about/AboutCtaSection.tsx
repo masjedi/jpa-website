@@ -39,15 +39,13 @@ export function AboutCtaSection() {
                     <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                         <Link
                             href={planTripHref}
-                            prefetch="hover"
                             className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-7 py-3 text-sm font-semibold text-accent-foreground transition-transform hover:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                         >
                             <MessageCircle className="size-4" aria-hidden />
-                            Plan my trip
+                            Book Now
                         </Link>
                         <Link
                             href="/tours"
-                            prefetch="hover"
                             className="inline-flex items-center justify-center gap-1.5 rounded-full border border-brand-on-surface/25 px-7 py-3 text-sm font-medium text-brand-on-surface transition-colors hover:bg-brand-on-surface/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                         >
                             Browse tours

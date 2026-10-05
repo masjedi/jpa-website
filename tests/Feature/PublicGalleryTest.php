@@ -51,8 +51,10 @@ class PublicGalleryTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('public/Home')
-                ->has('galleryPreview', 1)
-                ->where('galleryPreview.0.caption', 'Home preview photo'));
+                ->missing('galleryPreview')
+                ->loadDeferredProps(fn ($page) => $page
+                    ->has('galleryPreview', 1)
+                    ->where('galleryPreview.0.caption', 'Home preview photo')));
     }
 
     /**

@@ -1,5 +1,3 @@
-import { CheckCircle2 } from 'lucide-react';
-
 import { FadeIn } from '@/components/motion/FadeIn';
 import { aboutWhyChooseUs } from '@/data/aboutData';
 
@@ -29,47 +27,34 @@ export function AboutWhyChooseUsSection() {
                     </div>
                 </FadeIn>
 
-                <div className="mt-12 space-y-16 sm:space-y-20">
+                <div className="mt-10 grid gap-5 sm:grid-cols-2">
                     {aboutWhyChooseUs.map((item, index) => {
-                        const reversed = index % 2 === 1;
+                        const Icon = item.icon;
 
                         return (
-                            <div
-                                key={item.title}
-                                className={`grid items-center gap-8 lg:grid-cols-2 lg:gap-14 ${
-                                    reversed ? 'lg:[&>*:first-child]:order-2' : ''
-                                }`}
-                            >
-                                <FadeIn delay={0.04}>
-                                    <div className="relative overflow-hidden rounded-3xl bg-surface-muted shadow-sm">
-                                        <img
-                                            src={item.image}
-                                            alt={item.imageAlt}
-                                            className="aspect-[4/3] size-full object-cover"
-                                            loading="lazy"
-                                        />
-                                        <div
+                            <FadeIn key={item.title} delay={index * 0.05}>
+                                <article className="group flex h-full items-start gap-5 rounded-2xl border border-border bg-surface p-6 text-start shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-secondary/30 hover:shadow-md">
+                                    <div className="relative shrink-0">
+                                        <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-secondary/10 group-hover:text-secondary">
+                                            <Icon className="size-7" aria-hidden />
+                                        </div>
+                                        <span
                                             aria-hidden
-                                            className="absolute inset-0 bg-gradient-to-t from-brand-surface/20 to-transparent"
-                                        />
-                                    </div>
-                                </FadeIn>
-
-                                <FadeIn delay={0.08}>
-                                    <article className="text-start">
-                                        <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
-                                            <CheckCircle2 className="size-4" aria-hidden />
+                                            className="font-heading absolute -bottom-1.5 -end-1.5 flex size-6 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-accent-foreground"
+                                        >
                                             {String(index + 1).padStart(2, '0')}
                                         </span>
-                                        <h3 className="font-heading mt-3 text-xl font-semibold text-foreground sm:text-2xl">
+                                    </div>
+                                    <div>
+                                        <h3 className="font-heading text-base font-semibold text-foreground sm:text-lg">
                                             {item.title}
                                         </h3>
-                                        <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+                                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                                             {item.description}
                                         </p>
-                                    </article>
-                                </FadeIn>
-                            </div>
+                                    </div>
+                                </article>
+                            </FadeIn>
                         );
                     })}
                 </div>

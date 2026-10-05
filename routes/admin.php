@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminFeedController;
 use App\Http\Controllers\Admin\ArticlesController;
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -51,10 +52,21 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         Route::patch('articles/{article}', [ArticlesController::class, 'update'])->name('articles.update');
         Route::delete('articles/{article}', [ArticlesController::class, 'destroy'])->name('articles.destroy');
         Route::get('faq', [FaqController::class, 'index'])->name('faq.index');
+        Route::post('faq', [FaqController::class, 'store'])->name('faq.store');
+        Route::patch('faq/{faqItem}', [FaqController::class, 'update'])->name('faq.update');
+        Route::delete('faq/{faqItem}', [FaqController::class, 'destroy'])->name('faq.destroy');
         Route::get('subscriptions', [SubscriptionsController::class, 'index'])->name('subscriptions.index');
+        Route::delete('subscriptions/{newsletterSubscription}', [SubscriptionsController::class, 'destroy'])->name('subscriptions.destroy');
+        Route::post('feed/notifications/read', [AdminFeedController::class, 'markNotificationsRead'])->name('feed.notifications.read');
+        Route::post('feed/messages/read', [AdminFeedController::class, 'markMessagesRead'])->name('feed.messages.read');
         Route::get('inquiries', [InquiriesController::class, 'index'])->name('inquiries.index');
+        Route::delete('inquiries/{inquiry}', [InquiriesController::class, 'destroy'])->name('inquiries.destroy');
         Route::get('invoices', [InvoicesController::class, 'index'])->name('invoices.index');
+        Route::post('invoices', [InvoicesController::class, 'store'])->name('invoices.store');
+        Route::patch('invoices/{invoice}', [InvoicesController::class, 'update'])->name('invoices.update');
+        Route::delete('invoices/{invoice}', [InvoicesController::class, 'destroy'])->name('invoices.destroy');
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
+        Route::patch('settings', [SettingsController::class, 'update'])->name('settings.update');
         Route::get('media/{profile}/{id}', [ProtectedMediaController::class, 'show'])
             ->where('profile', '[a-z_]+')
             ->whereUuid('id')

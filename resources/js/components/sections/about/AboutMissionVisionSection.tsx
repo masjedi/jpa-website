@@ -23,13 +23,13 @@ export function AboutMissionVisionSection() {
                 <FadeIn>
                     <div className="max-w-2xl text-start">
                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-on-surface/60">
-                            Purpose
+                            JPA
                         </p>
                         <h2
                             id="mission-vision-heading"
                             className="font-heading mt-2 text-2xl font-semibold tracking-tight sm:text-3xl"
                         >
-                            Mission &amp; vision
+                            Our Mission &amp; Vision
                         </h2>
                     </div>
                 </FadeIn>

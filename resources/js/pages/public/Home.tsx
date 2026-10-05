@@ -1,22 +1,37 @@
 import { setLayoutProps, usePage } from '@inertiajs/react';
 
-import { BRAND_NAME } from '@/components/public/brand';
 import { PageMeta } from '@/components/public/PageMeta';
 import { HomeLanding } from '@/components/sections/home/HomeLanding';
 import { PublicLayout } from '@/layouts/PublicLayout';
+import type { ArticleListItem } from '@/types/articles';
+import type { Destination } from '@/types/destinations';
 import type { GalleryPhoto } from '@/types/gallery';
 import type { PublicHeroSection } from '@/types/heroSection';
+import type { PublicFaqItem } from '@/types/faq';
 import type { SharedPageProps } from '@/types/inertia';
+import type { Tour } from '@/types/tours';
 
 interface HomePageProps extends SharedPageProps {
     hero: PublicHeroSection;
+    featuredTours?: Tour[];
+    featuredDestinations?: Destination[];
     galleryPreview?: GalleryPhoto[];
+    latestArticles?: ArticleListItem[];
+    faqItems?: PublicFaqItem[];
 }
 
 export default function Home() {
     setLayoutProps({ transparentHeader: true });
 
-    const { hero, galleryPreview = [] } = usePage<HomePageProps>().props;
+    const {
+        hero,
+        featuredTours,
+        featuredDestinations,
+        galleryPreview,
+        latestArticles,
+        faqItems,
+        appName,
+    } = usePage<HomePageProps>().props;
     const leadSlide = hero.slides[0];
     const description =
         leadSlide?.subtitle?.trim() ||
@@ -24,11 +39,15 @@ export default function Home() {
 
     return (
         <>
-            <PageMeta title={BRAND_NAME} description={description} />
+            <PageMeta title={appName} description={description} />
             <HomeLanding
                 key={`hero-${hero.eyebrow}-${hero.slides.map((slide) => slide.id).join('-')}`}
                 hero={hero}
+                featuredTours={featuredTours}
+                featuredDestinations={featuredDestinations}
                 galleryPreview={galleryPreview}
+                latestArticles={latestArticles}
+                faqItems={faqItems}
             />
         </>
     );

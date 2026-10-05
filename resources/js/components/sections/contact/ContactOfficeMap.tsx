@@ -1,13 +1,11 @@
 import { ArrowUpRight, MapPin } from 'lucide-react';
 
-import {
-    OFFICE_LOCATION,
-    OFFICE_MAPS_EMBED_SRC,
-    OFFICE_MAPS_HREF,
-} from '@/components/public/brand';
 import { FadeIn } from '@/components/motion/FadeIn';
+import { useSiteSettings } from '@/hooks/use-site-settings';
 
 export function ContactOfficeMap() {
+    const { officeLocation, officeMapsHref, officeMapsEmbedSrc } = useSiteSettings();
+
     return (
         <FadeIn className="mt-10 sm:mt-12" y={20} duration={0.55}>
             <section aria-labelledby="contact-map-heading" className="text-start">
@@ -24,11 +22,11 @@ export function ContactOfficeMap() {
                         </h2>
                         <p className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
                             <MapPin className="mt-0.5 size-4 shrink-0 text-secondary" aria-hidden />
-                            {OFFICE_LOCATION}
+                            {officeLocation}
                         </p>
                     </div>
                     <a
-                        href={OFFICE_MAPS_HREF}
+                        href={officeMapsHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 text-sm font-medium text-secondary transition-colors hover:text-secondary/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
@@ -40,8 +38,8 @@ export function ContactOfficeMap() {
 
                 <div className="relative mt-5 aspect-[16/10] overflow-hidden rounded-2xl border border-border bg-muted shadow-sm sm:aspect-[21/9]">
                     <iframe
-                        title={`Google Maps — ${OFFICE_LOCATION}`}
-                        src={OFFICE_MAPS_EMBED_SRC}
+                        title={`Google Maps — ${officeLocation}`}
+                        src={officeMapsEmbedSrc}
                         className="absolute inset-0 h-full w-full border-0"
                         loading="lazy"
                         allowFullScreen
